@@ -1,0 +1,6 @@
+# ephemeral-agents-v2
+*.env
+*.pem
+app-key*
+m3.env
+deploy/*/evidence/
