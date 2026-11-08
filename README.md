@@ -21,7 +21,7 @@ ephemeral single-task workers, scoped credentials, institutional memory).
 "latest." The V1 baseline this iteration starts from:
 
 ```
-V1 record: arvisdev/ephemeral-agents @ 3c2b72335be0cf258ca977435c9f52f9f1dc634c
+V1 record: arvisdev/ephemeral-agents @ 4de7a06e69f2dd8163b7b9621950147b438425f3
 ```
 
 The V1 design record is closed to new content (its own baseline rule);

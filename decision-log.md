@@ -37,3 +37,19 @@ Chapter 12); this log starts at the V2 kickoff.
   V1 fixes are backported here (and vice versa per the established
   convention); the reference hash above is re-cited, never "latest."
 - First milestone unchanged: the Chief-of-Staff Hermes agent (see README).
+
+## 2026-11-08 — V1 history rewrite; reference hash rotated
+
+- The V1 public repo purged `POC-IP-Addresses.txt` (the estate IP inventory)
+  from its entire git history (git-filter-repo, force-pushed): the owner
+  ruled no IP addresses may be retrievable from any downloadable artifact,
+  and history counts. All V1 commit hashes changed as a result.
+- Reference hash rotated: the V1 baseline this repo cites is now
+  `4de7a06` (the rewritten equivalent of the previously cited `3c2b723`).
+  The synced `book/` and `deploy/` trees are content-identical to the
+  previously synced state — only V1's `version 1/` documents (not carried
+  here) changed in the same sweep (private llm-wiki URL references
+  replaced with non-linking placeholders because the private repo 404s for
+  public visitors).
+- Note: previously cited hashes (`14bf62d`, `3c2b723`) no longer resolve on
+  the V1 remote; this log retains them deliberately as historical markers.
