@@ -61,6 +61,37 @@ Carried forward unchanged (proven in V1, see the V1 book):
 └── decision-log.md     V2 decision log (append-only)
 ```
 
+
+## First milestone — the Chief-of-Staff agent (the agent-judgment layer)
+
+**The Hermes Chief-of-Staff agent does not exist in V1 and was never claimed
+to.** V1's public record states this explicitly: its front-of-house is
+deterministic Go only (gateway + manager with keyword matching), and the
+agent-judgment layer is *designed* (V1 book, Chapter 10) but unbuilt.
+
+**V2's opening work item** is to design, build, gate, and deploy that layer
+here:
+
+- **What:** a persistent resident Hermes agent on the front-of-house VM,
+  loaded with the bus-org Chief-of-Staff persona — always-on, stateful
+  across requests, with session continuity (not the ephemeral
+  `eph-chief-of-staff` worker, whose one-package-then-exit contract is wrong
+  for an intake coordinator; that roster entry remains for principals
+  needing coordination artifacts).
+- **Where it sits:** between the unchanged V1-proven gateway and manager:
+  `desktop conversation → gateway → Chief-of-Staff → manager (validates
+  every proposal against the roster index) → queue → ephemeral executor →
+  report`. The principle is unchanged: **the agent proposes, the code
+  disposes.**
+- **What it needs:** no new VM and no new credentials class — the CoS
+  submits through the existing gateway API and is bound by the same
+  validation the manager applies to every package. The first design task is
+  the desktop ↔ CoS connection procedure (network path, authentication, the
+  handoff and the results flowing back).
+- **Gate rule carried forward:** nothing lands here ungated. The CoS gets
+  its own milestone, test procedure, and signed evidence before it is
+  considered real.
+
 ## Deliberately not in git
 
 Secrets (`*.env`, app keys, tokens), evidence runs (`deploy/*/evidence/`).
