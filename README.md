@@ -1,5 +1,10 @@
 # ephemeral-agents-v2
 
+**Authorship & provenance:** see [AUTHORSHIP.md](AUTHORSHIP.md) — the
+concept, designs, and specifications are the author's original work
+(conceived May 13, 2026); AI served as directed research assistant, document
+creator, and rules-bound implementer.
+
 **Version 2 — the live iteration** of the ephemeral-agents system
 (an organization of AI agents: durable orchestration, a role roster,
 ephemeral single-task workers, scoped credentials, institutional memory).
