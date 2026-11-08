@@ -21,7 +21,7 @@ ephemeral single-task workers, scoped credentials, institutional memory).
 "latest." The V1 baseline this iteration starts from:
 
 ```
-V1 record: arvisdev/ephemeral-agents @ 14bf62dc81729ed0ece355c30b5b6888d4fbf058
+V1 record: arvisdev/ephemeral-agents @ 3c2b72335be0cf258ca977435c9f52f9f1dc634c
 ```
 
 The V1 design record is closed to new content (its own baseline rule);
@@ -54,6 +54,10 @@ Carried forward unchanged (proven in V1, see the V1 book):
 ## Layout
 
 ```
+├── book/               The V1 record's book, synced at the baseline hash (15 chapters incl. the Evaluator's Guide) - V2 extends or supersedes, never silently rewrites
+├── deploy/             The V1-proven executable layer, synced at the baseline hash (idempotent install scripts, compose files, restart-stack.sh) - V2's live deploy layer evolves from here
+├── Initial-POC-Findings-Report.md   The signed V1 evidence record (de-identified)
+├── POC-Retrospective-and-Insights.md The V1 lessons digest
 ├── version 2/          V2 design docs (this iteration's doc set)
 ├── schemas/            contracts (seeded from V1; evolves here)
 ├── deploy/             the live executable layer (built up as milestones land)

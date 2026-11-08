@@ -1,0 +1,30 @@
+# M0 — Temporal + its Postgres on vm-xb
+# Source: version 1/installation-deployment/M0-Chassis-Installation-and-Deployment.md §4
+# This Postgres belongs to Temporal only — vm-hindsight gets its own in M4. Do not share instances.
+services:
+  temporal:
+    image: "temporalio/auto-setup:1.27.0"    # pin; auto-setup runs the schema init the bare server image lacks
+    ports: ["7233:7233"]                     # fixed host port — VM-local CLI + Go SDK smoke target <execution-host>:7233
+    environment:
+      BIND_ON_IP: "0.0.0.0"                  # bind all interfaces; the auto-setup template's bind var is BIND_ON_IP (default 127.0.0.1)
+      DB: postgres12
+      DB_PORT: "5432"
+      POSTGRES_USER: temporal
+      POSTGRES_PWD: ${TEMPORAL_DB_PASS}
+      POSTGRES_SEEDS: postgres
+    depends_on: [postgres]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/7233'"]  # server image ships no temporal CLI
+      interval: 15s
+  postgres:
+    image: "postgres:16"                     # pin
+    environment:
+      POSTGRES_DB: temporal
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: ${TEMPORAL_DB_PASS}
+    volumes: ["temporal-pg-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 10s
+volumes:
+  temporal-pg-data: {}

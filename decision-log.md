@@ -21,3 +21,19 @@ Chapter 12); this log starts at the V2 kickoff.
   cleaner).
 - **V1 baseline cited:** `arvisdev/ephemeral-agents @
   14bf62dc81729ed0ece355c30b5b6888d4fbf058`.
+
+## 2026-11-08 — Baseline sync from the V1 record
+
+- Synced the V1 record at `3c2b723` into this repo: the book (15 chapters,
+  including the Evaluator's Guide and the reboot/restart lessons), the full
+  executable layer (`deploy/`: idempotent install scripts, parameterized
+  compose files, `deploy/restart-stack.sh`, operational notes in
+  `deploy/README.md`), the license set, and the de-identified record
+  documents (findings report, retrospective).
+- All synced content carries V1's de-identification sweep: no IP addresses,
+  usernames, passwords, or API keys in any tracked file; configuration values
+  are env-driven (gitignored env files supply them at deploy time).
+- Standing rule adopted: V2 begins from a synced baseline and stays synced —
+  V1 fixes are backported here (and vice versa per the established
+  convention); the reference hash above is re-cited, never "latest."
+- First milestone unchanged: the Chief-of-Staff Hermes agent (see README).
