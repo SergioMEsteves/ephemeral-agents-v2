@@ -4,3 +4,9 @@
 app-key*
 m3.env
 deploy/*/evidence/
+
+# compiled Go binaries (build artifacts - never commit)
+go-sdk-smoke
+services/**/gateway
+services/**/manager
+services/**/adapter
