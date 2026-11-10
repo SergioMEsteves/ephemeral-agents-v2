@@ -123,3 +123,19 @@ unnecessary. Decisions recorded in the rewritten
 - Design doc updated: new §8 (Executor harness policy), §9 (VM-Xb
   carryover), OQ4 added; model specification & configurables recorded as a
   deferred topic.
+
+## 2026-11-09 (third update) — repo manifest; concurrency resolution
+
+- **Single-repo-per-project is the default convention; multi-repo is
+  declared, not assumed** (owner): a per-project manifest (config file in
+  the project repo) declares the repo layout; the CoS reads it, the manager
+  validates `repo_target` against it. New design §10.
+- **V1 open item 1 (multi-flow concurrency) resolved** (design §11):
+  worktrees rejected as unnecessary in the ephemeral model; M1 keeps
+  same-repo coder tasks sequential via the CoS backlog (cross-agent-type /
+  cross-repo parallelism already live); safe parallelism arrives later via
+  an optional file-scope declaration with deterministic manager exclusion
+  (omitted scope = exclusive — safe by default).
+- Open questions OQ5 list extended: model specification & configurables
+  (deferred topic, likely manifest-hosted) and secure key management
+  (deferred at the owner's request; D-secret-vault baseline).

@@ -58,6 +58,11 @@ proposes, the code disposes** — the manager validates every proposal.
    third-harness criteria in design §8); VM-Xb carries over unchanged for
    the V2 test run (design §9); V2 gets its own demo repo. Model
    specification & configurables = deferred topic.
+- **2026-11-09 (third):** single-repo-per-project default convention with
+   per-project manifest (design §10); multi-flow concurrency resolved —
+   worktrees rejected, M1 sequential same-repo, later scope-declaration
+   milestone (design §11). Deferred topics queued: model specification &
+   configurables, secure key management.
 
 ### Next actions
 

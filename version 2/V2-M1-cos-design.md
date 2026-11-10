@@ -185,7 +185,71 @@ VM-Xb items only:
 Also a GitHub-side (not VM) item: V2 gets its own demo target repo
 (e.g. `ephemeral-v2-demo`) rather than reusing `ephemeral-poc-demo`.
 
-## 10. Open questions (from the 2026-11-09 discussion)
+## 10. Repo layout & project manifest (config-as-declaration)
+
+**Decision (owner, 2026-11-09):** single-repo-per-project is the **default
+convention**; multi-repo is supported by declaration, not assumption. The
+mechanism is a **project manifest** — a small config file living in the
+project repo itself (the source of truth, D4):
+
+```yaml
+# project.yaml (illustrative shape, at repo root)
+project: my-project
+repos:
+  - name: core
+    url: github.com/arvisdev/my-project
+    role: primary
+  - name: docs
+    url: github.com/arvisdev/my-project-docs
+    role: docs
+```
+
+Rules:
+
+- **Single repo** = manifest with one entry (or manifest absent → the
+  primary-repo convention applies). Safe default.
+- **Multi-repo** = explicit declaration. No pipeline change: message-v1
+  already carries `repo_target` per task, so the CoS picks the repo from
+  the manifest when decomposing.
+- **CoS reads it; manager validates it:** a submitted package's
+  `repo_target` must exist in the manifest — a nonexistent repo is
+  rejected deterministically (same pattern as the priority field).
+- The manifest is the natural home for the concurrency scope rules (§11)
+  and, later, other per-project configurables (model pinning, TTL
+  defaults, executor field) — one config surface the CoS reads and the
+  manager validates.
+- Changing the layout is a commit: versioned, reviewable, in history.
+
+## 11. Multi-flow concurrency (resolves V1 open item 1)
+
+V1 decided one-coder-per-task (dedicated `task/<task_id>` branch) with
+sequential same-repo execution, proven by TC-M3-07. Resolution of the
+"N-parallel + worktrees" open item:
+
+- **Worktrees rejected** — they solve a one-agent-many-checkouts problem
+  that does not exist here: every ephemeral coder is its own container with
+  a fresh clone, so N parallel containers already provide worktree-grade
+  isolation (separate filesystems, separate credentials, zero survivors).
+- **Risk taxonomy for parallel coders on one repo:** (1) disjoint file
+  scope → safe to parallelize; (2) overlapping scope → pushes don't
+  conflict, merges do — parallelize only if rework is acceptable; (3)
+  semantic dependency → must be sequenced (CoS dependency graph, D9).
+- **Judgment vs enforcement:** the CoS decides which packages are
+  scope-disjoint and may run in parallel; deterministic enforcement arrives
+  as an optional **file-scope declaration** in the work package — the
+  manager refuses (or queues) a second task whose scope intersects an
+  in-flight task on the same repo. Omitted scope defaults to **exclusive**
+  (serialize same-repo tasks): safe by default, parallelism by declaration.
+- **Merges:** branch-per-task already yields PR-able branches; merging is
+  the github-operations-specialist's or the owner's job, with QA
+  verification. No new machinery.
+- **Sequencing:** M1 keeps same-repo coder tasks sequential (CoS backlog
+  orders them; parallelism across different agent types/repos is already
+  live and is the common case — zero VM-Xb touch, consistent with §9).
+  The scope-declaration + manager exclusion rule is a later, separately
+  gated milestone (one schema field, one manager check).
+
+## 12. Open questions (from the 2026-11-09 discussion)
 
 - **OQ1 — priority encoding:** scale (1–10 vs. high/normal/low) for the
   message-v1 `priority` field.
@@ -199,9 +263,12 @@ Also a GitHub-side (not VM) item: V2 gets its own demo target repo
   nothing but VM-Xa.
 - **Model specification & configurables:** per-agent model pinning, TTL
   defaults, and the executor field in index.json — separate upcoming design
-  topic.
+  topic (likely hosted in the §10 project manifest or a sibling file).
+- **Secure key management:** deferred at the owner's request (2026-11-09);
+  baseline = V1's D-secret-vault direction (vault on VM-Xa as the
+  credential-issuing authority).
 
-## 11. Rejected alternatives
+## 13. Rejected alternatives
 
 - **Bespoke CoS HTTP API on vm-xa (draft v1, Q1 answer of 2026-11-09
   morning)** — superseded by the native desktop gateway registry: Hermes
