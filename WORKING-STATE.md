@@ -5,7 +5,7 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-08*
+*Last updated: 2026-11-09 (design v2 + harness policy + VM-Xb carryover)*
 
 ## Current position
 
@@ -44,23 +44,27 @@ proposes, the code disposes** — the manager validates every proposal.
 5. V1 stays frozen; this milestone lives only here; its own TP + gates
    required before it counts (gate rule carried forward from V1)
 
-### Open questions (settle before/during design doc)
+### Open questions
 
-- **Q1 — desktop↔CoS connection:** recommended = authenticated HTTP API on
-  the front-of-house VM consumed by the desktop Hermes as a tool (fits the
-  estate's API pattern; desktop stays credential-free). Alternatives: MCP
-  server, SSH/CLI. AWAITING OWNER.
-- **Q2 — approval mode:** recommended = ask-before-submit (CoS proposes the
-  decomposition, owner approves, then it submits); autonomous later once
-  trusted. AWAITING OWNER.
+- **Q1 — desktop↔CoS connection:** REVISED 2026-11-09 → native Hermes
+  Desktop gateway registry (named remote connections, session-token auth);
+  the bespoke HTTP API of the morning draft is rejected.
+- **Q2 — approval mode:** ANSWERED 2026-11-09 → ask-before-submit.
+- **2026-11-09 design-v2 decisions D3–D11** (runtime shape, repo as source
+   of truth, desktop stateless, one CoS per project VM, management model,
+   priority field, parallelism, change management) — recorded in
+   `version 2/V2-M1-cos-design.md`; plus OQ1–OQ4 there.
+- **2026-11-09 (second):** harness set stays at two (claude-code + hermes;
+   third-harness criteria in design §8); VM-Xb carries over unchanged for
+   the V2 test run (design §9); V2 gets its own demo repo. Model
+   specification & configurables = deferred topic.
 
 ### Next actions
 
-1. Owner answers Q1/Q2 → write `version 2/V2-M1-cos-design.md` (connection
-   procedure, runtime shape, credential contract — one model key only, no
-   GitHub token, no queue access — conversation protocol, gate/TP plan,
-   rejected alternatives)
-2. Build: CoS container + compose on the front-of-house VM (restart:
+1. `version 2/V2-M1-cos-design.md` rewritten as DRAFT v2 — **owner review /
+   continue design discussion is the next gate**
+2. Build: VM-Xa Hermes Agent profile with the CoS persona, desktop gateway
+   registration, message-v1 `priority` extension (restart:
    unless-stopped, persona from roster repo, reboot-safe per ch14 §14.8)
 3. Gate: TP-V2-M1 — structural assertions (all proposed refs exist in
    index.json, manager validation passes, TTL policy, model-call failure

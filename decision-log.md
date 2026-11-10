@@ -53,3 +53,73 @@ Chapter 12); this log starts at the V2 kickoff.
   public visitors).
 - Note: previously cited hashes (`14bf62d`, `3c2b723`) no longer resolve on
   the V1 remote; this log retains them deliberately as historical markers.
+
+## 2026-11-09 — V2-M1 open questions settled; design doc drafted
+
+- **Q1 (desktop↔CoS connection):** authenticated HTTP API on the
+  front-of-house VM (vm-xa, :8090), consumed by the desktop Hermes as a
+  tool; desktop stays credential-free. Owner took the recommendation.
+- **Q2 (approval mode):** ask-before-submit — CoS proposes the
+  decomposition, owner approves, then it submits. Autonomous mode deferred
+  to a later, separately-gated change.
+- Design doc drafted: `version 2/V2-M1-cos-design.md` (API surface, runtime
+  shape, strict credential contract — one model key + gateway client only,
+  no GitHub token / queue access; conversation protocol with failure
+  behavior; TP-V2-M1 gate plan; rejected alternatives).
+- Next: owner reviews the draft, then build (CoS container + compose on
+  vm-xa) and the TP-V2-M1 gate.
+
+## 2026-11-09 (later) — V2-M1 design rethought: native gateway link; CoS management model
+
+The owner reopened the desktop↔VM-Xa design before review. Verified against
+the official Hermes docs (`user-guide/multi-connection-desktop`) that Hermes
+Desktop natively registers multiple named, always-connected remote gateway
+connections (session-token auth) — so draft v1's bespoke CoS HTTP API is
+unnecessary. Decisions recorded in the rewritten
+`version 2/V2-M1-cos-design.md` (DRAFT v2):
+
+- **Q1 reversed:** connection = native Hermes Desktop gateway registry; no
+  bespoke CoS HTTP API. Draft v1's API design moves to rejected
+  alternatives.
+- **D3** CoS = Hermes profile on the VM-Xa gateway (long-lived Hermes Agent
+  instance with the CoS persona), not a hand-rolled service.
+- **D4/D5** the project's source of truth is the git repo the VM-Xa agent
+  works from; the desktop holds no project state (it may upload files into
+  the session). "VM-Xa" now means any VM with a Hermes Agent deployed.
+- **D6** one project = one VM-Xa = one gateway = one resident CoS; desktop
+  registers N gateways; projects isolated by default.
+- **D7** CoS management model: best-fit agent selection from the roster;
+  own working backlog for ordering; change-request triage; escalate to the
+  owner with exact questions when judgment is insufficient.
+- **D8/D9** prioritization: CoS *declares* an optional `priority` field in
+  message-v1; manager validates and applies; RabbitMQ/Temporal enforce.
+  Parallelism: independent packages submitted concurrently (pipeline
+  already concurrent).
+- **D10** change management: no mid-flight interruption of ephemeral
+  agents; additive info held, corrective info becomes a follow-on revision
+  package after completion; true cancellation deferred to a later gated
+  milestone.
+- New open questions OQ1 (priority encoding), OQ2 (project naming UX),
+  OQ3 (VM-Xb worker capacity).
+- Note: the `priority` field is a deliberate, gated change to the
+  "manager unchanged" boundary (schema + pass-through); TP-V2-M1 gate
+  updated accordingly.
+
+## 2026-11-09 (second update) — harness policy; VM-Xb carryover
+
+- **Executor harness set stays at two** (owner): `poc/claude-coder` for
+  IT/code-artifact work, `poc/hermes-ephemeral` for everything else — the
+  roster's existing Image mapping, now recorded as design policy with its
+  rationale (IDE-vs-editor analogy), the harness≠model rule, and admission
+  criteria for any future third harness (bake-off on a fixed model; the
+  2026-11-09 evaluation named OpenCode the leading contender, Codex CLI
+  second; deferred, not built).
+- **VM-Xb carries over essentially unchanged** for the V2 test run: only
+  VM-Xa changes (CoS profile added beside the unchanged gateway/manager).
+  Conditional VM-Xb items only: queue `x-max-priority` redeclare if/when
+  the priority field lands (OQ4: with M1 vs. post-first-proof), and
+  optional worker-capacity tuning (OQ3). V2 gets its own demo repo
+  (e.g. `ephemeral-v2-demo`), a GitHub-side item.
+- Design doc updated: new §8 (Executor harness policy), §9 (VM-Xb
+  carryover), OQ4 added; model specification & configurables recorded as a
+  deferred topic.
