@@ -131,10 +131,12 @@ and the decision log. Status markers: **decided** (owner-approved, in scope),
 ## 6. Operations
 
 - **Reboot-surviving stack:** dependency-ordered restart baked into the
-  build artifacts — not a documented manual procedure. *(decided)*
+  build artifacts — not a documented manual procedure. *(decided — the
+  former umbrella-compose queue item is subsumed here)*
 - **Contract test suite:** reusable boundary tests (spawn-env, message
   schema, catalog shapes) built with or ahead of the first milestone —
-  including negative cases. *(decided)*
+  including negative cases; a named prerequisite artifact of the first
+  gate. *(decided — the former queue item is subsumed here)*
 - **File-level impact inventory:** every build/deploy/install file
   enumerated and mapped to the decision it serves before the first
   milestone runs; gates assert against it. *(decided)*

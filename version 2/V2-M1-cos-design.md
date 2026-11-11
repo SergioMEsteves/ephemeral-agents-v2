@@ -61,10 +61,14 @@ manager does not already enforce.
 - **Gateway untouched.** Manager changes are enumerated **per milestone**
   (corrected per the 2026-11-10 design review — the earlier "single
   deliberate change" claim was inaccurate): (M1) the `priority` field
-  validation + pass-through; (M1 or the manifest milestone) the
-  `repo_target`-vs-manifest check (§10); (later scope-declaration
-  milestone) the file-scope exclusion check (§11). Each is its own
-  individually gated change.
+  validation + pass-through; (M1) **approval-hash verification** — the
+  manager verifies the submitted `behavioral_spec` against the hash
+  pinned on the board card at proposal time, rejecting and surfacing a
+  mismatch (the review's prompt-injection control, verifier named per
+  the second pass); (M1 or the manifest milestone) the
+  `repo_target`-vs-manifest check (§10, gated with whichever milestone
+  carries it); (later scope-declaration milestone) the file-scope
+  exclusion check (§11). Each is its own individually gated change.
 
 ## 5. Credential contract (strict)
 
@@ -171,8 +175,12 @@ Structural assertions (all must PASS, strict gate rule):
 
 1. Every `agent_ref` the CoS can propose exists in the roster `index.json`.
 2. Manager validation passes end-to-end, **including the `priority` field
-   pass-through** (the M1 manager change per the §4 enumeration, gated
-   here).
+   pass-through and the approval-hash verification** (the M1 manager
+   changes per the §4 enumeration, gated here). *The priority clause is
+   conditional on OQ4* (same treatment as assertion 3): if the priority
+   field is deferred past the first end-to-end, its clause is marked
+   conditional/deferred with it — the hash-verification clause is not
+   OQ4-conditional.
 3. Priority + parallelism: two independent packages run concurrently; a
    higher-priority package is picked up ahead of a lower one. *(Conditional
    on OQ4: if the priority field is deferred past the first end-to-end,
@@ -196,13 +204,24 @@ Structural assertions (all must PASS, strict gate rule):
    "submitted" (or trigger a submission) except the approval flow — the
    gate asserts the board reflects, and never drives, queue state.
 10. **Approval-payload integrity** (per the review's prompt-injection
-    finding): the submitted behavioral_spec is hash-verified against the
-    exact text the owner approved — the CoS cannot mutate a proposal
-    between approval and submission.
+    finding; verifier named per the second pass): the submitted
+    behavioral_spec is **hash-verified by the manager** at submission
+    against the hash pinned on the board card at proposal time — the CoS
+    cannot mutate a proposal between approval and submission; a mismatch
+    is rejected and surfaced to the owner. *Honesty note (third pass):*
+    the pinned hash is CoS-written — correlation, not a trust anchor at
+    M1; the human approval loop remains the real control (accepted
+    residual of rung A/M1). A gateway-side approval registration that
+    would source the hash from the approval act itself is a later,
+    separately-gated change (the gateway is unchanged in M1).
 11. **Credential-contract capability check** (see §5): from inside the
     CoS context, a connection attempt to the broker and to the manager
-    port must FAIL (env-based access already covered negatively by
-    assertion 6; capability-based access is covered here).
+    port must FAIL — **conditional and deferred to the A+ gate** (third
+    pass, per the second-pass review): at M1/rung A the CoS shares VM-Xa
+    and the network with the gateway, so nothing enforces the failure
+    yet; §5's honesty note states this. The A+ milestone gate asserts
+    the capability check once the egress restriction exists. (Env-based
+    access is still asserted negatively by assertion 6 at M1.)
 12. **Desktop reconnection:** after the reboot of assertion 7, the
     desktop's registered remote gateway connection re-authenticates and
     resumes (or the limitation is explicitly scoped out with rationale).

@@ -149,10 +149,14 @@ proposes, the code disposes** — the manager validates every proposal.
 2. Build: VM-Xa Hermes Agent profile with the CoS persona, desktop gateway
    registration, message-v1 `priority` extension (restart:
    unless-stopped, persona from roster repo, reboot-safe per ch14 §14.8)
-3. Gate: TP-V2-M1 — structural assertions (all proposed refs exist in
-   index.json, manager validation passes, TTL policy, model-call failure
-   behavior, credential scope, reboot survival) + one end-to-end
-   (market-analysis example → packages → reports)
+3. Gate: TP-V2-M1 — **as amended** (see the M1 design doc §7): structural
+   assertions 1–12 including no-submit-without-approval, approval-payload
+   hash verification, board-is-not-the-door, credential env + (A+-deferred)
+   capability checks, OQ4-conditionals on the priority clauses, the
+   judgment corpus as a non-signed pre-gate eval — plus one end-to-end
+   (market-analysis example → packages → reports). Prerequisite
+   artifacts: the contract test suite and the file-level impact inventory
+   (platform §9.5/§9.6).
 4. Later V2 open items (from V1 decision log): concurrency beyond
    sequential, embeddings provider (zero-vector fallback today),
    reboot-surviving stack (restart policies / umbrella compose), contract

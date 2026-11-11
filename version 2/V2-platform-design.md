@@ -35,8 +35,9 @@ Rules:
   are stated once, as provenance ("carried forward from the V1 baseline @
   `4de7a06…`"), and thereafter referred to by their V2 names.
 - The runtime choice per project (docker vs. podman) joins the
-  configuration topic (§7 of `V2-M1-cos-design.md`) as a manifest-declared
-  field.
+  **configuration topic's agenda** — the per-project manifest surface
+  (M1 design §10); its field structure is undecided (the topic was reset
+  at owner direction) and will be declared when that topic closes.
 
 ## 2. Memory architecture — the pointer-store convention
 
@@ -212,7 +213,10 @@ present, not remembered:
    real issues) → unchanged in every V2 gate.
 8. **Pin + track upstream releases with exception expiry** (V1: §6
    trivy/bundled-dep story) → the dependency-refresh policy (queue
-   item 6) applies from the first V2 image build, not retroactively.
+   item 6) applies from the first V2 image build, not retroactively —
+   and under digest-pinned sourcing, a CVE refresh is an explicit
+   **digest bump + re-sign**, recorded so it isn't misread as breakage
+   (second-pass review).
 9. **The envelope is self-sufficient + entrypoint guards** (V1: truncated
    prompt bug; `$TASK_PROMPT` under `set -u`) → V2 executor entrypoints
    guard every env reference and hydrate the full contract (persona,
@@ -245,6 +249,13 @@ records the applications that live here.
 
 ### 9.1 Security controls pulled forward (not the deferred key vault)
 
+*Staging note (second-pass review): these controls create new secrets
+(registry basic-auth, llm-proxy tokens, Hindsight tokens) while the key
+vault is owner-deferred — each gated item below must name where its
+secrets are staged (gitignored env files, 0600) and their rotation
+expectation, so the deferral of the vault does not leave the new
+credentials homeless.*
+
 1. **Registry transport integrity (review critical):** the registry VM's
    `:5000` gets TLS (internal-CA cert) + basic auth, and executor images
    are pulled **by digest** (`ea/hermes-ephemeral@sha256:…`) with digest
@@ -252,18 +263,35 @@ records the applications that live here.
    integrity without transport integrity. Fallback if TLS is blocked:
    pre-stage images on VM-Xb and firewall the registry VM to lifecycle
    only. Small gated item at build start — not the deferred vault.
+   Includes (second-pass review): the **credential-distribution story**
+   for the registry basic-auth (who holds it, where staged — it is a new
+   secret and joins the staging note below) and a **retention/GC policy**
+   on the registry (keep-last-N per tag, disk alert) so digest-pinned +
+   no-pull sourcing doesn't become an unbounded disk-growth failure.
 2. **llm-proxy caller auth:** static per-consumer-class token (executors
    vs CoS), bind/allow-list restriction, per-token spend/rate cap, and
-   per-token usage logging.
-3. **Hindsight auth + reach restriction:** shared API token on `:8081`;
-   Postgres TLS or container-only bind; Proxmox-firewall restriction of
-   `:8081` to VM-Xa (CoS writes) and VM-Xb (executor reads); pointer
+   per-token usage logging — plus **per-task attribution** (the lifecycle
+   injects the task_id as a request header) with per-container rate caps,
+   so spend anomalies are attributable to a task, not just a class
+   (second-pass review). The CoS's LLM calls go through the llm-proxy
+   with the CoS-class token — the highest-spend actor is inside the cap
+   and logging perimeter.
+3. **Hindsight auth + reach restriction:** **token split** (second-pass
+   review decision) — a CoS-class **write** token and an executor-class
+   **read-only** token, so a compromised executor cannot poison the
+   memory pointers the CoS later reads as trusted context; Postgres TLS
+   or container-only bind; Proxmox-firewall restriction of `:8081` to
+   VM-Xa (CoS writes) and VM-Xb (executor-side reads); pointer
    provenance (writer task id) recorded per entry.
 4. **Dashboard compensating control (within the owner's LAN-open
    decision):** the worker verifies a publisher-identity/HMAC field so
    UI-published messages are distinguishable from manager-validated ones,
    and/or the UIs are bound to the owner's workstation interface — the
-   owner states which at build start.
+   owner states which at build start. *Change-surface note (second-pass
+   review):* the in-band HMAC option is an additive message-v1 field and
+   must land in the schema in the same gated change as the worker-side
+   verification (per §5's corrected rule); the interface-binding option
+   touches no schema.
 5. **GitHub App token custody (rung A):** token mounted as a 0600 tmpfs
    file rather than env where feasible; revocation-at-reap asserted even
    on abnormal exit; per-task-repo scope confirmed (project A's token
@@ -280,6 +308,17 @@ executor→broker publish path that would bypass the manager), and
 **(2) rootless runtime** (Podman/Docker-rootless — daemon-escape
 containment). The A+ milestone gate asserts **both**; a rootless swap
 alone does not pass. This supersedes the single-piece description in §6.
+
+**Memory hydration under A+ (decided, second-pass review):** the §9.2
+allow-list ("registry, llm-proxy, github.com only") conflicts with the
+V1 hydration contract (executors read Hindsight `:8081` at boot). The
+decision: **hydration moves spawn-side at A+** — the lifecycle
+pre-fetches the memory bundle (with the executor-class read-only token)
+and mounts it into the executor. The executor never needs memory-VM
+reach (stronger isolation, consistent with pointers-only); the CoS keeps
+its own restricted read/write path. The forwarder is also a **monitored
+single point of failure** — all in-flight executors stall if it dies;
+monitor it and document the degraded-mode behavior in the A+ runbook.
 
 ### 9.3 Capacity and observability (review majors)
 
@@ -324,7 +363,11 @@ mapped to the decision/condition it serves. Minimum coverage:
   configuration (TLS/auth), and lifecycle spawn path;
 - the schema (`schemas/message-v1.json`) and its validators;
 - hosts/env inventory files (gitignored) and the committed inventory
-  mapping.
+  mapping;
+- **the endpoint/flow table** (second-pass review): component → outbound
+  endpoints (name, port, auth) → why — for every component including the
+  CoS; it is the specification the A+ allow-list, the credential
+  capability assertion, and the L2 analysis all assert against.
 
 Each entry names: file → change → decision/finding it serves → which
 milestone/gate exercises it. This inventory is the artifact the rename
@@ -366,9 +409,13 @@ V2 reproduces the V1 process end-to-end, with V2's own record:
    do not survive renames; the x-max-priority redeclare happens once,
    under the final `ea-*` name).
 2. The rename is its own **micro-gate**: `grep -ri poc` over services/ +
-   compose returns only provenance citations; the V1 baseline test path
-   re-runs green under `ea` names; registry re-tag verified by **digest
-   equality** with the V1 images (rename without rebuild); one committed
-   V1-name → V2-name mapping table for evidence cross-referencing.
+   compose returns only provenance citations — the grep is scoped to the
+   V2-owned trees, **excluding** the baseline-synced `deploy/` evidence
+   tree and with a stated whitelist for the committed V1→V2 mapping
+   table (which itself contains `poc` strings by design); the V1
+   baseline test path re-runs green under `ea` names; registry re-tag
+   verified by **digest equality** with the V1 images (rename without
+   rebuild); one committed V1-name → V2-name mapping table for evidence
+   cross-referencing.
 3. Post-rename, the affected structural assertions re-run under `ea`
    names before any new feature lands.
