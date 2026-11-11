@@ -193,3 +193,157 @@ residuals of rung A/M1, and the watch-item for isolation rung B).
    next-actions and the subsumed queue items.
 
 Once these four are applied, the design is **ready to build**.
+
+---
+
+# Third Pass (2026-11-10, later) — post-D12 amended state
+
+*Same method: two independent expert panels (enterprise architecture +
+software engineering + testability; network engineering + security
+architecture + SRE) against the design set after the second-pass
+conditions were applied — D12 (kanban board as CoS state store), manager
+named as approval-hash verifier, assertion conditionals, Hindsight token
+split, spawn-side A+ hydration, doc-drift fixes.*
+
+## 1. Verdict: **READY-WITH-CONDITIONS** (narrowing)
+
+All second-pass closures verified; **D12 confirmed by both panels as the
+correct resolution** of the credential contradiction ("dissolved at the
+root rather than amended around it"). The amendments introduced a small
+number of new gaps, mostly mechanism-specification depth; convergence
+again on the two substantive ones. No owner-decided item reopened.
+
+## 2. Closure verification (pass-2 conditions)
+
+| Pass-2 condition | Status |
+|---|---|
+| 1. CoS credential contradiction (critical) | **Closed** — the board needs no new credential; the push-race finding dissolves (single local writer) |
+| 2. Assertion conditionals + hash verifier named | **Partial** — conditionals correct and consistent (2, 3, 11 share the same treatment pattern; a deferred-priority M1 gate is structurally passable); the verifier is named and enumerated, but the **hash transport is now the open piece** (§3.1) |
+| 3. A+ memory hydration + token split recorded | **Closed** — spawn-side hydration is the stronger option, recorded with its operational cost (forwarder SPOF monitoring, degraded-mode runbook) |
+| 4. Doc drift | **Partial** — the named items landed; the fixes introduced a few new drifts and some older drift persists (§3.5) |
+
+## 3. Findings (convergent where noted)
+
+**3.1 MAJOR (both panels) — the approval-hash mechanism has no honest
+transport, and the assertion text overclaims.** The manager has no read
+path into the CoS's board; the only M1-plausible transport is a hash
+field carried inside message-v1 itself — where the CoS supplies both the
+spec and its hash, making the check tautological against the exact
+mutation it exists to catch. §7.10's "the CoS cannot mutate a proposal"
+is false as written. **Fix:** state the mechanism honestly — hash as an
+additive message-v1 field per platform §5's rule; at M1 the manager's
+enforceable check is **retry integrity** (same `task_id` ⇒ identical
+spec hash across ambiguous-submit retries — a real, deterministic win)
+plus mismatch-reject-and-surface; reword §7.10 to tamper-**evidence**,
+not tamper-prevention (the human approval loop remains the control — the
+already-recorded accepted residual); define hash canonicalization; the
+mismatch test injects on the manager side. A gateway-side
+approval-registration that would source the hash from the approval act
+is the later, separately-gated enforcement change.
+
+**3.2 MAJOR (both panels) — the board's durability and fail-safe story is
+asserted, not specified.** The board is now the *sole* recovery source
+for approved-but-unsubmitted work, lives only on VM-Xa (the state.json
+option's offsite copy was traded away without naming the cost — and this
+brushes V1 lesson 7.1, "nothing load-bearing lives only on a VM"), and
+the pass-2 fail-safe principle ("unparseable state ⇒ fail safe to
+no-submit, surface to owner") was not carried over to the board.
+**Fix (one paragraph in §6.8):** board storage medium as a build-time
+verification item (durable host path/volume, like desktop visibility); a
+periodic backup/export target; board-unreadable-or-ambiguous-approval ⇒
+fail safe to no-submit and surface to the owner (never reconstruct
+optimistically); write-ahead ordering stated (approval recorded on the
+card *before* the submit attempt; "submitted" follows gateway
+acknowledgment); a forced-corruption case added to TP assertion 7.
+
+**3.3 MAJOR (network panel; the one genuinely new critical-class item) —
+§5's credential contract was not restated for the credentials the
+amendments themselves create.** The CoS now legitimately holds a
+Hindsight **write** token (§9.1.3/§2.4) and an **llm-proxy CoS-class
+token** (§9.1.2 — or, if "one model key" is meant to be proxied, that is
+never stated). §5 still says the CoS receives "exactly" three
+credentials, and assertion 6 asserts that set negatively — a conforming
+build would fail its own gate. Same never-reconciled-amendments failure
+mode as pass 2, one layer over. **Fix:** restate §5 as an enumerated
+allow-list (model key **via the llm-proxy CoS-class token**, gateway
+session token, gateway API credential, Hindsight write token, per-task
+board = no credential) and align assertion 6's negative list.
+
+**3.4 MAJOR — the judgment corpus is still not runnable** (carried from
+pass 2; it survived both passes because it sat outside the four
+conditions). No storage location, cardinality, fixture format, machine-
+checkable fields, scoring, threshold, or trigger mechanism. **Fix:**
+committed fixtures (agent_ref, priority class, DAG edges,
+additive/corrective label) + explicitly non-asserted judgmental
+remainder, location named, threshold defined — before TP-V2-M1 is
+signed.
+
+**3.5 Minor set (fix in the same doc pass):**
+- **Audit-trail provenance:** board history is CoS-shaped — it records
+  what the CoS *believes* happened, not what the manager accepted.
+  Demote the board to the intent/state audit trail; the enforcement-
+  relevant half requires the gateway/manager submit log — verify the
+  unchanged V1 gateway's actual logging against baseline code and cite
+  it, or enumerate the change (still uncited from pass 2).
+- **Board/queue reconciliation semantics:** the in-flight reflection
+  trigger is unnamed (does the gateway expose a status signal the CoS
+  polls?); add a periodic reconcile sweep (submitted task_ids vs gateway
+  truth, on boot and on demand); define terminal handling for
+  manager-rejected, voided, and TTL-failed cards (archived-with-status).
+- **TP board-inspection path:** assertion 9's board clause needs a
+  defined inspection mechanism (store read via the build inventory or a
+  CoS status verb); widen the build-time visibility item to board
+  history retention, timestamps, and cross-project isolation (a project's
+  board must not leak across N registered desktop connections).
+- **Attribution header is advisory only:** the executor controls its own
+  HTTP stack, so the task_id header can be spoofed — observability, not
+  identity; enforceable per-container caps key on token + container
+  identity with an aggregate per-token backstop.
+- **Spawn-side hydration residuals (A+):** name the re-verification items
+  the A+ gate touches (`M4_MEMORY_HYDRATE` semantics, entrypoint path,
+  the read-only token's new custodian — the lifecycle); state the
+  degraded-mode rule (Hindsight unreachable at spawn ⇒ fail the spawn or
+  spawn-without-hydration *logged* — never silent); the read-only token
+  joins §9.1's staging note. The executor's memory **write-back duty**
+  has no owning actor in the V2 model — add the CoS pointer-write step
+  to §6's results loop so "every task's learning is available at boot"
+  has an enumerated writer.
+- **Doc drift (new):** M1 §1 still says "the **unchanged** gateway and
+  manager" (false since D8 + hash verification); the CoS LLM path now
+  transits VM-Xb's llm-proxy — a new cross-VM dependency that must
+  appear in the §9.5 endpoint/flow table with the proxy's allow-list
+  admitting VM-Xa; WORKING-STATE next-action item 4 still lists the
+  subsumed umbrella-compose and contract-test items; WORKING-STATE's
+  "Last updated" header is stale; the feature list's least-privilege CoS
+  line should reflect the A+-deferred capability check; assertion 12's
+  pass artifact (the written scoping decision) still needs its clause;
+  the manifest-check milestone should be named in the open-items queue
+  so the deferral isn't orphaned.
+
+## 4. Strengths (both panels)
+
+1. D12 genuinely dissolves the credential contradiction by *removing*
+   the need rather than widening the contract; desk-never-door with the
+   gate assertion is the correct separation of judgment state from
+   execution truth.
+2. Assertion-conditioning discipline is now consistent and a
+   deferred-priority M1 gate is structurally passable.
+3. §7.10's honesty note is model candor — the design names its own
+   control's limits.
+4. Spawn-side hydration chosen for the right reason with its cost
+   attached; the token split closes the memory-poisoning channel cleanly.
+5. The endpoint/flow table turns an implicit assumption into a
+   gate-checkable artifact.
+
+## 5. Conditions before the build gate opens
+
+1. **Restate §5's credential allow-list** (§3.3) and align assertion 6.
+2. **Fix the hash mechanism** (§3.1): transport as message-v1 field,
+   retry-integrity check, tamper-evidence wording, canonicalization.
+3. **Board durability contract** (§3.2): storage verification item,
+   backup/export, fail-safe recovery, write-ahead ordering, corruption
+   case in TP 7.
+4. **Make the judgment corpus runnable** (§3.4).
+5. **Finish the drift pass** (§3.5).
+
+With these applied, the design is **ready to build**.

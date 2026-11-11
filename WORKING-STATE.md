@@ -141,6 +141,27 @@ proposes, the code disposes** — the manager validates every proposal.
   review conditions: (2) reconcile assertions 2/3/10/11 (name the
   approval-hash verifier, mark 11 conditional to A+), (3) record A+
   memory-hydration + Hindsight token-split choices, (4) doc drift.
+- **2026-11-10 (fifth): THIRD-PASS REVIEW performed** (report updated in
+  `version 2/V2-design-review-report.md`). D12 confirmed correct by both
+  panels; verdict **ready-with-conditions (narrowing)**. Five conditions
+  before the build gate: (1) restate §5's credential allow-list (the CoS
+  now holds a Hindsight write token + llm-proxy CoS-class token —
+  "exactly three credentials" is stale and a conforming build would fail
+  assertion 6); (2) fix the approval-hash mechanism (message-v1 hash
+  field; M1 manager check = retry integrity + mismatch-reject; §7.10
+  reworded to tamper-evidence — a message-carried hash cannot prevent
+  mutation; canonicalization defined; gateway-side approval registration
+  = later enforcement change); (3) board durability contract (storage as
+  build-time verification item, backup/export, fail-safe-to-no-submit on
+  unreadable/ambiguous state, write-ahead ordering, corruption case in
+  TP 7); (4) make the judgment corpus runnable (fixtures, location,
+  machine-checkable fields, threshold — carried through both passes);
+  (5) drift pass (audit-trail provenance: board = intent trail,
+  gateway/manager log = enforcement trail; board/queue reconcile +
+  terminal card states; TP board-inspection path; advisory attribution
+  header; A+ hydration re-verification + CoS as the memory write-back
+  actor; new CoS→VM-Xb llm-proxy cross-VM dependency in the endpoint
+  table; M1 §1 "unchanged" wording; stale next-action items).
 
 ### Next actions
 

@@ -309,3 +309,38 @@ unnecessary. Decisions recorded in the rewritten
   minimum). Desktop-side board visibility is a named build-time
   verification item. Docs amended: M1 design (D12 row, §6.8 mechanism,
   failure-behavior recovery, TP assertion 9), feature list (§1).
+
+## 2026-11-10 (fifth) — third-pass end-to-end review; report updated
+
+- **Third-pass review performed** (same two-panel method) against the
+  fully amended state; the updated report is persisted in
+   `version 2/V2-design-review-report.md` (third-pass section appended).
+  - **Closures verified:** D12 confirmed by both panels as the correct
+   resolution of the credential contradiction; assertion conditionals
+   consistent; A+ hydration/token-split decisions recorded correctly. No
+   owner-decided item reopened.
+  - **Verdict: ready-with-conditions (narrowing).** New findings, both
+   panels convergent on the substantive two: (1) the approval-hash
+   mechanism has no honest transport — the manager can't read the board,
+   a message-carried hash is tautological; fix = message-v1 hash field +
+   M1 manager check downgraded to retry integrity + mismatch-reject,
+   §7.10 reworded to tamper-evidence, canonicalization defined, gateway-
+   side approval registration as the later enforcement change;
+   (2) the board's durability/fail-safe story is asserted not specified —
+   fix = storage as build-time verification item, backup/export,
+   fail-safe-to-no-submit on ambiguous/unreadable state, write-ahead
+   ordering, corruption case in TP 7. Plus: §5's "exactly three
+   credentials" must be restated as the enumerated allow-list now that
+   the CoS legitimately holds a Hindsight write token and the llm-proxy
+   CoS-class token (a conforming build would fail assertion 6 as
+   written); the judgment corpus remains not runnable (carried through
+   both passes — fixtures, location, threshold required before the gate);
+   and the minor/drift set (audit-trail provenance split — board =
+   intent trail, gateway/manager log = enforcement trail; board/queue
+   reconcile + terminal states; TP board-inspection path; advisory-only
+   attribution header; A+ hydration re-verification list + write-back
+   actor; new cross-VM llm-proxy dependency; doc drift).
+  - **Five conditions remain** before the build gate opens (report §5):
+   §5 allow-list restatement, hash-mechanism fix, board durability
+   contract, runnable judgment corpus, drift pass. With those applied,
+   the design is ready to build.
