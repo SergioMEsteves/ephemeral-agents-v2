@@ -57,8 +57,13 @@ manager does not already enforce.
 - **Hydration** (the contract gains its first persistent consumer):
   persona files from the roster repo (`bus-org/chief-of-staff/`), llm-wiki,
   Hindsight (per-project scope; projects share nothing by default).
-- **Gateway and manager untouched** except for the single deliberate,
-  gated change in §6 (priority pass-through).
+- **Gateway untouched.** Manager changes are enumerated **per milestone**
+  (corrected per the 2026-11-10 design review — the earlier "single
+  deliberate change" claim was inaccurate): (M1) the `priority` field
+  validation + pass-through; (M1 or the manifest milestone) the
+  `repo_target`-vs-manifest check (§10); (later scope-declaration
+  milestone) the file-scope exclusion check (§11). Each is its own
+  individually gated change.
 
 ## 5. Credential contract (strict)
 
@@ -73,6 +78,16 @@ Explicitly **denied**: no GitHub token, no queue (RabbitMQ/Temporal) access,
 no direct manager access, no registry write, no ssh keys. Prioritization
 reaches the broker only as a validated field inside the message contract (D8)
 — never as broker access.
+
+**Enforcement honesty (per the 2026-11-10 review):** the CoS shares VM-Xa
+with the gateway and manager, so this contract is enforced against the
+CoS's *env* and its *capabilities*, not by network isolation. The capability
+half is enforced by the post-M1 A+ hardening change (firewall/namespace so
+the CoS profile's only permitted egress is the gateway endpoint and the
+model-key proxy); until then, "no direct manager access" is by convention
+and by the env contract, and TP-V2-M1 asserts both the env set negatively
+(assertion 6) and the capability positively (assertion 11: an attempted
+broker/manager-port connection from inside the CoS context must FAIL).
 
 ## 6. Conversation and management protocol (ask-before-submit)
 
@@ -103,14 +118,47 @@ reaches the broker only as a validated field inside the message contract (D8)
    the in-flight task completes, referencing its artifact.
 8. Conversation state (backlog, open proposals, submitted tasks,
    dependencies) persists across reboots so nothing approved is orphaned.
+   **Mechanism (specified per the 2026-11-10 review):** the CoS keeps its
+   state as a committed file in the project repo — `cos-state/state.json`
+   (backlog, open proposals with their approval hashes, submitted task_ids,
+   dependency graph, held additive info) — written **at every state
+   transition** (proposal issued, approval received, submission
+   acknowledged, report received), not at shutdown. The repo is the
+   source of truth (D4); the file is versioned and reviewable like any
+   other project change. On boot, the CoS recovers by reading it. TP
+   assertion 7 names this artifact.
 
-### Failure behavior
+### Failure behavior (completed per the 2026-11-10 review)
 
 - Model call fails mid-proposal → error to owner, no partial proposal.
 - Model call fails at refinement → last good proposal stays valid; retry.
 - Gateway submit fails → retry once, then report the failure with the
   gateway's error; the proposal stays `approved-unsubmitted` for manual
   resubmit.
+- **Ambiguous submit outcome** (gateway timeout after the request may
+  have landed) → the CoS retries with the **same `task_id`** (the
+  contract's idempotency key — a duplicate is absorbed, never a second
+  workflow), then reconciles via the gateway reports endpoint. task_id is
+  never regenerated across retries; the per-package submit ledger keyed
+  by task_id records each attempt.
+- **Manager validation rejects an approved package** (bad agent_ref,
+  out-of-bounds priority, repo_target not in the manifest) → the CoS
+  re-proposes the repair, notifies the owner with the rejection reason,
+  and re-enters the approval flow. An approved-but-invalid package is
+  never resubmitted unchanged.
+- **Task never reports** (TTL expiry, executor death) → the CoS polls the
+  gateway reports endpoint past `ttl_s`, then surfaces the task as failed
+  to the owner with the last known state; the backlog entry is closed as
+  failed, not silently held.
+- **CoS crash between owner approval and submission** → on restart, the
+  CoS reads `cos-state/state.json`, finds proposals in
+  `approved-unsubmitted` state, and completes the submission (ask-before-
+  submit is preserved: approval was recorded before the crash; nothing
+  unapproved is submitted). TP assertion 7 exercises this window
+  explicitly.
+- **Partial parallel submit** (some of N independent packages accepted,
+  some failed) → the retry-once policy applies per failed package, not to
+  the batch; accepted packages are never re-sent.
 
 ## 7. Gate / TP plan — TP-V2-M1
 
@@ -118,9 +166,13 @@ Structural assertions (all must PASS, strict gate rule):
 
 1. Every `agent_ref` the CoS can propose exists in the roster `index.json`.
 2. Manager validation passes end-to-end, **including the `priority` field
-   pass-through** (the one deliberate manager change, gated here).
+   pass-through** (the M1 manager change per the §4 enumeration, gated
+   here).
 3. Priority + parallelism: two independent packages run concurrently; a
-   higher-priority package is picked up ahead of a lower one.
+   higher-priority package is picked up ahead of a lower one. *(Conditional
+   on OQ4: if the priority field is deferred past the first end-to-end,
+   the priority-ordering half cannot be proven without the queue
+   redeclare and is marked conditional/deferred with it.)*
 4. TTL policy honored (`ttl_s` schema bounds respected end to end).
 5. Model-call failure behavior matches §6 (forced-failure test).
 6. Credential scope: the CoS profile env contains exactly the §5 set —
@@ -130,6 +182,32 @@ Structural assertions (all must PASS, strict gate rule):
 8. Change management: corrective info mid-run produces a follow-on revision
    package after completion, referencing the prior artifact — no
    interruption of the running executor.
+9. **No submission without owner approval** (the defining safety property
+   of M1, added per the 2026-11-10 review): negative test — a proposal
+   that was never approved produces zero gateway submit calls; a voided
+   proposal id (superseded by a revision) cannot be submitted; every
+   submission in the window maps to an approved proposal id in
+   `cos-state/state.json`.
+10. **Approval-payload integrity** (per the review's prompt-injection
+    finding): the submitted behavioral_spec is hash-verified against the
+    exact text the owner approved — the CoS cannot mutate a proposal
+    between approval and submission.
+11. **Credential-contract capability check** (see §5): from inside the
+    CoS context, a connection attempt to the broker and to the manager
+    port must FAIL (env-based access already covered negatively by
+    assertion 6; capability-based access is covered here).
+12. **Desktop reconnection:** after the reboot of assertion 7, the
+    desktop's registered remote gateway connection re-authenticates and
+    resumes (or the limitation is explicitly scoped out with rationale).
+
+**Judgment corpus (non-signed pre-gate eval, per the review):** a fixed
+corpus of representative requests with expected decompositions — correct
+agent selection (D7a), harness mapping edge cases (§8: security-architect
+→ hermes, data-engineer ETL → claude-code), priority class, dependency
+structure, additive-vs-corrective classification (D10) — run against the
+CoS persona before the signed gate. It is the regression harness for any
+future persona or roster-context change (a persona commit triggers a
+corpus re-run, mirroring how harness images are gated).
 
 Plus one end-to-end: market-analysis example → proposal (with priority +
 parallel packages) → owner approve → gateway → manager validation →

@@ -61,7 +61,10 @@ Decisions:
 3. **The pointer also lives in the repo itself.** The project repo
    carries its own history index (e.g. a `docs/history/` index or report
    registry committed alongside each artifact). Hindsight is the semantic
-   layer on top; the repo is the durable, pullable record.
+   layer on top; the repo is the durable, pullable record. *Caveat (per
+   the 2026-11-10 review): pointers can dangle if an artifact is moved,
+   deleted, or a branch pruned — a known cost of pointer stores, mitigated
+   by the repo's own history index and by git history itself.*
 4. **The store stays on the memory VM.** It already serves every executor
    (V1's hydration contract: `/memory/read` at boot, logged as
    `M4_MEMORY_HYDRATE`) and outlives VM rebuilds. The CoS writes through
@@ -104,8 +107,20 @@ Decisions:
 Recorded as a standing policy rather than a design project:
 
 1. **message-v1 stays the contract.** Changes are additive only: new
-   optional fields (like `priority`, the first one) with safe defaults;
-   consumers must tolerate fields they don't know.
+   optional fields (like `priority`, the first one) with safe defaults.
+   *Corrected per the 2026-11-10 review* — the seeded schema is
+   `additionalProperties: false`, so "consumers tolerate unknown fields"
+   is **not** how it works. The actual mechanics: an additive field is
+   added to `schemas/message-v1.json` itself as an optional property with
+   a documented default (absent = default behavior); validators are
+   updated in the **same gated change** as the consumer-side support
+   (e.g. the manager pass-through); and consumers validate against the
+   current schema version — which is exactly why a field and its
+   consumers must land together. The schema's V1-era "POC task message"
+   title is corrected at the same first touch. This was the review's
+   first exercise of this policy: the policy and the schema as seeded
+   were contradictory, and the record above supersedes the earlier
+   wording.
 2. **Breaking changes trigger a proper message-v2** — a version field in
    the message header and a documented transition. No ad-hoc edits to
    meaning.
@@ -216,3 +231,139 @@ item 4 (embeddings) is resolved as policy (§4). Queue item 1 (model
 specification & configurables) restarts from scratch at owner direction;
 the runtime/docker-vs-podman field and `max_parallel_agents` join its
 agenda (configuration topic). Items 2, 5, 6, 7, 8, 9 remain as queued.
+
+## 9. Design review 2026-11-10 — findings application (owner-accepted)
+
+The full end-to-end design review (enterprise architecture, software
+engineering, network engineering, security architecture, SRE — 28
+findings) was accepted by the owner. Its applications are already in the
+docs: M1 design §4 (manager-change enumeration), §5 (enforcement honesty),
+§6 (state persistence mechanism + completed failure behaviors), §7
+(assertions 9–12, judgment corpus, OQ4-conditioned assertion 3); §5 above
+(schema-evolution mechanics), §2 (pointer-dangling caveat). This section
+records the applications that live here.
+
+### 9.1 Security controls pulled forward (not the deferred key vault)
+
+1. **Registry transport integrity (review critical):** the registry VM's
+   `:5000` gets TLS (internal-CA cert) + basic auth, and executor images
+   are pulled **by digest** (`ea/hermes-ephemeral@sha256:…`) with digest
+   re-verification in the lifecycle spawn path. Tag-pinning is not
+   integrity without transport integrity. Fallback if TLS is blocked:
+   pre-stage images on VM-Xb and firewall the registry VM to lifecycle
+   only. Small gated item at build start — not the deferred vault.
+2. **llm-proxy caller auth:** static per-consumer-class token (executors
+   vs CoS), bind/allow-list restriction, per-token spend/rate cap, and
+   per-token usage logging.
+3. **Hindsight auth + reach restriction:** shared API token on `:8081`;
+   Postgres TLS or container-only bind; Proxmox-firewall restriction of
+   `:8081` to VM-Xa (CoS writes) and VM-Xb (executor reads); pointer
+   provenance (writer task id) recorded per entry.
+4. **Dashboard compensating control (within the owner's LAN-open
+   decision):** the worker verifies a publisher-identity/HMAC field so
+   UI-published messages are distinguishable from manager-validated ones,
+   and/or the UIs are bound to the owner's workstation interface — the
+   owner states which at build start.
+5. **GitHub App token custody (rung A):** token mounted as a 0600 tmpfs
+   file rather than env where feasible; revocation-at-reap asserted even
+   on abnormal exit; per-task-repo scope confirmed (project A's token
+   useless against project B); sibling-token exposure recorded as an
+   explicit accepted residual of rung A, closed at A+.
+
+### 9.2 A+ rung re-specified (review major): two separable pieces
+
+Rung A+ is **(1) lateral segmentation** — each executor (or task pair) on
+its own small bridge network whose only egress is an allow-listing
+forwarder/proxy (registry, llm-proxy, github.com only — no broker,
+Temporal/Postgres, lifecycle, or memory VM reach; this closes the
+executor→broker publish path that would bypass the manager), and
+**(2) rootless runtime** (Podman/Docker-rootless — daemon-escape
+containment). The A+ milestone gate asserts **both**; a rootless swap
+alone does not pass. This supersedes the single-piece description in §6.
+
+### 9.3 Capacity and observability (review majors)
+
+- **Capacity model before the 5-agent default is trusted:** per-executor
+  RSS ceiling, VM-Xb RAM/CPU headroom, a 5-concurrent soak test as gate
+  evidence, per-container memory limits encoded so executors die before
+  Temporal/Postgres, and OQ3 (worker concurrency) tuned to measured
+  numbers. If the VM cannot hold 5 concurrent coders comfortably, the
+  manifest default becomes the measured safe value, not the aspirational
+  5.
+- **CoS observability (minimum viable):** every proposal/submit/hold/
+  escalation event as a structured line in a persistent VM-Xa log (the
+  gateway's submit-side audit log covers the enforcement-relevant half);
+  a daily/on-demand CoS status rollup (open proposals, backlog depth,
+  in-flight, last submit) as part of its documented duties; session-
+  transcript retention for post-incident review. No dashboards — a log
+  file and a status verb suffice for one owner-operator.
+
+### 9.4 Scaling honesty (review major)
+
+D6 (one project = one VM-Xa) **supersedes** the 2026-11-08 "no new VM"
+note for multi-project growth — recorded explicitly in the decision log
+with the D6 rationale. Hindsight per-project scoping (the scope key on
+the shared memory VM) is named when the first second project arrives;
+per-project gateway token lifecycle is stated then. Single-project M1 is
+unaffected.
+
+### 9.5 Build-phase file-level impact inventory (owner directive)
+
+**Before the first V2 milestone runs**, the build phase opens with a
+committed **file-level impact inventory**: every file required for a full,
+clean V2 build, deployment, installation, and all checks — enumerated and
+mapped to the decision/condition it serves. Minimum coverage:
+
+- compose files (all milestones' stacks) and their env var wiring
+  (`POC_*` → `EA_*` rename surface, network rename `poc-net` → `ea-net`);
+- Go services (`services/`): env parsing, validation logic, queue/repo
+  wiring touched by the M1 conditions;
+- executor entrypoint scripts and Dockerfiles (hydration contract,
+  entrypoint guards, tmpfs token mount, digest-pinned pulls);
+- queue definitions (the OQ4 `x-max-priority` redeclare), registry
+  configuration (TLS/auth), and lifecycle spawn path;
+- the schema (`schemas/message-v1.json`) and its validators;
+- hosts/env inventory files (gitignored) and the committed inventory
+  mapping.
+
+Each entry names: file → change → decision/finding it serves → which
+milestone/gate exercises it. This inventory is the artifact the rename
+micro-gate and every subsequent gate assert against — gate assertions
+name the artifact they prove (platform lesson §7.3), starting here.
+
+### 9.6 The V2 build process (V1 process, V2 record)
+
+V2 reproduces the V1 process end-to-end, with V2's own record:
+
+- **Staged build (M0-style):** estate chassis → broker/engine →
+  services → executors → memory/wiki → front-of-house → smoke, each
+  stage with a passing check before the next; `--check-only` dry-run
+  against the committed inventory before provisioning.
+- **Milestones with their own test procedures and gates:** nothing lands
+  ungated (V1 gate rule carried forward); the M1 design doc's TP-V2-M1
+  (with review additions) is the first.
+- **V2 issue ledger:** every issue found during the V2 build is recorded
+  in V2's documentation in the V1 format — *symptom → wrong assumption →
+  root cause → the rule we now follow* — via the decision log and/or the
+  closing report, so V2's corrective actions are part of the V2 record
+  (not folded silently into borrowed V1 lessons).
+- **Signed TP results** per milestone under the same sign-off authority.
+- **Closing findings report** for the V2 build, plus per-milestone
+  evidence under the V2 deploy tree (gitignored per convention).
+- **Contract test suite built with or ahead of M1** (platform §7.2) — a
+  named prerequisite artifact of TP-V2-M1, including schema-negative
+  cases (out-of-range priority, manifest-missing repo_target, unknown
+  field under the current schema).
+
+### 9.7 Rename execution order (review minors)
+
+1. **The rename completes before any OQ4 queue work** (RabbitMQ queues
+   do not survive renames; the x-max-priority redeclare happens once,
+   under the final `ea-*` name).
+2. The rename is its own **micro-gate**: `grep -ri poc` over services/ +
+   compose returns only provenance citations; the V1 baseline test path
+   re-runs green under `ea` names; registry re-tag verified by **digest
+   equality** with the V1 images (rename without rebuild); one committed
+   V1-name → V2-name mapping table for evidence cross-referencing.
+3. Post-rename, the affected structural assertions re-run under `ea`
+   names before any new feature lands.

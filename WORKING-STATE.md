@@ -90,6 +90,26 @@ proposes, the code disposes** — the manager validates every proposal.
   (g) **V1 lessons pre-applied** in the V2 build, lesson→build-step
   mapped (platform-design §7). Queue items 3 and 4 are thereby resolved
   as policy; item 3's A+ implementation is a post-M1 build milestone.
+- **2026-11-10 (second): END-TO-END DESIGN REVIEW performed and findings
+  ACCEPTED (owner).** 28 findings (4 critical / 10 major / 9 minor /
+  5 observation), verdict **approve with conditions**. Applied in the
+  docs: schema-evolution mechanics corrected (platform §5); CoS state
+  persistence specified as `cos-state/state.json` in the project repo
+  per-transition (M1 §6.8); failure behaviors completed (M1 §6); gate
+  assertions 9–12 added (no-submit-without-approval, approval-payload
+  hash pinning, credential capability check, desktop reconnect) + the
+  judgment corpus as a non-signed pre-gate eval (M1 §7); registry
+  TLS+digest pinning, llm-proxy/Hindsight auth, dashboard publisher
+  control, token custody pulled forward as build-start controls
+  (platform §9.1); A+ re-specified as segmentation + rootless, both
+  gate-asserted (§9.2); capacity model + soak test (§9.3); CoS
+  observability minimum (§9.3); D6 supersedes the 2026-11-08 "no new VM"
+  note for multi-project growth (§9.4); rename-before-OQ4 ordering +
+  rename micro-gate (§9.7). New build-phase commitments (owner
+  directive): **file-level impact inventory** before the first milestone
+  (§9.5) and the **full V1-style build process with a V2 issue ledger**
+  (§9.6). Next gate: owner review of the amended design docs, then the
+  build phase opens with the rename + inventory.
 
 ### Next actions
 

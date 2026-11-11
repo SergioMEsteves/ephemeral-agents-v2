@@ -196,3 +196,54 @@ unnecessary. Decisions recorded in the rewritten
   self-sufficiency, inventory-first chassis.
 - New document: `version 2/V2-platform-design.md` (DRAFT v1) records all
   of the above; WORKING-STATE updated to match.
+
+## 2026-11-10 (second) — end-to-end design review; findings accepted and applied; build-phase plan
+
+- **Full end-to-end design review performed** (enterprise architecture,
+  software engineering, network engineering, security architecture, SRE —
+  28 findings: 4 critical, 10 major, 9 minor, 5 observation) and the
+  findings **accepted by the owner**. Verdict: approve with conditions —
+  no owner-decided item reopened.
+- **Critical findings applied:** (1) schema-evolution mechanics corrected
+  — message-v1's `additionalProperties: false` contradicts the
+  "consumers tolerate unknowns" wording; additive fields now land in the
+  schema with defaults, in the same gated change as their consumers
+  (platform §5). (2) Prompt-injection steering of the CoS: structured
+  diff-style proposal surface, hash-pinned approval payload, untrusted-
+  content rules in the persona, submit audit log (M1 design §7
+  assertions 9–10). (3) The no-submit-without-approval invariant is now
+  gate-asserted (M1 §7.9). (4) Registry transport integrity — TLS +
+  internal CA + basic auth + digest-pinned pulls, as a small gated item
+  at build start, not the deferred vault (platform §9.1).
+- **Major findings applied:** CoS state persistence specified
+  (`cos-state/state.json` in the project repo, written per transition —
+  M1 §6.8); failure behaviors completed (ambiguous submit with stable
+  task_id, manager rejection, never-reporting task, crash between
+  approval and submit, partial parallel submit — M1 §6); credential
+  contract enforcement honesty — capability assertion added (M1 §5,
+  assertion 11); A+ re-specified as segmentation + rootless, gate asserts
+  both (platform §9.2); llm-proxy/Hindsight auth + reach restriction
+  (§9.1); dashboard publisher-identity control within the LAN-open
+  decision (§9.1); GitHub token custody + accepted residual on rung A
+  (§9.1); capacity model + 5-concurrent soak test + OOM kill-order
+  (§9.3); CoS observability minimum (§9.3); D6 explicitly supersedes the
+  2026-11-08 "no new VM" note for multi-project growth (§9.4); judgment
+  corpus as non-signed pre-gate eval and persona-change regression
+  harness (M1 §7).
+- **Build-phase file-level impact inventory adopted (owner directive):**
+  before the first V2 milestone runs, every file required for a full
+  clean V2 build/deployment/installation/checks is enumerated and mapped
+  (file → change → decision/finding served → gate that exercises it);
+  the rename micro-gate and all later gates assert against it (platform
+  §9.5).
+- **V2 build process committed (owner directive):** V2 reproduces the V1
+  process end-to-end — staged M0-style build with per-stage checks,
+  per-milestone TPs and signed results under the gate rule, a **V2 issue
+  ledger** (symptom → wrong assumption → root cause → the rule we now
+  follow) so V2's own issues and corrective actions become part of the
+  V2 documentation, a contract test suite as a named TP-V2-M1
+  prerequisite, and a closing findings report (platform §9.6).
+- **Rename execution order fixed:** rename completes before any OQ4
+  queue redeclare; rename is its own micro-gate (grep-clean, baseline
+  re-run green under ea names, digest-equality re-tag, committed V1→V2
+  mapping table) (platform §9.7).
