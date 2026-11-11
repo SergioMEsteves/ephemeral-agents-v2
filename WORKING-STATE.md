@@ -127,6 +127,20 @@ proposes, the code disposes** — the manager validates every proposal.
   (decided / trigger-gated / deferred) across intake, pipeline, work
   management, memory, security/isolation, operations, and documentation,
   closing with the one-line offer.
+- **2026-11-10 (fourth): D12 ADOPTED (owner) — kanban board as the CoS
+  work board.** One board per project CoS; card = work package; columns
+  proposed → approved → submitted → in-flight → reported → rolled up;
+  report events move cards. **Desk, never the door:** queue is the only
+  execution truth; cards reach "submitted" only via the approval flow
+  (gate-asserted, TP 9 amended). **Resolves the second-pass review's
+  condition 1 (critical):** the board replaces `cos-state/state.json` as
+  the CoS state store of record — lives on VM-Xa with the profile,
+  reboot-durable, no GitHub credential needed; repo stays source of
+  truth for project content. Board history = submit-side audit trail;
+  desktop board visibility = build-time verification item. Remaining
+  review conditions: (2) reconcile assertions 2/3/10/11 (name the
+  approval-hash verifier, mark 11 conditional to A+), (3) record A+
+  memory-hydration + Hindsight token-split choices, (4) doc drift.
 
 ### Next actions
 

@@ -32,6 +32,7 @@ manager does not already enforce.
 | D9 | Parallelism | Independent packages are submitted concurrently and run in parallel (pipeline already supports this). Dependent packages are held by the CoS until the upstream report returns. |
 | D10 | Change management | No mid-flight interruption of ephemeral agents. New information arriving while a task runs is classified: **additive** (held for future packages) or **corrective** (a follow-on revision package issued after the in-flight task completes, referencing its artifact). The CoS reads results via the gateway report and/or the project repo, then composes follow-on work. True cancellation of in-flight runs is a separately-designed later milestone (it moves an enforcement action into judgment's hands). |
 | D11 | Conversation boundary | Gateway → manager → queue unchanged; the CoS is a client of the gateway, nothing more. |
+| D12 | CoS work board (owner, 2026-11-10) | The CoS maintains its work state on its **native Hermes kanban board** — one board per project CoS. Card = work package (agent_ref, behavioral_spec, priority, ttl); columns = proposed → owner-approved → submitted → in-flight → reported → rolled up, with corrective follow-ons as linked cards. The board is the CoS's **state store of record** (backlog, ordering, dependencies, held additive info) — replacing the earlier `cos-state/state.json` proposal, which would have required the CoS to push to GitHub in violation of §5. **The board is the CoS's desk, never the door:** the queue (RabbitMQ/Temporal) remains the only execution truth; a card moves to "submitted" only through the approval flow (gateway → manager validation); a card moving to "in-flight" is a *reflection* of the queue's truth, never the cause of it. Report events flow back to move cards. Board history doubles as the submit-side audit trail (observability minimum). |
 
 ## 3. Connection procedure (Q1 — native gateway link)
 
@@ -118,15 +119,20 @@ broker/manager-port connection from inside the CoS context must FAIL).
    the in-flight task completes, referencing its artifact.
 8. Conversation state (backlog, open proposals, submitted tasks,
    dependencies) persists across reboots so nothing approved is orphaned.
-   **Mechanism (specified per the 2026-11-10 review):** the CoS keeps its
-   state as a committed file in the project repo — `cos-state/state.json`
-   (backlog, open proposals with their approval hashes, submitted task_ids,
-   dependency graph, held additive info) — written **at every state
-   transition** (proposal issued, approval received, submission
-   acknowledged, report received), not at shutdown. The repo is the
-   source of truth (D4); the file is versioned and reviewable like any
-   other project change. On boot, the CoS recovers by reading it. TP
-   assertion 7 names this artifact.
+   **Mechanism (D12, owner 2026-11-10):** the CoS's native **kanban
+   board** is the state store of record — card = work package (agent_ref,
+   behavioral_spec, priority, ttl, dependencies, held additive info),
+   written at every state transition (proposal issued, approval received,
+   submission acknowledged, report received). The board lives with the
+   CoS profile on VM-Xa — durable across reboots, no GitHub credential
+   required (resolving the second-pass review's critical finding without
+   granting the CoS repo write). The project repo remains the source of
+   truth for *project content* (D4); the board is the source of truth for
+   *CoS work state*. On boot, the CoS recovers from its board. TP
+   assertion 7 names the board as the artifact; the desktop-side board
+   visibility (can the owner view the VM-Xa board conveniently from the
+   desktop, vs. asking the CoS to report it) is a **build-time
+   verification item**, not an assumption.
 
 ### Failure behavior (completed per the 2026-11-10 review)
 
@@ -151,11 +157,10 @@ broker/manager-port connection from inside the CoS context must FAIL).
   to the owner with the last known state; the backlog entry is closed as
   failed, not silently held.
 - **CoS crash between owner approval and submission** → on restart, the
-  CoS reads `cos-state/state.json`, finds proposals in
-  `approved-unsubmitted` state, and completes the submission (ask-before-
-  submit is preserved: approval was recorded before the crash; nothing
-  unapproved is submitted). TP assertion 7 exercises this window
-  explicitly.
+  CoS recovers from its kanban board (D12): cards in `owner-approved`
+  state (approval recorded before the crash) are completed through the
+  submission flow — ask-before-submit is preserved, nothing unapproved is
+  submitted. TP assertion 7 exercises this window explicitly.
 - **Partial parallel submit** (some of N independent packages accepted,
   some failed) → the retry-once policy applies per failed package, not to
   the batch; accepted packages are never re-sent.
@@ -186,8 +191,10 @@ Structural assertions (all must PASS, strict gate rule):
    of M1, added per the 2026-11-10 review): negative test — a proposal
    that was never approved produces zero gateway submit calls; a voided
    proposal id (superseded by a revision) cannot be submitted; every
-   submission in the window maps to an approved proposal id in
-   `cos-state/state.json`.
+   submission in the window maps to an approved card on the CoS board
+   (D12). **Board-is-not-the-door:** no code path may move a card to
+   "submitted" (or trigger a submission) except the approval flow — the
+   gate asserts the board reflects, and never drives, queue state.
 10. **Approval-payload integrity** (per the review's prompt-injection
     finding): the submitted behavioral_spec is hash-verified against the
     exact text the owner approved — the CoS cannot mutate a proposal

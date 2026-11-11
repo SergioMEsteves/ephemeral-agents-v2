@@ -286,3 +286,26 @@ unnecessary. Decisions recorded in the rewritten
   still be named in the gated items); prompt-injection soft residuals
   accepted for rung A/M1 (human approval loop remains the real control;
   watch-item for isolation rung B).
+
+## 2026-11-10 (fourth) — D12 adopted: kanban board as the CoS work board
+
+- **D12 (owner):** the CoS maintains its work state on its **native
+  Hermes kanban board** — one per project CoS; card = work package
+  (agent_ref, behavioral_spec, priority, ttl, dependencies); columns
+  proposed → owner-approved → submitted → in-flight → reported → rolled
+  up; corrective follow-ons as linked cards; report events move cards.
+- **The board is the desk, never the door:** the queue (RabbitMQ/
+  Temporal) remains the only execution truth; cards reach "submitted"
+  only via the approval flow (gateway → manager validation); board state
+  reflects, never drives, queue state — gate-asserted (TP 9 amended).
+- **This RESOLVES the second-pass review's condition 1 (critical)** — the
+  `cos-state/state.json` mechanism, which would have required the CoS to
+  push to GitHub in violation of §5's no-GitHub-token contract, is
+  **replaced** by the board as the CoS state store of record: it lives
+  with the CoS profile on VM-Xa, is reboot-durable, and needs no new
+  credential. The project repo remains the source of truth for project
+  content (D4); the board for CoS work state.
+- Board history doubles as the submit-side audit trail (the observability
+  minimum). Desktop-side board visibility is a named build-time
+  verification item. Docs amended: M1 design (D12 row, §6.8 mechanism,
+  failure-behavior recovery, TP assertion 9), feature list (§1).
