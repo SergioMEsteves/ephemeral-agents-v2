@@ -63,6 +63,12 @@ proposes, the code disposes** — the manager validates every proposal.
    worktrees rejected, M1 sequential same-repo, later scope-declaration
    milestone (design §11). Deferred topics queued: model specification &
    configurables, secure key management.
+- **2026-11-09 (fourth):** 9-item open-items queue adopted, worked
+   one-by-one: (1) model spec & configurables — OPENED AND RESET at owner
+   direction, restarts from scratch later; (2) secure key management —
+   deferred; (3) isolation level; (4) embeddings provider; (5) wiki
+   curation automation; (6) dependency refresh policy; (7) umbrella
+   compose; (8) contract test suite; (9) production hardening.
 
 ### Next actions
 

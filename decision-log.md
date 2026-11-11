@@ -139,3 +139,19 @@ unnecessary. Decisions recorded in the rewritten
 - Open questions OQ5 list extended: model specification & configurables
   (deferred topic, likely manifest-hosted) and secure key management
   (deferred at the owner's request; D-secret-vault baseline).
+
+## 2026-11-09 (fourth update) — open-items queue adopted; config structure reset
+
+- **9-item open-items queue adopted** (owner): the remaining V1→V2 topics are
+  worked one-by-one, with owner clarifying questions per item. Order:
+  (1) model specification & configurables, (2) secure key management,
+  (3) ephemeral isolation level, (4) embeddings provider, (5) llm-wiki
+  curation automation, (6) upstream dependency refresh policy, (7) umbrella
+  compose / reboot-surviving stack, (8) contract test suite,
+  (9) production-hardening list (ch15 POC boundary).
+- **Item 1 opened and reset:** the model-specification/config-file structure
+  discussion (config file format, project.yaml field structure, precedence
+  chains, roster→catalog derivation) was opened 2026-11-09 and **stopped by
+  the owner before any decision landed — it restarts from scratch later**.
+  Nothing from that discussion is a decision. §10 (manifest concept) and
+  §11 (concurrency rules) remain decided as previously committed.
