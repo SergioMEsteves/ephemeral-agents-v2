@@ -350,6 +350,11 @@ V2 reproduces the V1 process end-to-end, with V2's own record:
 - **Signed TP results** per milestone under the same sign-off authority.
 - **Closing findings report** for the V2 build, plus per-milestone
   evidence under the V2 deploy tree (gitignored per convention).
+- **The V2 book comes last** (owner decision 2026-11-10): after the
+  full installation/deployment is proven working, so the V2 edition
+  includes everything the build actually found — issue ledger,
+  corrective actions, measured numbers, gate evidence — written from
+  the record, not predicted before the fact.
 - **Contract test suite built with or ahead of M1** (platform §7.2) — a
   named prerequisite artifact of TP-V2-M1, including schema-negative
   cases (out-of-range priority, manifest-missing repo_target, unknown

@@ -247,3 +247,11 @@ unnecessary. Decisions recorded in the rewritten
   queue redeclare; rename is its own micro-gate (grep-clean, baseline
   re-run green under ea names, digest-equality re-tag, committed V1→V2
   mapping table) (platform §9.7).
+- **V2 book timing decided (owner):** the V2 edition of the book is
+  written **after** the full V2 installation/deployment is proven
+  working — the closing deliverable — so that everything the V2 build
+  found (issue ledger, corrective actions, measured numbers, gate
+  evidence) is written into it from the record rather than predicted
+  before the fact. It is sequenced after the closing findings report in
+  the platform-design §9.6 build process; it is not part of the build
+  phase.

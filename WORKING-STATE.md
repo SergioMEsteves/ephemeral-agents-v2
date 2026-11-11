@@ -108,7 +108,10 @@ proposes, the code disposes** — the manager validates every proposal.
   rename micro-gate (§9.7). New build-phase commitments (owner
   directive): **file-level impact inventory** before the first milestone
   (§9.5) and the **full V1-style build process with a V2 issue ledger**
-  (§9.6). Next gate: owner review of the amended design docs, then the
+  (§9.6). **V2 book timing decided (owner):** the V2 book is written
+  after the full installation/deployment is proven working — the closing
+  deliverable, containing V2's findings and corrective actions from the
+  record. Next gate: owner review of the amended design docs, then the
   build phase opens with the rename + inventory.
 
 ### Next actions
