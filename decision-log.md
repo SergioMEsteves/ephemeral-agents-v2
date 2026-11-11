@@ -344,3 +344,30 @@ unnecessary. Decisions recorded in the rewritten
    §5 allow-list restatement, hash-mechanism fix, board durability
    contract, runnable judgment corpus, drift pass. With those applied,
    the design is ready to build.
+
+## 2026-11-10 (sixth) — de-POC sweep: V2 repo carries no redundant POC documents
+
+- **Owner directive:** remove POC-related documents not needed for V2;
+  modify those that are needed to reference V2 instead.
+- **Removed from V2 (owner directive):** the two root POC documents —
+  `Initial-POC-Findings-Report.md` (the signed V1 evidence record) and
+  `POC-Retrospective-and-Insights.md` (the lessons digest). They are
+  V1-record artifacts, verbatim in the frozen public V1 repo
+  (github.com/arvisdev/ephemeral-agents, HEAD `2c97797…` — verified
+  present before removal); duplicating them here served no V2 purpose
+  and the V2 docs already cite V1 by hash. V2's own findings report and
+  issue ledger are build-phase closing deliverables (platform §9.6).
+  README and book/README pointers updated to cite the V1 location.
+- **Deliberately retained:** `book/` (the V1 record's book — provenance
+  for the design docs, "V2 extends or supersedes, never silently
+  rewrites"); `deploy/` (the V1 evidence baseline — its V1 names are
+  retained until the `ea-` rename micro-gate, platform §1); the `poc-*`
+  name references inside `deploy/` (V1 evidence verbatim).
+- **Modified:** `schemas/message-v1.json` metadata de-POC'd — title
+  ("ephemeral-agents POC task message" → "ephemeral-agents task
+  message") and description ("Owned by the M1 delivery plan WP-1.1" →
+  the V2 schema-policy owner reference, platform §5). Metadata-only
+  change: no field, required, or additionalProperties semantics touched
+  — the §5 rule ("title corrected at the same first touch") is satisfied
+  early by this owner-directed sweep, recorded here as that first
+  touch.

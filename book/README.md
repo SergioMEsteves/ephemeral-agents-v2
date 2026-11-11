@@ -58,6 +58,9 @@ component in Part II, and fully traced in Part III.
   filed evidence pack; the re-runnable material is committed in this
   repository.
 
-*Companion documents (repository root): `Initial-POC-Findings-Report.md`
-(the evidence record) and `POC-Retrospective-and-Insights.md` (the
-practitioner's lessons digest).*
+*Companion documents — `Initial-POC-Findings-Report.md` (the evidence
+record) and `POC-Retrospective-and-Insights.md` (the practitioner's
+lessons digest) — live in the frozen V1 record
+([`ephemeral-agents`](https://github.com/arvisdev/ephemeral-agents),
+cited by commit `2c97797…`); they are not duplicated in this V2
+repository.*

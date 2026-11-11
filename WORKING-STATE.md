@@ -162,6 +162,16 @@ proposes, the code disposes** — the manager validates every proposal.
   header; A+ hydration re-verification + CoS as the memory write-back
   actor; new CoS→VM-Xb llm-proxy cross-VM dependency in the endpoint
   table; M1 §1 "unchanged" wording; stale next-action items).
+- **2026-11-10 (sixth): DE-POC SWEEP (owner directive).** Removed the two
+  root POC documents (`Initial-POC-Findings-Report.md`,
+  `POC-Retrospective-and-Insights.md`) — they live verbatim in the frozen
+  V1 record (HEAD `2c97797…`, verified); README + book/README pointers
+  now cite that location; V2's own findings report + issue ledger are
+  build-phase closing deliverables. Retained deliberately: `book/`
+  (V1-record provenance) and `deploy/` (V1 evidence baseline; V1 names
+  until the `ea-` rename micro-gate). `schemas/message-v1.json` metadata
+  de-POC'd (title + description; no contract semantics touched — recorded
+  as the §5 "first touch").
 
 ### Next actions
 

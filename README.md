@@ -55,15 +55,20 @@ Carried forward unchanged (proven in V1, see the V1 book):
 
 ```
 ├── book/               The V1 record's book, synced at the baseline hash (15 chapters incl. the Evaluator's Guide) - V2 extends or supersedes, never silently rewrites
-├── deploy/             The V1-proven executable layer, synced at the baseline hash (idempotent install scripts, compose files, restart-stack.sh) - V2's live deploy layer evolves from here
-├── Initial-POC-Findings-Report.md   The signed V1 evidence record (de-identified)
-├── POC-Retrospective-and-Insights.md The V1 lessons digest
-├── version 2/          V2 design docs (this iteration's doc set)
+├── deploy/             The V1-proven executable layer, synced at the baseline hash (idempotent install scripts, compose files, restart-stack.sh) - V2's live deploy layer evolves from here; V1 names retained until the ea- rename lands (platform design §1)
+├── version 2/          V2 design docs (this iteration's doc set: M1 CoS design, platform design, feature list, design-review report)
 ├── schemas/            contracts (seeded from V1; evolves here)
 ├── deploy/             the live executable layer (built up as milestones land)
 ├── services/           Go services
-└── decision-log.md     V2 decision log (append-only)
+├── decision-log.md     V2 decision log (append-only)
 ```
+
+The V1 POC documents — the signed findings report and the retrospective —
+are **not duplicated here**: they live in the frozen V1 record
+([`ephemeral-agents`](https://github.com/arvisdev/ephemeral-agents)), cited
+by commit `2c97797…` per the reference rule. V2's own findings report and
+issue ledger are closing deliverables of the V2 build (platform design
+§9.6).
 
 
 ## First milestone — the Chief-of-Staff agent (the agent-judgment layer)
