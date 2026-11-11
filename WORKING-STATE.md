@@ -111,7 +111,16 @@ proposes, the code disposes** — the manager validates every proposal.
   (§9.6). **V2 book timing decided (owner):** the V2 book is written
   after the full installation/deployment is proven working — the closing
   deliverable, containing V2's findings and corrective actions from the
-  record. Next gate: owner review of the amended design docs, then the
+  record. **Second-pass review performed (2026-11-10, third): verdict
+  ready-with-conditions; report persisted at `version 2/V2-design-review-report.md`.**
+  Convergent critical: the cos-state/state.json mechanism (M1 §6.8)
+  contradicts the §5 CoS credential contract (no GitHub token) — owner
+  decision required: scoped CoS repo credential (amend §5) OR local
+  volume + Hindsight pointer (amend §6.8). Plus: approval-hash verifier
+  must be named (manager; enumerated gated change), assertion 11 marked
+  conditional to A+, assertion 2 OQ4-conditional, A+ memory-hydration +
+  Hindsight token-split decisions recorded, doc drift fixed. Next gate:
+  owner rules on the credential question + conditions applied, then the
   build phase opens with the rename + inventory.
 
 ### Next actions

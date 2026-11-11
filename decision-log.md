@@ -255,3 +255,34 @@ unnecessary. Decisions recorded in the rewritten
   before the fact. It is sequenced after the closing findings report in
   the platform-design §9.6 build process; it is not part of the build
   phase.
+
+## 2026-11-10 (third) — second-pass end-to-end design review; report persisted
+
+- **Second-pass review performed** against the amended design set (same
+  five expert lenses; closure verification + fresh analysis). Verdict:
+  **ready-with-conditions**; all first-review closures verified as
+  correctly applied, none reopened owner decisions. Full report persisted
+  as `version 2/V2-design-review-report.md`.
+- **Convergent critical finding (both panels, introduced by the
+  amendments):** `cos-state/state.json` (M1 §6.8) contradicts the §5
+  credential contract — the CoS is denied a GitHub token yet must push
+  state and read repo truth. **Owner decision required:** (a) scoped
+  repo credential for the CoS (amend §5 + assertion 6), or (b) local
+  volume + Hindsight pointer (amend §6.8). Blocks TP-V2-M1 signature.
+- Other majors: state push-race convention undefined; approval-hash
+  verifier unowned (gateway "unchanged" vs need for a hash check —
+  manager is the natural verifier, must be enumerated); assertion 11
+  untestable at M1 (mark conditional/deferred to A+); assertion 2 needs
+  the OQ4-conditional marking; A+ segmentation severs the memory-
+  hydration contract (choose: forwarder read-only allow-list or
+  spawn-side hydration); shared Hindsight token gives executors write
+  (choose: write/read token split); judgment corpus not yet runnable.
+- Four conditions before the build gate: (1) resolve the CoS credential
+  contradiction; (2) reconcile assertions 2/3/10/11; (3) record the A+
+  memory-hydration + token-split decisions; (4) fix doc drift
+  (WORKING-STATE next actions, subsumed queue items, stale cross-refs).
+- Residuals recorded: the §9.1 controls create new secrets whose
+  staging/rotation is unspecified (vault deferred — their staging must
+  still be named in the gated items); prompt-injection soft residuals
+  accepted for rung A/M1 (human approval loop remains the real control;
+  watch-item for isolation rung B).
