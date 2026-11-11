@@ -122,6 +122,11 @@ proposes, the code disposes** — the manager validates every proposal.
   Hindsight token-split decisions recorded, doc drift fixed. Next gate:
   owner rules on the credential question + conditions applied, then the
   build phase opens with the rename + inventory.
+- **2026-11-10 (fourth):** V2 feature list created — `version 2/V2-feature-list.md`
+  (DRAFT v1): the full V2 offer as a status-marked feature inventory
+  (decided / trigger-gated / deferred) across intake, pipeline, work
+  management, memory, security/isolation, operations, and documentation,
+  closing with the one-line offer.
 
 ### Next actions
 
