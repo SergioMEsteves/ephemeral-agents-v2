@@ -5,7 +5,7 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-09 (design v2 + harness policy + VM-Xb carryover)*
+*Last updated: 2026-11-10 (platform decisions: `ea-` naming, pointer-store memory, concurrency 5, embeddings policy, queue-evolution policy, isolation ladder, V1 lessons pre-applied — see `version 2/V2-platform-design.md`)*
 
 ## Current position
 
@@ -69,6 +69,27 @@ proposes, the code disposes** — the manager validates every proposal.
    deferred; (3) isolation level; (4) embeddings provider; (5) wiki
    curation automation; (6) dependency refresh policy; (7) umbrella
    compose; (8) contract test suite; (9) production hardening.
+- **2026-11-10 platform decisions (owner), recorded in
+  `version 2/V2-platform-design.md` (DRAFT v1):**
+  (a) **`ea-` naming family** replaces all V1 "poc" names (`ea-net`,
+  `ea/hermes-ephemeral`, `ea/claude-coder`, `EA_*` envs) — decided now,
+  executed as the opening action of the V2 build phase; baseline
+  `deploy/` keeps V1 names until then; docs reference only V2 names
+  after the rename. (b) **Memory pointer-store convention:** documents
+  live only in the project repo; Hindsight stores pointers only; CoS
+  writes, memory VM stores, repo is content. (c) **Concurrency default
+  5** ephemeral agents in flight, manifest-configurable
+  (`max_parallel_agents`); M1 same-repo sequential (design §11).
+  (d) **Embeddings:** evidence-driven — zero-vector fallback for M1;
+  small self-hosted model on the memory VM only if pointer recall
+  proves poor. (e) **Queue policy:** message-v1 additive-only evolution;
+  breaking change ⇒ versioned message-v2; new message types as gated
+  additions. (f) **Isolation ladder:** A (containers) for M1; A+
+  (rootless runtime + egress allow-list) as a separately-gated change
+  right after M1's gate; B (gVisor) / C (micro-VM) trigger-gated.
+  (g) **V1 lessons pre-applied** in the V2 build, lesson→build-step
+  mapped (platform-design §7). Queue items 3 and 4 are thereby resolved
+  as policy; item 3's A+ implementation is a post-M1 build milestone.
 
 ### Next actions
 

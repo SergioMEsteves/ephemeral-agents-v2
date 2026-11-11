@@ -155,3 +155,44 @@ unnecessary. Decisions recorded in the rewritten
   the owner before any decision landed — it restarts from scratch later**.
   Nothing from that discussion is a decision. §10 (manifest concept) and
   §11 (concurrency rules) remain decided as previously committed.
+
+## 2026-11-10 — platform decisions: naming, memory, concurrency, embeddings, queue policy, isolation ladder, V1 lessons
+
+- **V2 naming family adopted (owner):** V2 is production-bound, not a POC.
+  All V2-owned components use the `ea-` family: network `ea-net`,
+  images `ea/hermes-ephemeral` / `ea/claude-coder`, env prefix `EA_*`,
+  `ea-*` container/queue names. Decided now, executed as the opening
+  action of the V2 build phase; the baseline-synced `deploy/` tree keeps
+  V1 names until then (it is verbatim V1 evidence). From the rename
+  onward, V2 design docs reference only V2 names; V1 carryover is stated
+  once as provenance.
+- **Memory pointer-store convention adopted (owner):** documents live
+  only in the project repo; Hindsight stores pointers only; CoS on VM-Xa
+  writes, memory VM stores, repo is content. Pointers also live in the
+  repo's own history index. New doc `version 2/V2-platform-design.md` §2.
+- **Concurrency default decided (owner):** default 5 ephemeral agents in
+  flight, configurable per project via the manifest
+  (`max_parallel_agents`); M1 keeps same-repo coder tasks sequential
+  (design §11); full effect when the scope-declaration milestone lands.
+- **Embeddings provider resolved as policy (owner):** evidence-driven —
+  build M1 on the zero-vector fallback; trigger a small self-hosted
+  embeddings model on the memory VM only if pointer recall proves poor.
+- **Queue-shape policy adopted (owner):** message-v1 evolves additively
+  only; breaking changes trigger a versioned message-v2 with transition;
+  new message types as small gated additions; topic topology unchanged
+  until a new type is needed.
+- **Isolation level decided (owner):** ladder with tripwires — A
+  (co-located containers) for M1; A+ (rootless runtime + per-task egress
+  allow-list) adopted as a separately-gated hardening change immediately
+  after M1's gate; B (gVisor-class) triggered by untrusted task content;
+  C (per-task micro-VM) triggered by multi-tenant or outside-the-boundary
+  execution. Full pros/cons and triggers in platform-design §6.
+- **V1 lessons pre-applied (owner):** the V2 build reproduces the V1
+  build process with each V1 lesson mapped to the concrete build step
+  that embodies it (platform-design §7): repo-canonical runtime
+  artifacts, contract tests before gates, artifact-naming gate
+  assertions, integration-path gates, baked reboot survival, registry
+  pinning, hard hygiene gates, upstream pin tracking, envelope
+  self-sufficiency, inventory-first chassis.
+- New document: `version 2/V2-platform-design.md` (DRAFT v1) records all
+  of the above; WORKING-STATE updated to match.
