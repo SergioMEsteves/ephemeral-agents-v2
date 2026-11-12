@@ -450,3 +450,32 @@ unnecessary. Decisions recorded in the rewritten
   TP-V2-M1. Open questions OQ1/OQ4 remain owner calls (recommended:
   coarse 3-level priority encoding; priority field lands with M1 per
   the field+consumer rule).
+
+## 2026-11-10 (ninth) — OQ1 and OQ4 closed; no open questions block the build
+
+- **OQ1 CLOSED (owner):** the message-v1 `priority` encoding is the
+  coarse enum `high` / `normal` / `low`. Rationale: the declarer is an
+  LLM — a 1–10 scale would carry precision the judgment source doesn't
+  have; three levels survive judgment, make declare-everything-high
+  skew visible and auditable (the manager logs the declared value), and
+  map cleanly onto RabbitMQ `x-max-priority` / Temporal priorities.
+  Finer ordering stays in the CoS's own backlog sequence and submission
+  timing. Out-of-range values are rejected outright by the manager.
+- **OQ4 CLOSED (owner):** the `priority` field is implemented **with
+  M1** — field and consumer land in the same gated change (platform §5
+  rule); the `x-max-priority` queue argument is declared once, under
+  the final `ea-*` name, during the rename's queue re-creation (the
+  rename-before-OQ4 rule, platform §9.7, is thereby satisfied
+  naturally). Deferral's "first test run touches only VM-Xa" benefit
+  was already superseded by the build-start security items.
+- TP assertions 2 and 3 are now **unconditional** (the former
+  OQ4-conditional markings removed); the M1 gate plan has no deferred
+  clauses except assertion 11 (A+-deferred, by design) and assertion 12
+  (conditional-by-design, pass artifact = the written scoping
+  decision).
+- **No open questions block the build.** Remaining open items are
+  OQ2 (desktop naming UX — cosmetic, decided at setup), OQ3 (worker
+  capacity — decided by the §9.3 capacity model at build), and the
+  queued/deferred topics. **The build phase may open:** `ea-` rename
+  micro-gate → file-level impact inventory + endpoint table →
+  build-start security items → staged build → M1 / TP-V2-M1.

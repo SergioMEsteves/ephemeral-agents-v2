@@ -185,7 +185,17 @@ proposes, the code disposes** — the manager validates every proposal.
   1–3 of the third-pass review now applied (§5 allow-list; honest
   approval-hash = retry integrity + tamper-evidence; board durability
   contract). Remaining: condition 4 (runnable judgment corpus) and 5
-  (drift pass).
+  (drift pass). Both applied — see the decision-log (eighth) entry.
+- **2026-11-10 (ninth): OQ1/OQ4 CLOSED (owner) — no open questions block
+  the build.** OQ1: `priority` encoding = coarse enum `high`/`normal`/
+  `low` (manager rejects out-of-range; logs the declared value). OQ4:
+  the priority field lands **with M1** (field+consumer same gated
+  change; `x-max-priority` declared once under the `ea-*` name during
+  the rename's queue re-creation). TP assertions 2 and 3 now
+  unconditional. **The build phase may open** — sequence: `ea-` rename
+  micro-gate → file-level impact inventory + endpoint table →
+  build-start security items (registry TLS, service tokens) → staged
+  build → M1 / TP-V2-M1.
 
 ### Next actions
 
@@ -197,8 +207,8 @@ proposes, the code disposes** — the manager validates every proposal.
 3. Gate: TP-V2-M1 — **as amended** (see the M1 design doc §7): structural
    assertions 1–12 including no-submit-without-approval, approval-payload
    hash verification, board-is-not-the-door, credential env + (A+-deferred)
-   capability checks, OQ4-conditionals on the priority clauses, the
-   judgment corpus as a non-signed pre-gate eval — plus one end-to-end
+   capability checks, priority (coarse 3-level, with M1 — OQ1/OQ4 closed),
+   the judgment corpus as a non-signed pre-gate eval — plus one end-to-end
    (market-analysis example → packages → reports). Prerequisite
    artifacts: the contract test suite and the file-level impact inventory
    (platform §9.5/§9.6).

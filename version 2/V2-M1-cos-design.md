@@ -31,7 +31,7 @@ manager does not already enforce.
 | D5 | Desktop role | Thin window: converse, research (thinking layer), consolidate, hand off, receive results. The desktop MAY upload files/data into the VM-Xa session; it never holds project context. |
 | D6 | Multi-project | One project = one VM-Xa = one gateway = one resident CoS. The desktop registers N gateways (one per project) simultaneously; projects are isolated by default (separate CoS instance, memory, sessions). No shared CoS across projects. |
 | D7 | CoS management model | The CoS operates as a manager of people: (a) selects the best-fit agent from the roster for each task; (b) maintains a working backlog in its own session state and decides order and parallelism; (c) handles change requests arriving mid-flight; (d) escalates to the owner with exact, clear questions when its judgment is insufficient — ask-or-proceed, never guess-and-fire. |
-| D8 | Prioritization | The CoS **declares** priority in the work package (new optional `priority` field in message-v1); the **manager validates and applies** it; RabbitMQ per-message priority and/or Temporal task-queue priority enforces pickup order. The CoS never touches the broker. |
+| D8 | Prioritization | The CoS **declares** priority in the work package (new optional `priority` field in message-v1); the **manager validates and applies** it; RabbitMQ per-message priority and/or Temporal task-queue priority enforces pickup order. The CoS never touches the broker. *OQ1 closed (owner, 2026-11-10):* the encoding is **coarse — `high` / `normal` / `low`** (an enum; out-of-range values are rejected outright). Rationale: the declarer is an LLM — a 1–10 scale would carry precision the judgment source doesn't have; three levels survive judgment, make declare-everything-high visible and auditable, and map cleanly onto RabbitMQ `x-max-priority` / Temporal priorities. Finer ordering stays in the CoS's own backlog sequence and submission timing — where fine-grained ordering belongs (judgment, applied through submission order). |
 | D9 | Parallelism | Independent packages are submitted concurrently and run in parallel (pipeline already supports this). Dependent packages are held by the CoS until the upstream report returns. |
 | D10 | Change management | No mid-flight interruption of ephemeral agents. New information arriving while a task runs is classified: **additive** (held for future packages) or **corrective** (a follow-on revision package issued after the in-flight task completes, referencing its artifact). The CoS reads results via the gateway report and/or the project repo, then composes follow-on work. True cancellation of in-flight runs is a separately-designed later milestone (it moves an enforcement action into judgment's hands). |
 | D11 | Conversation boundary | Gateway → manager → queue unchanged; the CoS is a client of the gateway, nothing more. |
@@ -255,16 +255,15 @@ Structural assertions (all must PASS, strict gate rule):
 1. Every `agent_ref` the CoS can propose exists in the roster `index.json`.
 2. Manager validation passes end-to-end, **including the `priority` field
    pass-through and the approval-hash verification** (the M1 manager
-   changes per the §4 enumeration, gated here). *The priority clause is
-   conditional on OQ4* (same treatment as assertion 3): if the priority
-   field is deferred past the first end-to-end, its clause is marked
-   conditional/deferred with it — the hash-verification clause is not
-   OQ4-conditional.
+   changes per the §4 enumeration, gated here). *(Formerly
+   OQ4-conditional; unconditional since OQ4 was closed — the priority
+   field lands with M1.)*
 3. Priority + parallelism: two independent packages run concurrently; a
-   higher-priority package is picked up ahead of a lower one. *(Conditional
-   on OQ4: if the priority field is deferred past the first end-to-end,
-   the priority-ordering half cannot be proven without the queue
-   redeclare and is marked conditional/deferred with it.)*
+   higher-priority package is picked up ahead of a lower one — using the
+   coarse `high`/`normal`/`low` encoding (OQ1). *(Formerly
+   OQ4-conditional; unconditional since OQ4 was closed — the queue is
+   declared with `x-max-priority` under the `ea-*` name during the
+   rename's queue re-creation, so the redeclare happens exactly once.)*
 4. TTL policy honored (`ttl_s` schema bounds respected end to end).
 5. Model-call failure behavior matches §6 (forced-failure test).
 6. Credential scope: the CoS profile env contains exactly the §5 set —
@@ -478,16 +477,24 @@ sequential same-repo execution, proven by TC-M3-07. Resolution of the
 
 ## 12. Open questions (from the 2026-11-09 discussion)
 
-- **OQ1 — priority encoding:** scale (1–10 vs. high/normal/low) for the
-  message-v1 `priority` field.
+- **OQ1 — priority encoding: CLOSED (owner, 2026-11-10).** Coarse
+  three-level enum — `high` / `normal` / `low`; the manager rejects
+  anything else. See D8 for the rationale. The declared value is logged
+  at the manager so declare-everything-high skew is visible and
+  auditable.
 - **OQ2 — desktop project naming UX:** the desktop registry names gateways;
   confirm the owner's preferred per-project naming convention.
 - **OQ3 — worker capacity:** concurrency tuning on VM-Xb (worker count) as
-  parallel packages become the norm (carried V2 open item).
-- **OQ4 — priority-field sequencing:** implement the message-v1 `priority`
-  field with M1 (queue redeclare + manager pass-through) or defer it until
-  after the first end-to-end proof, making the first V2 test run touch
-  nothing but VM-Xa.
+  parallel packages become the norm (carried V2 open item; the platform
+  §9.3 capacity model gives it numbers, not guesses).
+- **OQ4 — priority-field sequencing: CLOSED (owner, 2026-11-10).** The
+  `priority` field is implemented **with M1** — the field and its
+  consumer (the manager pass-through) land in the same gated change per
+  platform §5's rule, and the `x-max-priority` queue argument is
+  declared once, under the final `ea-*` name, during the rename's queue
+  re-creation. The former "first test run touches only VM-Xa" benefit
+  was already superseded by the build-start security items (registry
+  TLS, tokens), so deferral had no remaining advantage.
 - **Manifest milestone:** the `repo_target`-vs-manifest check is gated
   with whichever milestone carries it (§4) — that milestone is recorded
   here so the deferral is not orphaned (third-pass drift pass): it is
