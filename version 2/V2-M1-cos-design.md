@@ -72,17 +72,36 @@ manager does not already enforce.
 
 ## 5. Credential contract (strict)
 
-The VM-Xa CoS profile receives exactly:
+The VM-Xa CoS profile receives exactly the following **enumerated
+allow-list** (restated per the third-pass review — later decisions added
+credentials the original three-item list did not include, and a conforming
+build must pass assertion 6):
 
-1. **One model key** — for its own LLM calls.
+1. **Model access via the llm-proxy CoS-class token** — the CoS's LLM
+   calls route through the llm-proxy, which holds the provider key on the
+   CoS's behalf; the CoS holds no provider key itself. This places the
+   highest-spend actor inside the proxy's spend-cap and logging
+   perimeter (platform §9.1.2).
 2. **Gateway session token** (inbound, for the desktop connection) — D3/§3.
 3. **Gateway API credential** — to submit approved tasks; ordinary gateway
    client scope.
+4. **Hindsight write token** — the CoS is the memory system's writer (the
+   pointer-store convention, platform §2): after each report lands it
+   writes the pointer entry. Executors hold the *read-only* token class;
+   the write token is CoS-only (platform §9.1.3).
 
-Explicitly **denied**: no GitHub token, no queue (RabbitMQ/Temporal) access,
-no direct manager access, no registry write, no ssh keys. Prioritization
-reaches the broker only as a validated field inside the message contract (D8)
-— never as broker access.
+The **kanban board is not a credential** — it is native profile state on
+VM-Xa (D12); the CoS needs no key to use it, which is precisely why the
+board (not the repo) is the state store of record.
+
+Explicitly **denied**: no GitHub token (the board removed the last reason
+the CoS would need one), no queue (RabbitMQ/Temporal) access, no direct
+manager access beyond the gateway API, no registry write, no ssh keys.
+Prioritization reaches the broker only as a validated field inside the
+message contract (D8) — never as broker access. Nothing outside the
+four-item allow-list may appear in the CoS profile env; assertion 6
+asserts this set both ways (positively: the four are present; negatively:
+nothing else, starting with the denial list above).
 
 **Enforcement honesty (per the 2026-11-10 review):** the CoS shares VM-Xa
 with the gateway and manager, so this contract is enforced against the
