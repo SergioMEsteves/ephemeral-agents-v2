@@ -479,3 +479,39 @@ unnecessary. Decisions recorded in the rewritten
   queued/deferred topics. **The build phase may open:** `ea-` rename
   micro-gate → file-level impact inventory + endpoint table →
   build-start security items → staged build → M1 / TP-V2-M1.
+
+## 2026-11-12 — estate reboot recovery pending; VM cleanup for V2 readiness
+
+- **Estate state found after host reboot:** all four VMs reachable
+  (.198/.224/.233/.223 ping + service endpoints OK — gateway :8080,
+  hindsight :8081, registry :5000 all 200), but the reboot orphaned four
+  containers: `temporal-temporal-1` + `temporal-postgres-1` **Exited
+  (255)** on the execution VM (worker + topic-bridge crash-looping on
+  `temporal:7233` DNS — the documented §14.8 failure pattern), and
+  `hindsight-hindsight-pg-1` **Exited (255)** on the memory VM (the
+  hindsight API answers 200 but runs degraded, without its pgvector
+  database). Bring-up pending owner go-ahead (Temporal first per §14.8,
+  then hindsight-pg; worker/bridge self-heal via restart policy).
+- **VM cleanup for V2 readiness (owner directive), conservative:**
+  - Execution VM (.224): removed stale images — the three
+    `192.0.2.14:5000/poc/*` copies (old registry address before the
+    .198 reassignment), `rabbitmq:3-management` (the compose pins
+    `4-management-alpine`), `temporalio/auto-setup:latest` (compose pins
+    `1.27.0`); cleared 646 old POC task logs in `/var/poc/tasks`
+    (sudo — container-owned; curated evidence lives in the workstation
+    `deploy/m*/evidence/` tree). Kept: registry-backed images, the local
+    `poc/worker|topic-bridge|executor-stub|lifecycle` images (NOT in the
+    registry catalog — required for bring-up; executor-stub stays as the
+    M3 rollback default), `node:20-slim` (the running llm-proxy's base),
+    all infra images in use, and `/opt/poc/{deploy,llm-proxy,secrets}`
+    (the GitHub App credentials and env contracts the V2 build reuses).
+  - Front-of-house (.233): 7 dangling images pruned (381.6 MB); already
+    the clean V2 foundation (gateway + manager + portainer only).
+  - Memory VM (.223): 1 dangling image pruned (20.9 MB); hindsight
+    stack kept.
+  - Registry VM (.198): removed the dead v1-era `dr-ui` registry-UI
+    container and both its images (the atcol Grails app known broken
+    against the v2 registry API); registry data untouched — the
+    `poc/*` image repositories are the source for the `ea-` re-tag
+    (rename micro-gate re-tags without rebuild, digest-equality).
+  - Untouched everywhere: volumes, secrets, and the registry catalog.
