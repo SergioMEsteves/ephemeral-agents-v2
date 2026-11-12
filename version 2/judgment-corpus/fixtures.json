@@ -1,0 +1,234 @@
+{
+  "corpus": "judgment-corpus-v2-m1",
+  "version": "1.0.0",
+  "note": "Layer 1 fixtures. 'packages' lists expected work packages in no particular order unless 'dependencies' constrains them. Ambiguity fixtures expect escalated=true and packages=[].",
+  "fixtures": [
+    {
+      "id": "F01",
+      "case_class": "straightforward-routing-coding",
+      "input_request": "Add pagination to the REST API's list endpoints: the /orders list returns all rows. Implement offset+limit pagination with a default page size of 50.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-backend-engineer",
+            "harness": "claude-code",
+            "priority": "normal",
+            "mode": "additive"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F02",
+      "case_class": "straightforward-routing-analysis",
+      "input_request": "We're considering moving our customer support to a tiered model. Analyze the pros and cons for a 40-person company and recommend a tier structure.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-business-requirements-specialist",
+            "harness": "hermes-agent",
+            "priority": "normal",
+            "mode": "additive"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F03",
+      "case_class": "harness-edge-it-noncoding",
+      "input_request": "Review our proposed zero-trust network segmentation design and document the trust-boundary decisions and their rationale for the security review board.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-security-architect",
+            "harness": "hermes-agent",
+            "priority": "normal",
+            "mode": "additive"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F04",
+      "case_class": "harness-edge-coding",
+      "input_request": "Build the nightly ETL job: extract the CSV drops from the vendor bucket, transform to our canonical schema, load into the analytics warehouse tables.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-data-engineer",
+            "harness": "claude-code",
+            "priority": "normal",
+            "mode": "additive"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F05",
+      "case_class": "compliance-low-priority",
+      "input_request": "When there's capacity, review our new data-retention policy draft against GDPR requirements and note any gaps. No deadline pressure.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-domain-compliance-specialist",
+            "harness": "hermes-agent",
+            "priority": "low",
+            "mode": "additive"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F06",
+      "case_class": "urgent-defect-high-priority",
+      "input_request": "Production is throwing a nil-pointer panic in the checkout handler on every request since this morning's deploy. Fix it now.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-backend-engineer",
+            "harness": "claude-code",
+            "priority": "high",
+            "mode": "corrective"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F07",
+      "case_class": "dependency-chain",
+      "input_request": "We need to modernize the reporting module: first produce the target architecture for the new report pipeline, then implement it per that architecture.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-solution-architect",
+            "harness": "hermes-agent",
+            "priority": "normal",
+            "mode": "additive"
+          },
+          {
+            "agent_ref": "ephemeral-org/eph-fullstack-engineer",
+            "harness": "claude-code",
+            "priority": "normal",
+            "mode": "additive"
+          }
+        ],
+        "dependencies": [
+          ["ephemeral-org/eph-solution-architect", "ephemeral-org/eph-fullstack-engineer"]
+        ],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F08",
+      "case_class": "parallel-independence",
+      "input_request": "Three unrelated follow-ups from the review: (1) write the onboarding guide for the billing service, (2) add unit tests for the date-utils library, (3) assess vendor lock-in risk for our new SSO provider.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-technical-feasibility-specialist",
+            "harness": "hermes-agent",
+            "priority": "normal",
+            "mode": "additive"
+          },
+          {
+            "agent_ref": "ephemeral-org/eph-unit-test-engineer",
+            "harness": "claude-code",
+            "priority": "normal",
+            "mode": "additive"
+          },
+          {
+            "agent_ref": "ephemeral-org/eph-risk-assessment-analyst",
+            "harness": "hermes-agent",
+            "priority": "normal",
+            "mode": "additive"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F09",
+      "case_class": "additive",
+      "input_request": "Add a monthly budget-summary email to the finance tool: every 1st of the month, send the department heads their spend summary.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-backend-engineer",
+            "harness": "claude-code",
+            "priority": "normal",
+            "mode": "additive"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F10",
+      "case_class": "corrective-revision",
+      "input_request": "The stakeholder map you delivered in the vendor-onboarding analysis needs revision: two new stakeholders (legal counsel and the data protection officer) joined the project — update the map to include them and their influence.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-stakeholder-analyst",
+            "harness": "hermes-agent",
+            "priority": "normal",
+            "mode": "corrective"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    },
+    {
+      "id": "F11",
+      "case_class": "ambiguity-escalate",
+      "input_request": "Improve performance.",
+      "expected": {
+        "packages": [],
+        "dependencies": [],
+        "escalated": true
+      }
+    },
+    {
+      "id": "F12",
+      "case_class": "ambiguity-escalate-scope",
+      "input_request": "Handle the database situation.",
+      "expected": {
+        "packages": [],
+        "dependencies": [],
+        "escalated": true
+      }
+    },
+    {
+      "id": "F13",
+      "case_class": "test-implementation",
+      "input_request": "The invoice calculation module has no tests. Write a unit test suite covering the discount rules, tax rounding, and currency conversion paths.",
+      "expected": {
+        "packages": [
+          {
+            "agent_ref": "ephemeral-org/eph-unit-test-engineer",
+            "harness": "claude-code",
+            "priority": "normal",
+            "mode": "additive"
+          }
+        ],
+        "dependencies": [],
+        "escalated": false
+      }
+    }
+  ]
+}
