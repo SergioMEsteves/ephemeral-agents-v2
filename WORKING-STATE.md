@@ -5,7 +5,14 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-11 (three design-review passes complete; D12-rev two-tier work board + ADR-0001; de-POC sweep; conditions 1–5 of the third-pass review applied — the design is ready to build; next: build phase opens with the `ea-` rename micro-gate + file-level impact inventory — see `version 2/` docs and the decision log)*
+*Last updated: 2026-11-11 (build phase OPEN — pre-build artifacts all
+written and ready; owner has directed NO builds/deployments until
+instructed. Rename micro-gate repo-half + §9.5 impact inventory +
+endpoint table committed; judgment corpus now an actual runnable asset
+(`version 2/judgment-corpus/`, 13 fixtures + check.py, verified).
+Outstanding before/in-during build: estate half of the rename (owner
+go-ahead pending), services/ code (born ea-named during build), the
+contract test suite (built in the staged-build process, platform §9.6).)*
 
 ## Current position
 
