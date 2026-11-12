@@ -275,7 +275,12 @@ credentials homeless.*
    so spend anomalies are attributable to a task, not just a class
    (second-pass review). The CoS's LLM calls go through the llm-proxy
    with the CoS-class token — the highest-spend actor is inside the cap
-   and logging perimeter.
+   and logging perimeter. *Attribution is advisory only (third-pass
+   drift pass):* the task_id header the lifecycle injects can be spoofed
+   by a compromised executor (it controls its own HTTP stack) — it is
+   observability, not identity; the enforceable per-container caps key
+   on the token + container identity, with an aggregate per-token cap
+   backstop.
 3. **Hindsight auth + reach restriction:** **token split** (second-pass
    review decision) — a CoS-class **write** token and an executor-class
    **read-only** token, so a compromised executor cannot poison the
@@ -316,7 +321,15 @@ decision: **hydration moves spawn-side at A+** — the lifecycle
 pre-fetches the memory bundle (with the executor-class read-only token)
 and mounts it into the executor. The executor never needs memory-VM
 reach (stronger isolation, consistent with pointers-only); the CoS keeps
-its own restricted read/write path. The forwarder is also a **monitored
+its own restricted read/write path. **A+ gate re-verification list
+(third-pass drift pass):** the change touches the `M4_MEMORY_HYDRATE`
+marker's semantics, the executor entrypoint's hydration path, and gives
+the lifecycle a new credential custodianship (the executor-class
+read-only token — it joins §9.1's staging note); all three are named
+re-verification items of the A+ gate. **Degraded-mode rule:** Hindsight
+unreachable at spawn ⇒ the spawn **fails** (or proceeds without
+hydration only if explicitly logged as degraded) — never silently
+without memory. The forwarder is also a **monitored
 single point of failure** — all in-flight executors stall if it dies;
 monitor it and document the degraded-mode behavior in the A+ runbook.
 
@@ -329,13 +342,20 @@ monitor it and document the degraded-mode behavior in the A+ runbook.
   numbers. If the VM cannot hold 5 concurrent coders comfortably, the
   manifest default becomes the measured safe value, not the aspirational
   5.
-- **CoS observability (minimum viable):** every proposal/submit/hold/
-  escalation event as a structured line in a persistent VM-Xa log (the
-  gateway's submit-side audit log covers the enforcement-relevant half);
-  a daily/on-demand CoS status rollup (open proposals, backlog depth,
-  in-flight, last submit) as part of its documented duties; session-
-  transcript retention for post-incident review. No dashboards — a log
-  file and a status verb suffice for one owner-operator.
+- **CoS observability (minimum viable)** — with the audit-trail
+  provenance split made explicit (third-pass drift pass): the **tracker
+  master-plan history is the intent trail**, the **local board history
+  is working intent**, and the **gateway/manager logs are the
+  enforcement trail** (what was actually submitted and validated — the
+  only source that isn't self-attested by the CoS). Every
+  proposal/submit/hold/escalation event as a structured line in a
+  persistent VM-Xa log; whether the unchanged V1 gateway already emits
+  sufficient submit-side logs is a **build-time verification item**
+  (cited if yes, enumerated as a change if no). A daily/on-demand CoS
+  status rollup (open proposals, backlog depth, in-flight, last submit)
+  as part of its documented duties; session-transcript retention for
+  post-incident review. No dashboards — a log file and a status verb
+  suffice for one owner-operator.
 
 ### 9.4 Scaling honesty (review major)
 
@@ -367,7 +387,11 @@ mapped to the decision/condition it serves. Minimum coverage:
 - **the endpoint/flow table** (second-pass review): component → outbound
   endpoints (name, port, auth) → why — for every component including the
   CoS; it is the specification the A+ allow-list, the credential
-  capability assertion, and the L2 analysis all assert against.
+  capability assertion, and the L2 analysis all assert against. It must
+  include the **cross-VM CoS dependency** introduced by the CoS routing
+  its LLM calls through the llm-proxy on the execution VM (third-pass
+  drift pass): front-of-house CoS reasoning degrades when VM-Xb is down
+  — stated, with the proxy's bind/allow-list admitting VM-Xa.
 
 Each entry names: file → change → decision/finding it serves → which
 milestone/gate exercises it. This inventory is the artifact the rename

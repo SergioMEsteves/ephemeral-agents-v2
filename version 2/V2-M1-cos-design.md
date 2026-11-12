@@ -8,8 +8,11 @@ Supersedes draft v1; the v1 bespoke-HTTP-API connection design is recorded in
 
 A persistent resident **Hermes Agent** — the bus-org **chief-of-staff** persona
 — runs on the front-of-house VM ("VM-Xa"; from 2026-11-09 the term means any
-VM with a Hermes Agent deployed) between the **unchanged** gateway and the
-**unchanged** manager. The owner talks to the CoS conversationally from the
+VM with a Hermes Agent deployed) between the gateway and the manager —
+the gateway is unchanged in M1, and the manager is touched only by its
+enumerated, individually gated changes (§4; wording corrected per the
+third-pass drift pass, since "unchanged" stopped being true with D8 and
+the approval-hash check). The owner talks to the CoS conversationally from the
 Hermes Desktop; the CoS decomposes the request into proposed work packages;
 the owner approves; the CoS submits through the gateway API; the manager
 validates as it does today; ephemeral executors run; reports flow back.
@@ -142,7 +145,28 @@ broker/manager-port connection from inside the CoS context must FAIL).
 6. **Results loop**: CoS reads each task's report (gateway reports endpoint)
    and, where useful, the committed artifact in the project repo; it
    aggregates reports into a single human answer (its documented bus-org
-   rollup job) and reports to the owner.
+   rollup job) and reports to the owner. **The CoS is the memory
+   write-back actor:** after a report lands, the CoS writes the memory
+   pointer entry (Hindsight write token, §5) — so "every task's learning
+   is available to future tasks at boot" has an enumerated writer
+   (third-pass drift pass). **Board reconciliation:** the working-set
+   card moves to in-flight when the gateway acknowledges the submission
+   (the gateway's status/report surface is the trigger — verified at
+   build; if the unchanged gateway exposes no status signal, the card
+   sits at "submitted" until the report arrives and this is stated in
+   the build evidence); on boot and on demand, the CoS runs a
+   **reconcile sweep** — every submitted task_id is checked against
+   gateway truth, and drift is corrected board-side (the queue is
+   execution truth, D12-rev). **Terminal states:** manager-rejected,
+   voided, and TTL-failed items are archived-with-status on both tiers
+   (working set and master plan) so every failure behavior in this
+   section has a place to land. **Audit-trail provenance (third-pass
+   drift pass):** the tracker's master-plan history is the *intent*
+   trail; the local board history is *working intent*; the
+   gateway/manager logs are the *enforcement* trail (what was actually
+   submitted and validated). Whether the unchanged V1 gateway already
+   emits sufficient submit-side logs is a **build-time verification
+   item** — cited if yes, enumerated as a change if no.
 7. **Change management** (D10): new info mid-run is classified additive vs.
    corrective; corrective work becomes a follow-on revision package after
    the in-flight task completes, referencing its artifact.
@@ -257,7 +281,11 @@ Structural assertions (all must PASS, strict gate rule):
    submission in the window maps to an approved card on the CoS board
    (D12). **Board-is-not-the-door:** no code path may move a card to
    "submitted" (or trigger a submission) except the approval flow — the
-   gate asserts the board reflects, and never drives, queue state.
+   gate asserts the board reflects, and never drives, queue state. The
+   board clause is executed through a defined **board-inspection path**
+   (third-pass drift pass): a direct read of the board's store (via the
+   §9.5 build inventory) or a CoS status verb — named at build, not
+   assumed.
 10. **Approval-payload integrity — tamper-evidence, not tamper-prevention**
     (owner-approved resolution of the third-pass finding): the submitted
     work package carries an `approval_hash` — SHA-256 over the UTF-8
@@ -291,7 +319,9 @@ Structural assertions (all must PASS, strict gate rule):
     access is still asserted negatively by assertion 6 at M1.)
 12. **Desktop reconnection:** after the reboot of assertion 7, the
     desktop's registered remote gateway connection re-authenticates and
-    resumes (or the limitation is explicitly scoped out with rationale).
+    resumes — **the pass artifact for the scoped-out alternative is the
+    written scoping decision itself** (the one conditional-by-design
+    assertion; third-pass drift pass).
 
 **Judgment corpus (non-signed pre-gate eval; made runnable per the
 third-pass condition 4, owner-approved):** located at
@@ -458,6 +488,11 @@ sequential same-repo execution, proven by TC-M3-07. Resolution of the
   field with M1 (queue redeclare + manager pass-through) or defer it until
   after the first end-to-end proof, making the first V2 test run touch
   nothing but VM-Xa.
+- **Manifest milestone:** the `repo_target`-vs-manifest check is gated
+  with whichever milestone carries it (§4) — that milestone is recorded
+  here so the deferral is not orphaned (third-pass drift pass): it is
+  the **repo-manifest/manifest-check milestone**, queued after M1
+  alongside the scope-declaration milestone.
 - **Model specification & configurables:** per-agent model pinning, TTL
   defaults, and the executor field in index.json — separate upcoming design
   topic (likely hosted in the §10 project manifest or a sibling file).

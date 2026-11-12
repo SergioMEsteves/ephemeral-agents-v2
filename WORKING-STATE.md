@@ -5,7 +5,7 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-10 (platform decisions: `ea-` naming, pointer-store memory, concurrency 5, embeddings policy, queue-evolution policy, isolation ladder, V1 lessons pre-applied — see `version 2/V2-platform-design.md`)*
+*Last updated: 2026-11-11 (three design-review passes complete; D12-rev two-tier work board + ADR-0001; de-POC sweep; conditions 1–5 of the third-pass review applied — the design is ready to build; next: build phase opens with the `ea-` rename micro-gate + file-level impact inventory — see `version 2/` docs and the decision log)*
 
 ## Current position
 
@@ -202,12 +202,14 @@ proposes, the code disposes** — the manager validates every proposal.
    (market-analysis example → packages → reports). Prerequisite
    artifacts: the contract test suite and the file-level impact inventory
    (platform §9.5/§9.6).
-4. Later V2 open items (from V1 decision log): concurrency beyond
-   sequential, embeddings provider (zero-vector fallback today),
-   reboot-surviving stack (restart policies / umbrella compose), contract
-   test suite, dedicated V2 demo repo (+ 1-min GitHub App install when
-   coder-style work arrives), key vault (D-secret-vault) on the
-   front-of-house VM
+4. Later V2 open items (from V1 decision log) — *status-corrected per the
+   third-pass drift pass:* concurrency beyond sequential (resolved:
+   manifest-configurable, default 5; scope-declaration milestone later);
+   embeddings provider (resolved as policy: evidence-triggered);
+   reboot-surviving stack and contract test suite (**subsumed** — platform
+   §9.2/§9.6, no longer separate queue items); dedicated V2 demo repo (+
+   1-min GitHub App install when coder-style work arrives); key vault
+   (D-secret-vault) on the front-of-house VM (owner-deferred)
 
 ## Working protocol (cost reduction — ENABLED 2026-11-08, owner directive)
 

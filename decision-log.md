@@ -413,3 +413,40 @@ unnecessary. Decisions recorded in the rewritten
 - **Condition 1** was applied in the previous commit (the §5 four-
   credential allow-list). Remaining conditions: 4 (runnable judgment
   corpus) and 5 (drift pass).
+
+## 2026-11-10 (eighth) — conditions 4 and 5 applied; design ready to build
+
+- **Condition 4 applied (owner-approved):** the judgment corpus is now
+  runnable — `version 2/judgment-corpus/` in the V2 repo; two layers
+  (Layer 1 machine-checkable fixtures — agent_ref, executor class incl.
+  the §8 edge cases, priority class, dependency edges,
+  additive/corrective label, plus ambiguity fixtures whose expected
+  behavior is escalation-with-no-submission — scored exact-match, 100%
+  required; Layer 2 judgmental remainder — behavioral_spec quality —
+  unscored, owner-reviewed in the gate evidence); 10–15 initial
+  fixtures; re-run on CoS persona or roster-context change (manual rule
+  at M1; joins CI later); remains a non-signed pre-gate eval.
+- **Condition 5 applied (drift pass, all items):** audit-trail provenance
+  split (tracker = intent, board = working intent, gateway/manager logs
+  = enforcement; gateway submit-logging = build-time verification item);
+  board/queue reconciliation (in-flight trigger = gateway ack, verified
+  at build; on-boot/on-demand reconcile sweep; terminal
+  archived-with-status states for manager-rejected/voided/TTL-failed on
+  both tiers); TP board-inspection path defined (store read or CoS
+  status verb, named at build); attribution header declared advisory
+  (caps key on token + container identity); A+ gate re-verification
+  list named (M4_MEMORY_HYDRATE semantics, entrypoint path, lifecycle
+  token custody) + degraded-mode rule (Hindsight down at spawn ⇒ fail
+  or logged-degraded, never silent) + the **CoS as the memory write-back
+  actor** added to §6's results loop; the CoS→VM-Xb llm-proxy cross-VM
+  dependency added to the §9.5 endpoint table; M1 §1 "unchanged" wording
+  corrected; assertion 12's pass artifact stated (the written scoping
+  decision); feature-list least-privilege and approval-integrity lines
+  corrected; manifest-check milestone named in the open questions;
+  WORKING-STATE header and next-action item 4 status-corrected.
+- **All five third-pass conditions are applied. Design verdict: ready to
+  build.** Next: the build phase opens with the `ea-` rename micro-gate
+  and the file-level impact inventory, then the staged build and M1 /
+  TP-V2-M1. Open questions OQ1/OQ4 remain owner calls (recommended:
+  coarse 3-level priority encoding; priority field lands with M1 per
+  the field+consumer rule).

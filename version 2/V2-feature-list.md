@@ -114,11 +114,14 @@ and the decision log. Status markers: **decided** (owner-approved, in scope),
   API restricted to the machines that need it. *(decided — build-start
   gated items)*
 - **Least-privilege CoS:** the resident agent holds no GitHub token, no
-  queue access, no registry write — asserted positively (capability check)
-  and negatively (env check) at the gate. *(decided)*
-- **Approval-payload integrity:** the exact behavioral spec the owner
-  approved is hash-pinned; the submitted package cannot differ from it.
-  *(decided, M1)*
+  queue access, no registry write — asserted negatively (env check) at
+  the M1 gate and positively (capability check) at the A+ gate, where
+  the enforcement exists. *(decided)*
+- **Approval-payload integrity (tamper-evidence):** every submitted
+  package carries the fingerprint of its behavioral spec; the manager
+  rejects mismatches and proves retries weren't swapped — while the
+  approval loop remains the control that stops unapproved work.
+  *(decided, M1; full enforcement upgrade later-gated)*
 - **Submit-side audit trail:** every proposal/submit/hold/escalation
   logged; CoS behavior is observable and reviewable post-incident.
   *(decided — minimum observability set)*
