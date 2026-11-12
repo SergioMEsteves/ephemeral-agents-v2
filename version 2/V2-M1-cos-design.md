@@ -293,14 +293,40 @@ Structural assertions (all must PASS, strict gate rule):
     desktop's registered remote gateway connection re-authenticates and
     resumes (or the limitation is explicitly scoped out with rationale).
 
-**Judgment corpus (non-signed pre-gate eval, per the review):** a fixed
-corpus of representative requests with expected decompositions — correct
-agent selection (D7a), harness mapping edge cases (§8: security-architect
-→ hermes, data-engineer ETL → claude-code), priority class, dependency
-structure, additive-vs-corrective classification (D10) — run against the
-CoS persona before the signed gate. It is the regression harness for any
-future persona or roster-context change (a persona commit triggers a
-corpus re-run, mirroring how harness images are gated).
+**Judgment corpus (non-signed pre-gate eval; made runnable per the
+third-pass condition 4, owner-approved):** located at
+`version 2/judgment-corpus/` in the V2 repo — a versioned test asset of
+the V2 system (the roster it tests against is upstream data, not the
+test's home). **Two honest layers:**
+
+- **Layer 1 — machine-checkable (scored exact-match, 100% required):**
+  each fixture is a fixed input request plus the expected values of the
+  fields the pipeline actually consumes — `agent_ref` (exact match),
+  executor class (including the §8 edge cases: security-architect →
+  hermes, data-engineer ETL → claude-code), priority class
+  (high/normal/low), dependency edges (which packages wait on which),
+  and the additive-vs-corrective label (D10). One special case class:
+  the **ambiguity fixtures**, where the expected behavior is itself
+  checkable — the CoS must escalate to the owner (ask, per D7d) and
+  submit nothing.
+- **Layer 2 — the judgmental remainder (unscored, owner-reviewed):** the
+  quality of the behavioral_spec text and the elegance of the
+  decomposition are recorded as an owner review in the gate evidence —
+  never auto-scored. A green corpus run means "the CoS routes
+  correctly," not "the CoS writes great specs"; the design says so
+  explicitly.
+
+**Initial size: 10–15 fixtures** — one straightforward routing case per
+major agent category, the §8 harness edge cases, one dependency-chain
+case, one parallel-independence case, one additive case, one corrective
+case, and at least one ambiguity case. **Pass rule:** Layer 1 at 100%
+blocks-or-clears TP signature (any miss = defect); Layer 2 is recorded,
+not scored. **Trigger:** a CoS persona commit or roster-context change
+requires a corpus re-run — a documented manual rule at M1 (the estate
+has no CI yet); when the contract test suite gains CI (queue item 8's
+direction), the corpus joins it. The corpus remains a **non-signed
+pre-gate eval**: it gates TP signature procedurally; the signed
+structural assertions stay the plumbing.
 
 Plus one end-to-end: market-analysis example → proposal (with priority +
 parallel packages) → owner approve → gateway → manager validation →
