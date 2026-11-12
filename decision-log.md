@@ -515,3 +515,50 @@ unnecessary. Decisions recorded in the rewritten
     `poc/*` image repositories are the source for the `ea-` re-tag
     (rename micro-gate re-tags without rebuild, digest-equality).
   - Untouched everywhere: volumes, secrets, and the registry catalog.
+
+## 2026-11-11 · Pre-build gap closure (owner directive: address gaps before declare-start)
+
+- **Directive:** close every non-blocking gap so the build can start on
+  instruction — write what is missing, apply tests where needed, and state
+  what must be addressed on each VM before the first build step. No builds,
+  no deployments, no estate modifications (standing read-only rule).
+- **Done (commit f451791 + this entry):**
+  1. **Go services ported ea-named** from the V1 baseline into `services/`
+     (gateway, manager, lifecycle, hindsight-api, topic-bridge): all
+     `POC_*`→`EA_*`, `poc-net`→`ea-net`, `poc/…` images→`ea/…`,
+     `/opt/poc`→`/opt/ea`, queue `poc-tasks`→`ea-tasks`, container prefix
+     `poc-`→`ea-`, labels `poc.task`/`poc.expires`/`poc.owner`→`ea.*`.
+     Zero `poc` tokens remain. All five modules `go test` green.
+  2. **M1 manager gated changes written and unit-tested**
+     (`services/manager/m1.go` + `m1_test.go`): the OQ1 `priority` coarse
+     enum (validate + pass-through, out-of-range rejected) and the
+     `approval_hash` verification (SHA-256 over UTF-8 behavioral_spec,
+     whitespace-exact; HashLedger enforces retry integrity across §6
+     retries and mismatch-reject-and-surface, including declared-vs-
+     computed on first submission). This is the §4 field+consumer gated
+     change, prepared but not deployed.
+  3. **schemas/message-v1.json** gained `priority` (enum high|normal|low)
+     and `approval_hash` (64-hex pattern) additively — same gated change
+     as the consumer per platform §5.
+  4. **Contract test suite** (`deploy/contract-tests/run.py`, stdlib +
+     jsonschema): message-v1 (10 cases), catalog shape, spawn-env
+     entrypoint guards. 14/14 green; it caught a real guard question on
+     its first run (false positive resolved: `${TTL%s}` operator
+     expansion and prior-assignment tracking now modeled).
+  5. **Estate rename execution script staged** (`deploy/rename-to-ea.sh`,
+     bash -n clean, NOT executed): step 1 re-tag with digest-equality
+     verification per image (hard-fail on mismatch), step 2 `ea-tasks`
+     queue declared once with `x-max-priority`, step 3 baseline test path
+     under ea names.
+  6. **Build-start security staging** (`deploy/security-buildstart/`):
+     secret inventory table (where each §9.1 secret is staged while the
+     vault is deferred + rotation expectations), registry TLS/basic-auth
+     compose template (placeholders only), `.gitignore` gained `.env.*`
+     (the `*.env` pattern did not cover `.env.registry`-style names).
+  7. **Per-VM pre-build checklist** (`deploy/PREBUILD-CHECKLIST.md`):
+     VM-Xa, VM-Xb, memory VM, registry VM, PVE host — every item with its
+     source decision; the estate half of the rename and the security
+     stage land there at declare-start.
+- **Decision:** the declare-start gate is the checklist's last unchecked
+  box — owner instruction. Nothing in this entry was executed against the
+  estate.
