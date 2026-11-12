@@ -1,0 +1,27 @@
+# Copyright 2026 A&R Visual Development Inc (arvisdev)
+# Licensed under the Apache License, Version 2.0 — see LICENSE.
+#
+# Registry VM — build-start TLS + basic-auth configuration (platform §9.1.1).
+# APPLIED ONLY at the build-start security stage, with real values supplied
+# from the gitignored env files. This file is a template: placeholders only.
+
+services:
+  registry:
+    image: registry:2
+    restart: unless-stopped
+    environment:
+      REGISTRY_HTTP_TLS_CERT: /certs/registry.crt
+      REGISTRY_HTTP_TLS_KEY: /certs/registry.key
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: ea-registry
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      # retention/GC (platform §9.1.1): keep-last-3 per tag, disk alert at 80%
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./certs:/certs:ro        # internal-CA leaf (0600 on host)
+      - ./auth:/auth:ro          # htpasswd (bcrypt; from .env.registry staging)
+      - registry-data:/var/lib/registry
+volumes:
+  registry-data:

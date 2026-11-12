@@ -1,5 +1,6 @@
 # ephemeral-agents-v2
 *.env
+.env.*
 *.pem
 app-key*
 m3.env
