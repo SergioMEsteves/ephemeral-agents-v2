@@ -62,10 +62,11 @@ manager does not already enforce.
   (corrected per the 2026-11-10 design review — the earlier "single
   deliberate change" claim was inaccurate): (M1) the `priority` field
   validation + pass-through; (M1) **approval-hash verification** — the
-  manager verifies the submitted `behavioral_spec` against the hash
-  pinned on the board card at proposal time, rejecting and surfacing a
-  mismatch (the review's prompt-injection control, verifier named per
-  the second pass); (M1 or the manifest milestone) the
+  manager enforces retry integrity (identical spec hash across retries of
+  the same `task_id`) and mismatch-reject-and-surface, via the
+  `approval_hash` message-v1 field landing in this same gated change
+  (tamper-evidence; see §7.10 for the honest limit and the later
+  gateway-side enforcement upgrade); (M1 or the manifest milestone) the
   `repo_target`-vs-manifest check (§10, gated with whichever milestone
   carries it); (later scope-declaration milestone) the file-scope
   exclusion check (§11). Each is its own individually gated change.
@@ -222,17 +223,29 @@ Structural assertions (all must PASS, strict gate rule):
    (D12). **Board-is-not-the-door:** no code path may move a card to
    "submitted" (or trigger a submission) except the approval flow — the
    gate asserts the board reflects, and never drives, queue state.
-10. **Approval-payload integrity** (per the review's prompt-injection
-    finding; verifier named per the second pass): the submitted
-    behavioral_spec is **hash-verified by the manager** at submission
-    against the hash pinned on the board card at proposal time — the CoS
-    cannot mutate a proposal between approval and submission; a mismatch
-    is rejected and surfaced to the owner. *Honesty note (third pass):*
-    the pinned hash is CoS-written — correlation, not a trust anchor at
-    M1; the human approval loop remains the real control (accepted
-    residual of rung A/M1). A gateway-side approval registration that
-    would source the hash from the approval act itself is a later,
-    separately-gated change (the gateway is unchanged in M1).
+10. **Approval-payload integrity — tamper-evidence, not tamper-prevention**
+    (owner-approved resolution of the third-pass finding): the submitted
+    work package carries an `approval_hash` — SHA-256 over the UTF-8
+    behavioral_spec, whitespace-exact (canonicalization fixed) — as an
+    additive optional message-v1 field landing in the **same gated
+    change** as the manager's check (platform §5 field+consumer rule).
+    At M1 the manager enforces exactly two checks: **retry integrity**
+    (the same `task_id` must carry an identical spec hash across the
+    §6 ambiguous-submit retries — the payload cannot be silently swapped
+    between attempts) and **mismatch-reject-and-surface** (a
+    non-matching payload is rejected and reported to the owner, never
+    silently accepted). *The honest limit:* because the CoS supplies
+    both the spec and its hash, the hash cannot prove the spec matches
+    what the owner approved — it is tamper-*evidence* for post-hoc
+    audit, not tamper-*prevention*. The control that stops an unapproved
+    submission at M1 is the ask-before-submit approval loop itself
+    (the recorded accepted residual of rung A/M1). The enforcement
+    upgrade — the gateway records the hash at the moment the owner
+    approves, making the pin owner-sourced — is the gateway-side
+    approval-registration change: a later, separately-gated milestone
+    (the gateway is unchanged in M1). The TP mismatch test injects the
+    mismatch on the **manager side** (replayed payload vs recorded
+    retry hash), not the board side.
 11. **Credential-contract capability check** (see §5): from inside the
     CoS context, a connection attempt to the broker and to the manager
     port must FAIL — **conditional and deferred to the A+ gate** (third
