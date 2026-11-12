@@ -9,6 +9,17 @@
 
 ## Current position
 
+- **V2 build phase: OPEN.** Repo-side half of the `ea-` rename micro-gate
+  done (2026-11-11, `d2afc5d`): mapping table at
+  `version 2/ea-rename-mapping.md`; grep audit over V2-owned trees clean
+  (V2 deploy layer will be born `ea-`-named; baseline `deploy/` keeps V1
+  names per §1 of the platform design). Estate half is separately gated
+  and pending owner go-ahead: registry re-tag of the 9 images under
+  `ea/…` (digest equality), queue re-create under `ea-*` with the single
+  `x-max-priority` declaration, baseline test path re-run green under
+  `ea` names. Then: file-level impact inventory + endpoint table
+  (§9.5) → build-start security items (§9.1) → staged build → M1.
+
 - **V1** (`github.com/arvisdev/ephemeral-agents`, public, FROZEN): complete
   POC record — M0–M5 signed, book (15 chapters), findings report,
   retrospective. Baseline cited by hash; see README. Read-only except bug
