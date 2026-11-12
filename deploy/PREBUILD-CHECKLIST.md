@@ -70,3 +70,15 @@
 - [x] `deploy/rename-to-ea.sh` staged (syntax-checked; NOT run)
 - [x] Security staging templates + secret inventory (placeholders only)
 - [ ] Owner declares the build start
+
+## Build-phase deliverable added 2026-11-11 (owner question: "complete enough for a clean build by someone new?")
+
+- **V2 clean-build runbook** — the V2 analog of deploy/README + book ch14:
+  owner-inputs checklist (ea-named), the staged-build sequence as operator
+  steps, the VM-Xa CoS provisioning recipe (repeatable: new project = new
+  VM + recipe + roster), and the desktop↔CoS connection procedure. Done
+  when a stranger can rebuild from a bare PVE host using only committed
+  files. Written *during* the build as each stage produces its real steps
+  (the V2 book remains the closing deliverable; the runbook is its
+  operational spine). V1's path (deploy/README + book) is already
+  stranger-ready and stays the reference for the V1-proven stages.
