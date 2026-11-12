@@ -371,3 +371,45 @@ unnecessary. Decisions recorded in the rewritten
   — the §5 rule ("title corrected at the same first touch") is satisfied
   early by this owner-directed sweep, recorded here as that first
   touch.
+
+## 2026-11-10 (seventh) — D12-rev: two-tier work board; conditions 2–3 applied; ADR-0001
+
+- **D12-rev (owner): the two-tier work board.** Tier 1 — the **master
+  plan** on an external tracker (GitHub Issues default; ADO/Jira
+  swap-in): the CoS decomposes the behavioral specification into the
+  complete plan, published by an **exporter** that holds the tracker
+  credential (the CoS never does). The master plan is the plan of
+  record: durable off VM-Xa, human-reviewable in the approval flow, and
+  the intent audit trail. Tier 2 — the **working set** on the CoS's
+  local Hermes board: the CoS pulls a logical subset (unblocked,
+  priority-ordered, within the 5-agent window) and drives it through
+  approval → submit → report. Direction of truth: tracker = plan;
+  gateway/manager/queue = execution; local board = cache. Status flows
+  up; plan content flows down only via explicit subset-pull;
+  offline-tolerant. Desk-never-door unchanged. Full rationale,
+  consequences, and rejected alternatives: `version 2/adr-0001-cos-work-board.md`.
+- **Documentation directive (owner):** the work-board and approval areas
+  are complex — the V2 book must give them special plain-language
+  attention for the general reader, and architectural decision records
+  (this ADR-0001 is the first) carry the senior-technical depth. ADRs
+  join the V2 documentation set as a standing class.
+- **Condition 2 applied (owner-approved recommendation):** the
+  approval-hash mechanism is now honest — `approval_hash` as an additive
+  message-v1 field (SHA-256, UTF-8, whitespace-exact canonicalization)
+  landing in the same gated change as the manager check; M1 manager
+  checks = retry integrity + mismatch-reject-and-surface; §7.10 reworded
+  to tamper-evidence (the ask-before-submit loop remains the control);
+  gateway-side approval registration recorded as the later enforcement
+  upgrade; the TP mismatch test injects on the manager side.
+- **Condition 3 applied (on the D12-rev basis):** the durability
+  contract — master plan survives total VM-Xa loss by construction;
+  working set rebuilt by re-pull with approval-state re-verification;
+  fail-safe to no-submit on ambiguous/unreadable approval state;
+  write-ahead ordering (approval precedes submit attempt; "submitted"
+  follows gateway ack); forced-corruption case added to TP assertion 7;
+  build-time verification items named (board storage medium, desktop
+  visibility, cross-project isolation, board-history retention, tracker
+  choice, exporter credential staging).
+- **Condition 1** was applied in the previous commit (the §5 four-
+  credential allow-list). Remaining conditions: 4 (runnable judgment
+  corpus) and 5 (drift pass).

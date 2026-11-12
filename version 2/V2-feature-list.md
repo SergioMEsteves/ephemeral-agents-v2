@@ -33,12 +33,13 @@ and the decision log. Status markers: **decided** (owner-approved, in scope),
   *(decided, M1)*
 - **Conversation continuity:** backlog, open proposals, and submissions
   survive reboots; nothing approved is orphaned. *(decided, M1)*
-- **The CoS work board:** the CoS tracks every work package on its native
-  kanban board — proposed → approved → submitted → in-flight → reported →
-  rolled up, with priorities, dependencies, and held items visible at a
-  glance and card history as the audit trail. The board is the CoS's
-  desk, never the door: the queue remains the only execution truth.
-  *(decided, D12, M1)*
+- **The two-tier work board:** the CoS decomposes each request into a
+  complete **master plan** on an external tracker (GitHub Issues by
+  default; ADO/Jira swap-in) — durable off-VM, human-reviewable, and the
+  intent audit trail — then **pulls the working subset** onto its local
+  board and drives it through the approval → submit → report loop.
+  Neither tier can start work: the queue remains the only execution
+  truth. *(decided, D12-rev, M1; see `adr-0001-cos-work-board.md`)*
 - **Multi-project:** one project = one VM = one gateway = one resident
   CoS; the desktop registers N project connections; projects share
   nothing by default. *(decided; per-project memory scoping at the second

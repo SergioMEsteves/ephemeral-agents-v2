@@ -172,6 +172,20 @@ proposes, the code disposes** — the manager validates every proposal.
   until the `ea-` rename micro-gate). `schemas/message-v1.json` metadata
   de-POC'd (title + description; no contract semantics touched — recorded
   as the §5 "first touch").
+- **2026-11-10 (seventh): D12-REV — TWO-TIER WORK BOARD (owner).** Tier 1
+  master plan on an external tracker (GitHub Issues default, ADO/Jira
+  swap-in; exporter holds the credential, CoS never does) = plan of
+  record, human-reviewable, intent audit trail; Tier 2 local Hermes board
+  = the pulled working subset driven through approval → submit → report.
+  Tracker = plan truth; queue = execution truth; local board = cache.
+  Desk-never-door unchanged; fail-safe recovery; write-ahead ordering.
+  Full record: `version 2/adr-0001-cos-work-board.md` (ADR-0001 — first
+  of a standing ADR class; owner directive: the V2 book gives the
+  work-board/approval areas special plain-language attention). Conditions
+  1–3 of the third-pass review now applied (§5 allow-list; honest
+  approval-hash = retry integrity + tamper-evidence; board durability
+  contract). Remaining: condition 4 (runnable judgment corpus) and 5
+  (drift pass).
 
 ### Next actions
 

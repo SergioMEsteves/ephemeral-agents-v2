@@ -33,6 +33,7 @@ manager does not already enforce.
 | D10 | Change management | No mid-flight interruption of ephemeral agents. New information arriving while a task runs is classified: **additive** (held for future packages) or **corrective** (a follow-on revision package issued after the in-flight task completes, referencing its artifact). The CoS reads results via the gateway report and/or the project repo, then composes follow-on work. True cancellation of in-flight runs is a separately-designed later milestone (it moves an enforcement action into judgment's hands). |
 | D11 | Conversation boundary | Gateway → manager → queue unchanged; the CoS is a client of the gateway, nothing more. |
 | D12 | CoS work board (owner, 2026-11-10) | The CoS maintains its work state on its **native Hermes kanban board** — one board per project CoS. Card = work package (agent_ref, behavioral_spec, priority, ttl); columns = proposed → owner-approved → submitted → in-flight → reported → rolled up, with corrective follow-ons as linked cards. The board is the CoS's **state store of record** (backlog, ordering, dependencies, held additive info) — replacing the earlier `cos-state/state.json` proposal, which would have required the CoS to push to GitHub in violation of §5. **The board is the CoS's desk, never the door:** the queue (RabbitMQ/Temporal) remains the only execution truth; a card moves to "submitted" only through the approval flow (gateway → manager validation); a card moving to "in-flight" is a *reflection* of the queue's truth, never the cause of it. Report events flow back to move cards. Board history doubles as the submit-side audit trail (observability minimum). |
+| D12-rev | Two-tier work board (owner, 2026-11-10) | D12 revised: the work state is **two-tier**. **Tier 1 — the master plan** lives in an **external tracker** (GitHub Issues by default; ADO/Jira swap-in via a tracker-agnostic exporter): the CoS decomposes the behavioral specification into the complete plan — every intended work package — and the exporter (holding the tracker credential, staged gitignored per §9.1) publishes it. The master plan is the **plan of record**: durable off VM-Xa by definition, human-reviewable in the approval flow (the owner reviews the decomposition in the tracker), and the intent audit trail. **Tier 2 — the working set** is the CoS's local Hermes board: the CoS **pulls a logical subset** of master-plan items (unblocked, priority-ordered, within the 5-agent window and dependency rules) and drives that subset through the approval → submit → report loop. **Direction of truth per tier:** the tracker is authoritative for the *plan*; the gateway/manager/queue remain authoritative for *execution*; the local board is a working cache between them. Status flows up (local transitions → tracker status updates via the exporter); plan content flows down only via an explicit subset-pull. **Credentials stay out of the CoS** — the exporter holds the tracker key, never the CoS. If the tracker is unreachable the CoS works locally and syncs when it returns (offline-tolerant). The desk-never-door rule is unchanged: neither board can start work; only the approval flow → gateway → manager can. Rationale and alternatives: `adr-0001-cos-work-board.md`. |
 
 ## 3. Connection procedure (Q1 — native gateway link)
 
@@ -123,7 +124,11 @@ broker/manager-port connection from inside the CoS context must FAIL).
 2. CoS **triages**: selects best-fit agent(s) from the roster (D7a), breaks
    the request into work packages, classifies each package's `priority`
    (D8) and dependencies (independent → submit in parallel, D9; dependent →
-   hold in its backlog).
+   hold in its backlog). The complete decomposition is published to the
+   **master plan** on the external tracker (D12-rev), where the owner can
+   review it; the CoS then **pulls the working subset** — the unblocked,
+   priority-ordered items within the 5-agent window — onto its local
+   board and drives those through the approval flow.
 3. CoS **proposes** the decomposition (agent_ref + behavioral_spec +
    priority + ttl per package, per `schemas/message-v1.json`). Nothing is
    submitted.
@@ -143,20 +148,47 @@ broker/manager-port connection from inside the CoS context must FAIL).
    the in-flight task completes, referencing its artifact.
 8. Conversation state (backlog, open proposals, submitted tasks,
    dependencies) persists across reboots so nothing approved is orphaned.
-   **Mechanism (D12, owner 2026-11-10):** the CoS's native **kanban
-   board** is the state store of record — card = work package (agent_ref,
-   behavioral_spec, priority, ttl, dependencies, held additive info),
-   written at every state transition (proposal issued, approval received,
-   submission acknowledged, report received). The board lives with the
-   CoS profile on VM-Xa — durable across reboots, no GitHub credential
-   required (resolving the second-pass review's critical finding without
-   granting the CoS repo write). The project repo remains the source of
-   truth for *project content* (D4); the board is the source of truth for
-   *CoS work state*. On boot, the CoS recovers from its board. TP
-   assertion 7 names the board as the artifact; the desktop-side board
-   visibility (can the owner view the VM-Xa board conveniently from the
-   desktop, vs. asking the CoS to report it) is a **build-time
-   verification item**, not an assumption.
+   **Mechanism (D12-rev, owner 2026-11-10) — the two-tier work board:**
+   **Tier 1, the master plan** — the CoS decomposes the behavioral
+   specification into the complete plan on an **external tracker**
+   (GitHub Issues by default; the exporter is tracker-agnostic, so ADO/
+   Jira are swap-in), published by the **exporter** (which holds the
+   tracker credential, staged gitignored per platform §9.1 — the CoS
+   never holds a tracker key). The master plan is the **plan of record**:
+   durable off VM-Xa by definition, human-reviewable (the owner reviews
+   the proposed decomposition in the tracker before approving), and the
+   intent audit trail. **Tier 2, the working set** — the CoS's local
+   Hermes board holds the pulled subset (unblocked, priority-ordered,
+   within the 5-agent window and dependency rules) and drives it through
+   approval → submit → report. **Durability contract:** the master plan
+   survives a total VM-Xa loss (it never lived there); the working set
+   is rebuilt by re-pulling from the master plan after a profile
+   restore, with every card's approval state re-verified — and any card
+   whose approval state is ambiguous after restore goes **fail-safe to
+   no-submit and surfaces to the owner** (never reconstructed
+   optimistically; a card is submitted only from provably-approved
+   state). **Write-ahead ordering:** approval is recorded on the card
+   *before* the submit attempt; "submitted" is recorded only after the
+   gateway acknowledges — making the crash-window deterministic.
+   **Direction of truth:** tracker = plan; gateway/manager/queue =
+   execution; local board = working cache. Status flows up (local
+   transitions → tracker updates via the exporter); plan content flows
+   down only via an explicit subset-pull; the exporter is offline-
+   tolerant (tracker unreachable ⇒ the CoS works locally and syncs
+   later). **The desk-never-door rule is unchanged:** neither tier can
+   start work — only the approval flow → gateway → manager can. The
+   project repo remains the source of truth for *project content* (D4);
+   the tracker is the source of truth for the *plan*; the queue is the
+   source of truth for *execution*. **Build-time verification items:**
+   the local board's storage medium (durable host path/volume, not
+   ephemeral), desktop-side board visibility, cross-project board
+   isolation (a project's board must not leak across N registered
+   desktop connections), board history retention/timestamps, the
+   tracker choice, and the exporter's credential staging. TP assertion
+   7 exercises: reboot recovery from the two-tier state, the
+   crash-between-approval-and-submit window, and a **forced-corruption
+   case** (a damaged/unreadable local board must yield no-submit and an
+   owner surface, never resumption).
 
 ### Failure behavior (completed per the 2026-11-10 review)
 
@@ -181,10 +213,13 @@ broker/manager-port connection from inside the CoS context must FAIL).
   to the owner with the last known state; the backlog entry is closed as
   failed, not silently held.
 - **CoS crash between owner approval and submission** → on restart, the
-  CoS recovers from its kanban board (D12): cards in `owner-approved`
-  state (approval recorded before the crash) are completed through the
-  submission flow — ask-before-submit is preserved, nothing unapproved is
-  submitted. TP assertion 7 exercises this window explicitly.
+  CoS recovers from its two-tier state (D12-rev): working-set cards in
+  `owner-approved` state (approval recorded before the crash, per the
+  write-ahead ordering) are completed through the submission flow —
+  ask-before-submit is preserved, nothing unapproved is submitted; a
+  card whose approval state is ambiguous after recovery goes fail-safe
+  to no-submit and surfaces to the owner. TP assertion 7 exercises this
+  window explicitly.
 - **Partial parallel submit** (some of N independent packages accepted,
   some failed) → the retry-once policy applies per failed package, not to
   the batch; accepted packages are never re-sent.
