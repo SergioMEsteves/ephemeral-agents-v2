@@ -14,6 +14,13 @@ staged, per-VM checklist committed. Everything pushed (HEAD cc546d0).
 NO builds/deployments/estate actions until the owner declares start —
 the estate checklist items execute then.)*
 
+*Addendum (same day, `d214a4b`): final gap analysis
+(`version 2/V2-gap-analysis.md` — 20 gaps, all enumerated/classified/
+owned, none unknown) and feasibility study
+(`version 2/V2-feasibility-study.md` — FR-1..9 + NFR-1..9 each evidenced;
+verdict feasible/useful/successful, recommends build start). Design-side
+record now complete; the declare-start gate stands.*
+
 ## Current position
 
 - **V2 build phase: OPEN.** Repo-side half of the `ea-` rename micro-gate
