@@ -73,12 +73,12 @@
 
 ## Build-phase deliverable added 2026-11-11 (owner question: "complete enough for a clean build by someone new?")
 
-- **V2 clean-build runbook** — the V2 analog of deploy/README + book ch14:
-  owner-inputs checklist (ea-named), the staged-build sequence as operator
-  steps, the VM-Xa CoS provisioning recipe (repeatable: new project = new
-  VM + recipe + roster), and the desktop↔CoS connection procedure. Done
-  when a stranger can rebuild from a bare PVE host using only committed
-  files. Written *during* the build as each stage produces its real steps
-  (the V2 book remains the closing deliverable; the runbook is its
-  operational spine). V1's path (deploy/README + book) is already
-  stranger-ready and stays the reference for the V1-proven stages.
+- **V2 clean-build runbook — DELIVERED (drafted) 2026-11-11 (`165a239`):**
+  `deploy/RUNBOOK-V2-BUILD.md` (owner inputs, S0–S7 stages with gates and
+  secret staging; steps marked ⟂FINALIZE get their exact values pinned by
+  the build stage that first exercises them — the build edits the runbook
+  in the same turn) and `deploy/RUNBOOK-V2-NEW-PROJECT.md` (the
+  per-project/dev-team replication recipe: shared spine, per-project
+  VM-Xa + manifest + CoS profile + desktop entry). Done-criterion remains:
+  a stranger can rebuild from a bare PVE host using only committed files —
+  verified at the end of the build.
