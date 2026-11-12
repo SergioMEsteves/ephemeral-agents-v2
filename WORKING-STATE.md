@@ -5,14 +5,14 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-11 (build phase OPEN — pre-build artifacts all
-written and ready; owner has directed NO builds/deployments until
-instructed. Rename micro-gate repo-half + §9.5 impact inventory +
-endpoint table committed; judgment corpus now an actual runnable asset
-(`version 2/judgment-corpus/`, 13 fixtures + check.py, verified).
-Outstanding before/in-during build: estate half of the rename (owner
-go-ahead pending), services/ code (born ea-named during build), the
-contract test suite (built in the staged-build process, platform §9.6).)*
+*Last updated: 2026-11-11 (pre-build gap closure COMPLETE per owner
+directive — everything writable is written and tested: Go services
+ported ea-named with all tests green, M1 manager changes (priority +
+approval_hash) implemented+tested, message-v1 schema extended, contract
+test suite 14/14, corpus runnable, rename script + security staging
+staged, per-VM checklist committed. Everything pushed (HEAD cc546d0).
+NO builds/deployments/estate actions until the owner declares start —
+the estate checklist items execute then.)*
 
 ## Current position
 
