@@ -70,6 +70,24 @@ record now complete; the declare-start gate stands.*
   S0 evidence: WORKING-STATE shows HEAD `9ad275f`+S0-notes. Next: S1
   registry TLS + basic-auth (compose.tls.yaml, .env.registry, GC
   keep-last-N), then S2 images (rename step1 already green 3/3), S3+.
+- **2026-11-13 (third) — S1 EXECUTED + verified.** Registry VM: TLS
+  (internal CA, leaf cert IP-SAN 192.0.2.13) + bcrypt htpasswd
+  (passlib; registry v3.1.2 requires bcrypt — the passlib default
+  $apr1$ scheme was rejected) + REGISTRY_HTTP_TLS_CERTIFICATE (v3 env
+  var name — the v2-style CERT name is silently ignored) + delete
+  enabled. Registry data preserved (existing bind ./data, 2.2G).
+  Consumers: CA cert distributed + docker login verified on vm-xa,
+  vm-xb, vm-hindsight (the workstation's docker daemon needs the CA
+  too — the workstation's arvisdev lacks passwordless sudo, one owner
+  command pending). Tests green: pull with creds (200), auth-negative
+  (401), push+delete (202, test-s1 image deleted), plain HTTP 400.
+  Registry UI: joxit via nginx proxy_pass to https://registry:5000
+  with fixed basic-auth header (NGINX_PROXY_HEADER_Authorization) —
+  catalog 200 through the proxy, UI page 200 from the workstation.
+  GC: weekly cron (Mon 03:00) running registry garbage-collect against
+  /etc/distribution/config.yml (v3 path) + disk alert at 80% (current
+  45%). Repo template corrected to match reality (CERTIFICATE env var
+  name, ./data bind path, pinned storage root). Next: S2 images, S3+.
 - **2026-11-13 estate recovery + pre-start sweep (owner-requested fix):**
     ran `deploy/restart-stack.sh vm-xb` — temporal+pg back up (healthy),
     worker registered on `poc-tasks`, bridge consuming, dashboards 200;
