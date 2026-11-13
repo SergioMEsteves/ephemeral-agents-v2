@@ -77,9 +77,12 @@ record now complete; the declare-start gate stands.*
   var name — the v2-style CERT name is silently ignored) + delete
   enabled. Registry data preserved (existing bind ./data, 2.2G).
   Consumers: CA cert distributed + docker login verified on vm-xa,
-  vm-xb, vm-hindsight (the workstation's docker daemon needs the CA
-  too — the workstation's arvisdev lacks passwordless sudo, one owner
-  command pending). Tests green: pull with creds (200), auth-negative
+  vm-xb, vm-hindsight. Workstation: docker daemon still needs one
+  owner sudo command for /etc/docker/certs.d, but the workstation is
+  fully validated via the rootless podman context (CA in
+  ~/.config/containers/certs.d/192.0.2.13:5000/ — no sudo): login,
+  pull, push, delete all green (podman rejects underscore-leading
+  repo names where docker accepted them — noted). Tests green: pull with creds (200), auth-negative
   (401), push+delete (202, test-s1 image deleted), plain HTTP 400.
   Registry UI: joxit via nginx proxy_pass to https://registry:5000
   with fixed basic-auth header (NGINX_PROXY_HEADER_Authorization) —
