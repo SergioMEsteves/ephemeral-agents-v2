@@ -5,7 +5,23 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-13 — BUILD PHASE DECLARED OPEN (owner, this
+*Last updated: 2026-11-13 (fifth) — S4 OPEN. Owner chose `deploy-v2/`
+as the V2 deploy-tree name (the impact-inventory placeholder kept).
+Tree created (33 files, ea-named); broker wiring done (`ea` user +
+permissions, `ea-tasks.dlq` declared, `agent.tasks.#` binding verified
+on the live broker). Credential sweep miss found during the S4 wiring
+review and fixed: the tracked `deploy/m1|2/m5` composes carried a
+literal 16-char broker password in `RABBITMQ_URL` (stale V1-era value
+— does NOT match the live broker password; live value only in
+gitignored .env) — now parameterized
+`${RABBITMQ_PASS:?set RABBITMQ_PASS in .env}` in V2 (`0734c57`), V1
+backport `c2649a7` (composes + 2 Go comments; the 3 `version 1/` docs
+were already parameterized); deploy-v2 copies hardened (`5deb77c` +
+ledger entry 5). Verified byte-level: zero credential bytes remain in
+either repo's tracked files. Runtime path unchanged. Continuing S4:
+m1/m2 compose wiring review, install scripts, then staged build.)*
+
+*Prior: 2026-11-13 — BUILD PHASE DECLARED OPEN (owner, this
 session). Rename estate half steps 1–2 EXECUTED: registry re-tag
 3/3 digest-identical (correction: only 3 V1 images were ever
 registry-resident — the other 6 of the listed 9 were built at install
