@@ -49,6 +49,20 @@ record now complete; the declare-start gate stands.*
     lifecycle, llm-proxy (v3, mounts from /opt/poc/llm-proxy/)
   - memory VM: hindsight API :8081; registry VM: private registry :5000
   - post-reboot bring-up: `bash deploy/restart-stack.sh <execution-host>`
+  - **2026-11-13 estate recovery + pre-start sweep (owner-requested fix):**
+    ran `deploy/restart-stack.sh vm-xb` — temporal+pg back up (healthy),
+    worker registered on `poc-tasks`, bridge consuming, dashboards 200;
+    root cause: the temporal stack (V1-era, `restart: no`) never came back
+    after the host reboot and its first auto-start raced its own DB (one
+    manual `docker start` cleared it). Memory VM: hindsight-pg had the
+    same orphan (exited 255, 38 h) — brought up, healthy, `/healthz` 200.
+    Registry VM verified (API 200). Residuals noted: temporal stack still
+    `restart: no` (V2 build bakes `unless-stopped` — interim flip offered);
+    `agent.tasks.dlq` holds 35 stale V1 messages (drained at rename
+    step 2); no ssh alias exists for the registry VM (IP-only access);
+    chassis inventory re-verify, registry TLS/auth, secret staging, and
+    the desktop registry entry remain the open declare-start items.
+    gh auth verified (`arvisdev`).
     (order: engine+store → broker+bridge → worker+lifecycle → dashboards)
 
 ## Active milestone — V2-M1: the Chief-of-Staff agent
