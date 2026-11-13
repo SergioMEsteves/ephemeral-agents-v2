@@ -70,6 +70,21 @@ record now complete; the declare-start gate stands.*
   S0 evidence: WORKING-STATE shows HEAD `9ad275f`+S0-notes. Next: S1
   registry TLS + basic-auth (compose.tls.yaml, .env.registry, GC
   keep-last-N), then S2 images (rename step1 already green 3/3), S3+.
+- **2026-11-13 (fourth) — S2/S3 CLOSED.** S2 gate green: 3/3 ea-images
+  digest-identical to their poc sources (re-verified from manifest
+  headers); the other 6 images are install-built by the V2 deploy layer
+  (never registry-resident in V1 — nothing to re-tag). Interim
+  restart-policy flip done via `docker update --restart unless-stopped`
+  on all 8 live containers across vm-xb + memory VM (no V1 evidence
+  files mutated); the V2 layer bakes it in compose. S3 gate green:
+  cross-VM AMQP publish test — publish from vm-xa (the manager path)
+  over :5672/15672 to `ea-tasks` returned routed:true, message landed
+  (queue depth 1), fetched+acked with correct payload. Note: the
+  rabbitmq management API's queue-depth stats lag briefly after a
+  publish — rabbitmqctl is authoritative. **Open owner decision before
+  S4:** the V2 deploy-tree directory name (the docs say "born
+  ea-named"; the impact inventory used `deploy-v2/` as a placeholder —
+  owner decides the real name before the first S4 install script).
 - **2026-11-13 (third) — S1 EXECUTED + verified.** Registry VM: TLS
   (internal CA, leaf cert IP-SAN 192.0.2.13) + bcrypt htpasswd
   (passlib; registry v3.1.2 requires bcrypt — the passlib default
