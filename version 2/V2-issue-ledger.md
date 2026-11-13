@@ -67,3 +67,7 @@
   it was never in the three-VM M0 matrix.
 - **Rule:** all four VMs get static netplan + ssh alias at S0; a
   reboot-and-reach test is the verification event (S0 close-out).
+- **Closed 2026-11-13:** owner granted passwordless sudo on the registry VM;
+  static pin applied (192.0.2.13/24, gw .1), DHCP installer config removed
+  so it can no longer race the pin; verified by reboot-and-reach —
+  ssh alias, registry API 200, UI 200, catalog intact (8 repos incl. ea/…).
