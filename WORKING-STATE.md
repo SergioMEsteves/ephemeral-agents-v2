@@ -53,7 +53,24 @@ record now complete; the declare-start gate stands.*
     lifecycle, llm-proxy (v3, mounts from /opt/poc/llm-proxy/)
   - memory VM: hindsight API :8081; registry VM: private registry :5000
   - post-reboot bring-up: `bash deploy/restart-stack.sh <execution-host>`
-  - **2026-11-13 estate recovery + pre-start sweep (owner-requested fix):**
+  - **2026-11-13 (second) — S0 CHASSIS EXECUTED + fixed.** Owner §9.1
+  decisions at build start: dashboard control = interface binding
+  (no schema touch); registry transport = TLS + basic-auth primary;
+  coexistence = preserve V1 credentials (broker pass reused, temporal
+  aligned via socket-auth ALTER USER to the fresh V2 pass). S0 apply
+  surfaced 4 issues, all fixed and logged in the new
+  `version 2/V2-issue-ledger.md` (netplan network-root bug; temporal
+  compose-declared on poc-net ONLY — rabbitmq-pattern, dual-network DNS
+  SERVFAIL; credential-regen vs persistent volume; registry VM DHCP
+  drift). Temporal healthy on poc-net, worker registered on poc-tasks,
+  bridge consuming, DLQ drained (3 benign `m0-cross-test` smoke
+  publishes the bridge rightly rejected). Registry VM: `vm-registry`
+  ssh alias added; static netplan pin needs ONE owner-run command (its
+  user lacks passwordless sudo) — S0 close-out = first reboot-and-reach.
+  S0 evidence: WORKING-STATE shows HEAD `9ad275f`+S0-notes. Next: S1
+  registry TLS + basic-auth (compose.tls.yaml, .env.registry, GC
+  keep-last-N), then S2 images (rename step1 already green 3/3), S3+.
+- **2026-11-13 estate recovery + pre-start sweep (owner-requested fix):**
     ran `deploy/restart-stack.sh vm-xb` — temporal+pg back up (healthy),
     worker registered on `poc-tasks`, bridge consuming, dashboards 200;
     root cause: the temporal stack (V1-era, `restart: no`) never came back
