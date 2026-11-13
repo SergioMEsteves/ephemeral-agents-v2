@@ -71,3 +71,33 @@
   static pin applied (192.0.2.13/24, gw .1), DHCP installer config removed
   so it can no longer race the pin; verified by reboot-and-reach —
   ssh alias, registry API 200, UI 200, catalog intact (8 repos incl. ea/…).
+
+## 5. Literal broker password tracked in the m1/m2 composes (sweep miss)
+
+- **Symptom:** during the S4 deploy-v2 wiring review, the m1/m2 composes
+  were found to carry a literal 16-char broker password in
+  `RABBITMQ_URL` — despite the adjacent comment claiming the password is
+  interpolated from `.env`. Byte-level verification showed the tracked
+  value does NOT match the live broker password (stale, V1-era) and the
+  live value is only in gitignored `.env` files — so no burn and no
+  rotation required, but the disclosure still violates de-identification.
+- **Wrong assumption (two layers):** (a) the de-identification sweep
+  (2026-11-10) verified "zero credentials" — it checked a credential
+  pattern that did not match this URL-embedded form, and (b) every
+  subsequent read of the compose files showed `***` — the terminal
+  masking convention made the literal look like a placeholder, so it
+  passed unnoticed through m0, the rename, and the S4 wiring review.
+- **Root cause:** the m5 compose got the `${RABBITMQ_PASS}` treatment
+  during de-identification but m1/m2 only got the comment claiming it;
+  the display masking then hid the literal from every read.
+- **Rule (two):** the credential sweep must include URL-embedded
+  credentials (`amqp://user:PASS@`), byte-level, not display-level; and
+  a comment claiming interpolation must be backed by a byte-level check
+  that the literal is absent — comments are not evidence.
+- **Fixed 2026-11-13:** m1/m2/m5 composes now interpolate
+  `${RABBITMQ_PASS:?set RABBITMQ_PASS in .env}` (V2 commit `0734c57`;
+  V1 backport `c2649a7` — 3 composes + 2 Go comments; the 3 `version 1/`
+  docs were already parameterized). Verified byte-level: zero
+  credential bytes remain in either repo's tracked files; runtime path
+  unchanged (install scripts write `RABBITMQ_PASS` to gitignored
+  `/opt/poc/deploy/m1|2/.env`, 0600).
