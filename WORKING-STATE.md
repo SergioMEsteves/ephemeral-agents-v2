@@ -62,7 +62,13 @@ record now complete; the declare-start gate stands.*
     step 2); no ssh alias exists for the registry VM (IP-only access);
     chassis inventory re-verify, registry TLS/auth, secret staging, and
     the desktop registry entry remain the open declare-start items.
-    gh auth verified (`arvisdev`).
+    gh auth verified (`arvisdev`). Desktop-gateway-connection setup was
+    started early at owner request and **parked at owner direction
+    (2026-11-13)** until the build completes: the desktop side needs a
+    running `hermes serve` CoS backend on VM-Xa (built at stage S7), so
+    the connection is created then — procedure already pinned in the S7
+    runbook row (`9712193`, from the official multi-connection-desktop
+    docs).
     (order: engine+store → broker+bridge → worker+lifecycle → dashboards)
 
 ## Active milestone — V2-M1: the Chief-of-Staff agent
