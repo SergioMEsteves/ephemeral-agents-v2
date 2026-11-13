@@ -13,6 +13,16 @@ services:
       POSTGRES_PWD: ${TEMPORAL_DB_PASS}
       POSTGRES_SEEDS: postgres
     depends_on: [postgres]
+    # poc-net membership is REQUIRED — worker/bridge/lifecycle resolve
+    # "temporal" on the shared execution network. V1 had this as a manual
+    # `docker network connect`, which every compose recreation silently
+    # drops (V2 issue-ledger lesson: declare it in compose, never attach by hand).
+    # rabbitmq-pattern: services live ONLY on poc-net (aliases = service
+    # names). Keep a container on TWO networks and Docker's embedded DNS
+    # SERVFAILs peer lookups; declare, never attach by hand (V2 issue ledger).
+    networks:
+      poc-net:
+        aliases: [temporal]
     healthcheck:
       test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/7233'"]  # server image ships no temporal CLI
       interval: 15s
@@ -23,8 +33,14 @@ services:
       POSTGRES_USER: temporal
       POSTGRES_PASSWORD: ${TEMPORAL_DB_PASS}
     volumes: ["temporal-pg-data:/var/lib/postgresql/data"]
+    networks:
+      poc-net:
+        aliases: [postgres]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U temporal"]
       interval: 10s
 volumes:
   temporal-pg-data: {}
+networks:
+  poc-net:
+    external: true
