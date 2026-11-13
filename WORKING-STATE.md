@@ -5,14 +5,18 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-11 (pre-build gap closure COMPLETE per owner
-directive — everything writable is written and tested: Go services
-ported ea-named with all tests green, M1 manager changes (priority +
-approval_hash) implemented+tested, message-v1 schema extended, contract
-test suite 14/14, corpus runnable, rename script + security staging
-staged, per-VM checklist committed. Everything pushed (HEAD cc546d0).
-NO builds/deployments/estate actions until the owner declares start —
-the estate checklist items execute then.)*
+*Last updated: 2026-11-13 — BUILD PHASE DECLARED OPEN (owner, this
+session). Rename estate half steps 1–2 EXECUTED: registry re-tag
+3/3 digest-identical (correction: only 3 V1 images were ever
+registry-resident — the other 6 of the listed 9 were built at install
+time, never pushed; `rename-to-ea.sh` IMAGES list corrected), stale
+`agent.tasks.dlq` (35 msgs) deleted, `ea-tasks` declared durable with
+`x-max-priority: 3` (the single OQ4 declaration point). V1
+`agent.tasks.*` queues untouched pending switch-over. Step 3 (baseline
+path under ea names) defers to staged-build stages 1–2. Registry VM
+recovered: it was up but had shifted address after downtime (DHCP
+lease move — pinned-static item now a build-start security item);
+drive-cycled once. HEAD pushed after rename-estate commit.)*
 
 *Addendum (same day, `d214a4b`): final gap analysis
 (`version 2/V2-gap-analysis.md` — 20 gaps, all enumerated/classified/

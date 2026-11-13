@@ -26,7 +26,12 @@ set -euo pipefail
 : "${EXECUTION_HOST:?set EXECUTION_HOST (from the gitignored env inventory)}"
 ASSUME_YES="${ASSUME_YES:-0}"
 
-IMAGES="topic-bridge lifecycle worker executor-stub hermes-ephemeral claude-coder hindsight-api gateway manager"
+# Registry-resident truth (verified 2026-11-13): only these 3 V1 images were
+# ever pushed to the private registry (V1 built the other services at install
+# time and loaded them directly on the execution VM, no registry). The
+# original 9-image list here was aspirational — the missing 6 abort step 1
+# with "MISSING source". The V2 install layer builds ea-named at build time.
+IMAGES="claude-coder hermes-ephemeral lifecycle"
 
 confirm() { [ "$ASSUME_YES" = "1" ] && return 0; read -r -p "$1 [y/N] " a; [ "$a" = "y" ]; }
 

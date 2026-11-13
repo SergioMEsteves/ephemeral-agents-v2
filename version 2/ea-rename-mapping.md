@@ -35,8 +35,19 @@
       (the V2 deploy layer does not yet exist; it will be born `ea-`-named).
       `schemas/message-v1.json` contains one `POC_TTL_DEFAULT` mention in
       prose describing V1 M2 behavior — provenance citation, retained.
-- [ ] Estate half (separately gated): registry re-tag of all 9 images
-      under `ea/…` verified by digest equality with the V1 images; queue
-      re-creation under `ea-*` with the single `x-max-priority`
-      declaration; V1 baseline test path re-run green under `ea` names;
-      affected structural assertions re-run before any new feature lands.
+- [x] Registry re-tag **executed 2026-11-13** (build phase opened by owner):
+      the registry-resident images re-tagged `ea/…:1.0.0`, digest-identical
+      (3/3 OK — claude-coder, hermes-ephemeral, lifecycle; digests verified
+      from manifest headers). Correction recorded: only 3 V1 images were
+      ever registry-resident; the other 6 of the originally listed 9 were
+      built at V1 install time without a registry push (so there is nothing
+      to re-tag — the V2 install layer builds them `ea/`-named). The
+      `rename-to-ea.sh` IMAGES list was corrected to match.
+- [x] Queue re-creation **executed 2026-11-13**: `ea-tasks` declared durable
+      with `x-max-priority: 3` (the single OQ4 declaration point); the
+      stale `agent.tasks.dlq` (35 dead V1 messages) deleted per plan. V1
+      `agent.tasks.*` queues remain untouched until the estate switch-over.
+- [ ] V1 baseline test path re-run green under `ea` names — deferred to
+      the staged build (precondition: `ea-net` + V2 deploy layer installed,
+      stages 1–2); affected structural assertions re-run before any new
+      feature lands.
