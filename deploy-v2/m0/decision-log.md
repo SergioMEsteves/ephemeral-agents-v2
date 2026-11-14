@@ -119,3 +119,24 @@ Rationale column.
 - VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
 - Language decision: Go for ALL Temporal code (owner instruction: speed + size)
 - Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-14
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## D-routing — V2 publishes queue-direct to ea-tasks (2026-11-14)
+- Decision: the V2 manager publishes task messages DIRECTLY to the `ea-tasks` queue
+  (default exchange, routing key = queue name; manager cfg TASKS_EXCHANGE unset,
+  EA_TASKS_QUEUE=ea-tasks). The shared `agent.tasks` topic exchange is V1's route.
+- Why: both V1's bridge (`agent.tasks.#` -> `agent.tasks.durable`) and V2's bridge
+  bind `agent.tasks.#` and derive the same WorkflowId from task_id — first-start
+  wins, so exchange-routed V2 tasks raced V1 and were executed on V1's poc-tasks
+  queue (observed live in the first M5 E2E: two tasks landed on V1, artifacts at
+  /var/poc). Queue-direct removes the race at the publish point; V1's bridge and
+  queues are untouched and still serve V1's own publishes.
+- Trade-off: capability-based topic routing (routing key = agent_capability) is
+  not exercised on the V2 path — the queue is the subscription point. If fan-out
+  by capability returns, it is a versioned message-v1 additive change.
+- Commit trail: c4e1282 (intent, tree was gitignore-masked), 28b8616 (sources
+  tracked + publish fix), a710d08 (compose EA_TASKS_QUEUE).
