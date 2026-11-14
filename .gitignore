@@ -5,6 +5,7 @@
 app-key*
 m3.env
 deploy/*/evidence/
+deploy-v2/*/evidence/
 
 # compiled Go binaries (build artifacts - never commit)
 go-sdk-smoke

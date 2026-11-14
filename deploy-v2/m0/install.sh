@@ -62,7 +62,7 @@ ASSUME_YES="${ASSUME_YES:-0}"
 for arg in "$@"; do
   case "$arg" in
     --check-only) CHECK_ONLY=1 ;;
-    --no-gate) NO_GATE=1 ;;
+    --no-gate) NO_GATE=1; ASSUME_YES=1 ;;
     --apply-netplan) APPLY_NETPLAN=1 ;;
     -h|--help) sed 's/^# \{0,1\}//' "$0"; exit 0 ;;
     *) echo "unknown option: $arg (see --help)"; exit 64 ;;
@@ -256,24 +256,64 @@ RABBIT_API
 }
 
 cross_vm_publish_test() {
-  local n via
+  local n post
   log "§3   cross-VM publish test (mgmt UI is loopback-only on $VM_XB; AMQP 5672 is the cross-VM path)"
-  # publish via the mgmt API on vm-xb itself (relay through ssh; password via stdin config)
-  printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" 'umask 077; cat > /tmp/rmq-cfg && chmod 600 /tmp/rmq-cfg'
-  ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/exchanges/%2F/agent.tasks/publish" -H "content-type: application/json" -d "{\"routing_key\":\"agent.tasks\",\"payload\":\"m0-cross-test\",\"payload_encoding\":\"string\",\"properties\":{\"delivery_mode\":2}}"; rm -f /tmp/rmq-cfg'
-  via="mgmt API on $VM_XB"
-  sleep 2
-  n="$(printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" "curl -s -K - 'http://127.0.0.1:15672/api/queues/%2F/ea-tasks' | grep -o '\"messages\":[0-9]*' | cut -d: -f2 || true")"
+  # Publish from vm-xa (the manager's path) over AMQP 5672 — the actual cross-VM
+  # wire the manager uses — via python3+pika (installed on vm-xa as a test
+  # dependency). The password is staged on vm-xa as a 0600 file via stdin and
+  # removed after — never in argv or logs (the display-mask rule).
+  ssh "$VM_XA" "python3 -c 'import pika' 2>/dev/null || { command -v apt-get >/dev/null && sudo apt-get install -y python3-pika >/dev/null 2>&1 || true; }"
+  printf '%s' "$RABBITMQ_PASS" | ssh "$VM_XA" 'umask 077; cat > /tmp/rmq-pw && chmod 600 /tmp/rmq-pw'
+  if ! ssh "$VM_XA" "RMQ_HOST=${NETPLAN_IP_XB:?NETPLAN_IP_XB needed} python3 - <<'PY'
+import pika, os
+pw = open('/tmp/rmq-pw').read().strip()
+c = pika.BlockingConnection(pika.ConnectionParameters(
+    host=os.environ['RMQ_HOST'],
+    credentials=pika.PlainCredentials('ea', pw)))
+ch = c.channel()
+ch.basic_publish(exchange='agent.tasks', routing_key='agent.tasks',
+                 body='m0-cross-test', properties=pika.BasicProperties(delivery_mode=2))
+c.close()
+print('published')
+PY"; then
+    ssh "$VM_XA" 'rm -f /tmp/rmq-pw'
+    log "§3   cross-VM publish FAILED (vm-xa -> $VM_XB:5672)"
+    return 1
+  fi
+  ssh "$VM_XA" 'rm -f /tmp/rmq-pw'
+  # Assert via rabbitmqctl (authoritative — the mgmt-API stats lag after a publish)
+  n="$(ssh "$VM_XB" "docker exec rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^ea-tasks[[:space:]]' | head -1 | awk '{print \$2}'" || true)"
   if [ "${n:-0}" -ge 1 ]; then
-    log "§3   queue messages=$n via $via"
+    log "§3   queue messages=$n via AMQP 5672 from vm-xa (rabbitmqctl)"
+    # Fetch+ack the V2 copy from ea-tasks (mgmt API GET on vm-xb loopback — no
+    # consumer on ea-tasks, so nothing else can take it). Note: the exchange
+    # fans out to BOTH queues independently — the V1 bridge's copy (agent.tasks
+    # durable) is a separate delivery; the V1 bridge rejects this non-JSON
+    # payload to agent.tasks.dlq (drained below, V1 cleanup).
+    printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" 'umask 077; cat > /tmp/rmq-cfg && chmod 600 /tmp/rmq-cfg'
+    ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/ea-tasks/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" | grep -q "m0-cross-test" && echo "fetch-ack-ok"; rm -f /tmp/rmq-cfg'
+    printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" 'umask 077; cat > /tmp/rmq-cfg && chmod 600 /tmp/rmq-cfg'
+    ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/agent.tasks.dlq/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" >/dev/null; rm -f /tmp/rmq-cfg'
+    post="$(ssh "$VM_XB" "docker exec rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^(ea-tasks|agent.tasks.dlq)[[:space:]]' | awk '{print \$1, \$2}'" || true)"
+    log "§3   post-test: $post (ea-tasks drained; V1 DLQ drained — V1 cleanup)"
     return 0
   fi
-  log "§3   cross-VM publish: queue count=${n:-0} (want >=1)"
+  log "§3   cross-VM publish: ea-tasks messages=${n:-0} (want >=1) — rabbitmqctl"
   return 1
 }
 
 deploy_rabbitmq() {
   log "§3 — RabbitMQ (Topic) on $VM_XB"
+  # RABBITMQ_PASS is loaded from the gitignored .env BEFORE the coexistence
+  # branch — both paths (reuse the live broker / compose up) need it for
+  # declare_topology + cross_vm_publish_test (set -u would die otherwise).
+  local envf="$M0/rabbitmq/.env"
+  if ! grep -q '^RABBITMQ_PASS=' "$envf" 2>/dev/null; then
+    confirm "generate RABBITMQ_PASS into $envf (gitignored)"
+    if [ "$CHECK_ONLY" != "1" ]; then echo "RABBITMQ_PASS=$(openssl rand -hex 16)" >> "$envf"; fi
+  fi
+  RABBITMQ_PASS="$(grep '^RABBITMQ_PASS=' "$envf" | cut -d= -f2)"
+  [ -n "$RABBITMQ_PASS" ] || die "RABBITMQ_PASS missing (generate: openssl rand -hex 16)"
   # COEXISTENCE MODE (V1 stack running): reuse the live broker — the V1 compose
   # project owns ports 5672/15672 and the container name; a second compose up
   # would conflict. The V1 container is connected to ea-net with alias rabbitmq
@@ -292,13 +332,6 @@ deploy_rabbitmq() {
       || ssh "$VM_XB" "docker exec rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
       || die "live rabbitmq not serving"
   else
-  local envf="$M0/rabbitmq/.env"
-  if ! grep -q '^RABBITMQ_PASS=' "$envf" 2>/dev/null; then
-    confirm "generate RABBITMQ_PASS into $envf (gitignored)"
-    if [ "$CHECK_ONLY" != "1" ]; then echo "RABBITMQ_PASS=$(openssl rand -hex 16)" >> "$envf"; fi
-  fi
-  RABBITMQ_PASS="$(grep '^RABBITMQ_PASS=' "$envf" | cut -d= -f2)"
-  [ -n "$RABBITMQ_PASS" ] || die "RABBITMQ_PASS missing (generate: openssl rand -hex 16)"
   if [ "$CHECK_ONLY" != "1" ]; then
     ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/rabbitmq && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
     rsync -az "$M0/rabbitmq/compose.yaml" "$envf" "$VM_XB:/opt/ea/deploy-v2/m0/rabbitmq/"
