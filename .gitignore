@@ -12,7 +12,11 @@ go-sdk-smoke
 services/**/gateway
 services/**/manager
 services/**/adapter
+!services/**/gateway/
+!services/**/manager/
 !services/**/cmd/adapter/
+services/gateway/gateway
+services/manager/manager
 
 # runtime test state
 .last-task-ids
