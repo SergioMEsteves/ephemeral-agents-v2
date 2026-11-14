@@ -378,3 +378,15 @@ schemas/              message-v1 contract (seeded from V1)
 decision-log.md       V2 decision log (append-only)
 services/             Go services (evolve here as milestones require)
 ```
+
+## Seventh update — S4 staged build: m0 apply green + m1 (topic-bridge) install + gate T1–T5 PASS (2026-11-14)
+
+- **m0 apply green** (commit `1f98b82`): cross-VM publish test rewritten V2-native — publish from vm-xa via AMQP 5672, valid message-v1 payload, fetch+ack from `ea-tasks` via rabbitmqctl; net-zero V1 pollution (the earlier "valid payload would start a real V1 workflow" concern resolved: the bridge tests only assert the V2 path, and the T3 kill target is the V2 container). Also fixed: coexistence-branch `RABBITMQ_PASS` load, `--no-gate` flag now implies `ASSUME_YES`, netplan `network:` root. All 5 m0 gates PASS; both `ea-tasks` and `agent.tasks.dlq` drained to 0 post-test.
+- **m1 install + gate T1–T5 PASS** (commit `2c5cedf`): V2 bridge `ea/topic-bridge:1.0.0` deployed as compose project `ea-m1` on vm-xb (container `ea-m1-topic-bridge-1`), consuming `ea-tasks` (1 consumer). T1 50→50 PASS, T2 dup +0 PASS, T3 kill-9 +20 PASS (redelivery, no doubles), T4 poison +3 DLQ PASS, T5 temporal-restart +5 PASS. Evidence: `deploy-v2/m1/evidence/m1-tests.txt`.
+- **Fixes made during the run:**
+  - `services/topic-bridge/cmd/adapter/main.go`: queue declare for `ea-tasks` now passes `x-max-priority: 3` — inequivalent re-declare was rejected with PRECONDITION_FAILED and the bridge could never consume.
+  - `m1/install.sh`: §0 health check greps `SERVING` (CLI output) and exports `TEMPORAL_ADDRESS` for the CLI; T3 kills `ea-m1-topic-bridge-1` (was the V1 container name).
+  - `.gitignore`: `services/**/adapter` masked the topic-bridge source tree (`cmd/adapter/`) — added `!services/**/cmd/adapter/` negation; adapter source now tracked (`cmd/adapter/main.go`, `adapter_test.go`).
+  - `services/topic-bridge/schemas/message-v1.json` re-copied from the authoritative `schemas/message-v1.json` (drift guard caught it).
+- **Estate state after the run**: V1 bridge `m1-topic-bridge-1` still up, consuming `agent.tasks.durable` (V1 untouched); `ea-tasks.dlq` holds the 3 T4 poison pills (expected, correct DLQ routing); `agent.tasks.dlq` 0 — no V1 pollution. Both brokers share the `agent.tasks` exchange; V1's `agent.tasks.durable`/`agent.tasks.dlq` and V2's `ea-tasks`/`ea-tasks.dlq` are distinct consumers.
+- **Next**: run TP-M1 (version 1/test procedures/M1-Adapter-Test-Procedure.md) with file evidence from `deploy-v2/m1/evidence/`, then M2 install (executor-stub → worker lifecycle).
