@@ -244,7 +244,7 @@ set -e
 cfg=$(cat /tmp/rmq-cfg)
 printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/exchanges/%2F/agent.tasks" -d '{"type":"topic","durable":true}'
 printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/queues/%2F/ea-tasks" -d '{"durable":true,"arguments":{"x-max-priority":3}}'
-printf '%s\n' "$cfg" | curl -s -K - -XPOST "$B/api/bindings/%2F/e/agent.tasks/q/ea-tasks" -d '{"routing_key":"agent.tasks.#","properties_key":""}'
+printf '%s\n' "$cfg" | curl -s -K - -XPOST "$B/api/bindings/%2F/e/agent.tasks/q/ea-tasks" -d '{"routing_key":"ea.tasks.#","properties_key":""}'
 printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/queues/%2F/ea-tasks.dlq" -d '{"durable":true}'
 printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/queues/%2F/ea-tasks.response" -d '{"durable":true}'
 rm -f /tmp/rmq-cfg

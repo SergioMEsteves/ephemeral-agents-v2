@@ -423,3 +423,14 @@ services/             Go services (evolve here as milestones require)
 - V1 untouched throughout (its hindsight stack on 8081 with its own volume; llm-wiki curation is additive content).
 - **Next: M5 install (gateway + manager on vm-xa), then TP-V2-M1 closes the staged build.**
 
+
+## Twelfth update — M5 install: bring-up green, E2E coexistence-race fix in flight (2026-11-14)
+
+- **M5 ea-transform complete and check-only green**: deploy-v2/m5 (compose.yaml, install.sh, e2e-deploy.sh, Dockerfile) ported. Fixes: stale GATEWAY_URL 8080→8083 in both hosts.env (gitignored); sudo mkdir+chown for /opt/ea on vm-xa (m2 pattern); V1's broken §6 token check (literal *** → real issue→200→revoke→401 on the catalog repo); .env staging now writes AGENT_LIST_REPO + BROKER_HOST; a real `set -euo pipefail` bug fixed (`[ -n ... ] && printf` short-circuit inside the .env pipe block killed the script before compose-up); E2E capability "dev" → exact roster ref ephemeral-org/eph-backend-engineer (real 22-agent index has no dev role); compose RESPONSE_QUEUE agent.tasks.response → ea-tasks.response.
+- **§1–§3 ALL PASS live**: ea/gateway:1.0.0 + ea/manager:1.0.0 built and deployed on vm-xa (gateway 8083, V1 keeps 8080), UFW 8083 open, e2e-deploy S1–S7 all PASS.
+- **§4 E2E root cause (confirmed)**: shared `agent.tasks` exchange — BOTH V1's bridge (m1-topic-bridge-1, poc/topic-bridge, Up) and V2's bridge are bound `agent.tasks.#`; both derive the same WorkflowId from task_id; first-start wins. V1's bridge won for bb41c4cd and cceeb912 → executed on V1's poc-tasks queue (artifact /var/poc/...). The bridge "invalid character 'm'" errors were the m0 gate's plain-text test payloads, a red herring. S7 smoke passed because run-task.sh publishes directly to the ea-tasks queue.
+- **Fix applied (code, not yet rebuilt/redeployed)**: services/manager/main.go now publishes DIRECTLY to the ea-tasks queue (default exchange, routing key = queue name; new cfg tasksQueue/EA_TASKS_QUEUE default ea-tasks; exchange declare skipped when empty). V1 untouched. NOT done: manager image rebuild+redeploy, E2E re-run, §5–§7, TP-M5.
+- **Unverified flag**: a /tmp/bind.py run on vm-xa printed "bound ea.tasks.# -> ea-tasks" — unintended (vm-xa has no broker); verify the vm-xb broker binding table (agent.tasks ← ea-tasks) before trusting it.
+- **Known issue (pre-existing)**: /opt/ea/deploy-v2/m5/.env missing RABBITMQ_PASS on vm-xa? (grep said "No such file" twice mid-session — verify; install writes it at §1).
+- Next session: 1) rebuild ea/manager:1.0.0 from services/manager, docker save|ssh vm-xa docker load, compose up -d --force-recreate manager; 2) re-run §4 E2E → expect workflow on ea-tasks + report; 3) §5 failure injections, §6 hardening, §7 docs → TP-M5; 4) record the D-routing coexistence decision (V2 queue-direct publishing) in deploy-v2/m0/decision-log.md; 5) commit everything.
+- TP-M4 remains closed 7/7; M5 pending E2E; V1 stack untouched throughout.
