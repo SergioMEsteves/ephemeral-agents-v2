@@ -414,3 +414,12 @@ services/             Go services (evolve here as milestones require)
 - **m3-era env:** `HINDSIGHT_URL=http://192.0.2.12:8082` in `/opt/ea/secrets/m3.env`; lifecycle+worker recreated and verified. Known open item: EMBEDDING_API_KEY unset → zero-vector fallback (D-embed, same as V1).
 - **Next:** TP-M4 sign-off from `deploy-v2/m4/evidence/`, then M5 (gateway + manager) → TP-V2-M1 closing the staged build.
 
+
+## Eleventh update — M4 gate: TP-M4 signed (2026-11-14)
+
+- **TP-M4: PASS — all 7 mandatory cases green, M5 authorized.** Evidence pack in `deploy-v2/m4/evidence/`: readback.txt (TC-01/02 raw JSON, q-driven cross-task recall), retrieval-hits.md (TC-03/06 clone lookups, SHA 425b5bcd9df0 / curation bc1fcd25a7af + CHANGELOG 6776fd1888e2), latency-table.txt (3 runs, totals 0.79–0.92 s ≈ 99.8% TTL headroom), isolation-check.txt (distinct PG engine+host+volume, zero wiki artifacts), tp-m4-results.md (signed table + root-cause ledger).
+- **TC-M4-06 curation cycle exercised the D-curation loop end-to-end:** new standard doc (`dev-best-practices/coexistence-port-allocations.md`) pushed to llm-wiki, CHANGELOG entry added (HITL per D-curation), fresh spawned-container clone verified new+old docs readable.
+- **Signed on owner's behalf** per standing authorization (all-PASS with evidence).
+- V1 untouched throughout (its hindsight stack on 8081 with its own volume; llm-wiki curation is additive content).
+- **Next: M5 install (gateway + manager on vm-xa), then TP-V2-M1 closes the staged build.**
+
