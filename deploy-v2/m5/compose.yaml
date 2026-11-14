@@ -24,7 +24,7 @@ services:
       RABBITMQ_URL: "amqp://ea:${RABBITMQ_PASS:?set RABBITMQ_PASS in .env}@${BROKER_HOST:?set BROKER_HOST in .env}:5672"
       AGENT_LIST_REPO: "${AGENT_LIST_REPO:?set AGENT_LIST_REPO=https://github.com/arvisdev/agent-roster.git in .env}"  # owner catalog repo (manager embeds GITHUB_READ_TOKEN as x-access-token)
       GITHUB_READ_TOKEN: ${AGENT_LIST_READ_TOKEN}
-      TASKS_EXCHANGE: "agent.tasks"
+      EA_TASKS_QUEUE: "ea-tasks"          # queue-direct publish (default exchange) — V2 coexistence: bypasses the shared agent.tasks exchange so V1's bridge cannot race first-start
       RESPONSE_QUEUE: "ea-tasks.response"
       REPO_TARGET: "repos/ea-demo-repo"   # project repo the manager's tasks write to (manager env contract)
       REPORTS_DIR: "/reports"
