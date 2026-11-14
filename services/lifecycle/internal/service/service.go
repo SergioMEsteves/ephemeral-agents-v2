@@ -377,6 +377,7 @@ func m3FromEnv() map[string]string {
 		"MODEL_API_KEY", "ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "GITHUB_READ_TOKEN",
 		"GITHUB_APP_ID", "INSTALLATION_ID", "EA_IMAGE_HERMES", "EA_IMAGE_CODER",
 		"MODEL_DEFAULT", // coder model id (z-ai/glm-5.3-flash) — was missing → empty --model at spawn
+		"EA_GITHUB_URL_PREFIX", // REPO_URL org prefix (repo_target is repos/<repo>, org-relative)
 	}
 	out := map[string]string{}
 	for _, k := range keys {

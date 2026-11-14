@@ -93,7 +93,7 @@ confirm() {
 prereqs() {
   log "§0 — prereq checks (M2 gate)"
   [ "${M2_DONE:-0}" = "1" ] || {
-    if ! ssh "$VM_XB" "docker ps --format '{{.Names}}' | grep -Eq '^ea-m2-(lifecycle|worker)$'"; then
+    if ! ssh "$VM_XB" "docker ps --format '{{.Names}}' | grep -Eq '^ea-m2-(lifecycle|worker)-[0-9]+$'"; then
       die "lifecycle/worker not running on $VM_XB — run M2 install first"
     fi
   }
@@ -140,24 +140,43 @@ github_side() {
       fi
     done
   fi
-  # App private key on vm-xb (presence + perms only — never print it)
-  if ssh "$VM_XB" "test -r $APP_KEY_PATH" ; then
-    local perms; perms="$(ssh "$VM_XB" "stat -c '%a' $APP_KEY_PATH")"
-    log "§1   app key present at $APP_KEY_PATH (perms $perms — must be 600)"
+  # App private key on vm-xb (presence + perms only — never print it).
+  # §1 runs BEFORE §2" staging, so check the SOURCE (V1) key; §2" copies it
+  # to /opt/ea/secrets/app-key.pem (S0 credential-reuse policy).
+  local key_src="${APP_KEY_SOURCE:-/opt/poc/secrets/app-key.pem}"
+  if ssh "$VM_XB" "test -r $key_src" ; then
+    local perms; perms="$(ssh "$VM_XB" "sudo stat -c '%a' $key_src")"
+    log "§1   app key present at $key_src (perms $perms — must be 600)"
     [ "$perms" = "600" ] || warn "app key perms are $perms, expected 600 (M3 §1c)"
   else
-    die "App private key missing on $VM_XB ($APP_KEY_PATH) — M3 §1c: create the GitHub App, save the PEM key, chmod 600. Never in git or any image."
+    die "App private key missing on $VM_XB ($key_src) — M3 §1c: create the GitHub App, save the PEM key, chmod 600. Never in git or any image."
   fi
   # token dry-run: issue + verify + revoke
   log "§1   token issuance dry-run (issue -> verify -> revoke)"
-  if [ -x "$M3/issue-token.sh" ] || [ -f "$M3/issue-token.sh" ]; then
-    local token
-    token="$(bash "$M3/issue-token.sh" --dry-run)"
-    [ -n "$token" ] || die "issue-token.sh produced no token (check key + installation_id, M3 §1c)"
-    local code; code="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $token" https://api.github.com/user)"
-    [ "$code" = "200" ] || die "issued token did not authenticate (HTTP $code)"
-    bash "$M3/issue-token.sh" --revoke-last || true
-    code="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $token" https://api.github.com/user)"
+  # issue-token.sh needs GITHUB_APP_ID / INSTALLATION_ID — pull them from the
+  # V1 m3.env on vm-xb (same credential-reuse source as §2"; names only in output)
+  if [ ! "${GITHUB_APP_ID:-}" ] || [ ! "${INSTALLATION_ID:-}" ]; then
+    local ids
+    ids="$(ssh "$VM_XB" "sudo grep -E '^(GITHUB_APP_ID|INSTALLATION_ID)=' /opt/poc/secrets/m3.env" 2>/dev/null || true)"
+    if [ -n "$ids" ]; then
+      log "§1   token ids sourced from V1 m3.env (names: $(printf '%s\n' "$ids" | cut -d= -f1 | tr '\n' ' '))"
+      eval "$(printf '%s\n' "$ids" | tr -d '\r' | sed 's/^/export /')"
+    fi
+  fi
+  if [ -f "$M3/issue-token.sh" ]; then
+      # The app key only exists on vm-xb (/opt/poc/secrets) — issue a REAL
+      # installation token remotely against the SOURCE key; values never leave
+      # vm-xb and are never printed. (--dry-run prints a fake token-shaped
+      # value that cannot authenticate — the real verify needs no-arg mode.)
+      local token
+      token="$(ssh "$VM_XB" "sudo bash -c 'set -a; . /opt/poc/secrets/m3.env; set +a; APP_KEY_PATH=/opt/poc/secrets/app-key.pem bash -s --'" < "$M3/issue-token.sh" 2>/dev/null || true)"
+      [ -n "$token" ] || die "issue-token.sh produced no token (check key + installation_id, M3 §1c)"
+      # installation tokens are repo-scoped — verify against the catalog repo
+      # (contents:read), not /user (which always 403s for an installation token)
+      local code; code="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $token" "https://api.github.com/repos/arvisdev/${CATALOG_REPO:-agent-roster}/contents/")"
+      [ "$code" = "200" ] || die "issued token did not authenticate (HTTP $code on catalog repo contents)"
+      ssh "$VM_XB" "sudo bash -c 'set -a; . /opt/poc/secrets/m3.env; set +a; APP_KEY_PATH=/opt/poc/secrets/app-key.pem bash -s -- --revoke-last'" < "$M3/issue-token.sh" >/dev/null 2>&1 || true
+    code="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $token" "https://api.github.com/repos/arvisdev/${CATALOG_REPO:-agent-roster}/contents/")"
     log "§1   token revocation check: HTTP $code (expected 401/403)"
     [ "$code" != "200" ] || warn "token still valid after revoke — GitHub App installation tokens expire at 1 h max (M3 §7)"
   else
@@ -171,10 +190,25 @@ build_and_load() {
   log "§2 — build both executor images and load onto $VM_XB"
   confirm "build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)"
   if [ "$CHECK_ONLY" = "1" ]; then return 0; fi
-  docker build -f "$M3/hermes-ephemeral/Dockerfile" "$M3/hermes-ephemeral" -t "ea/hermes-ephemeral:$IMAGE_TAG"
-  docker build -f "$M3/claude-coder/Dockerfile" "$M3/claude-coder" -t "ea/claude-coder:$IMAGE_TAG"
+  # Mandatory build-args per M3 doc §2 (both Dockerfiles fail without them —
+  # no silent defaults). Values pinned from V1's live image history (S0 policy:
+  # preserve the V1 build provenance):
+  #   HERMES_INSTALLER_URL = https://hermes-agent.nousresearch.com/install.sh
+  #   CLAUDE_CODE_VERSION  = 2.1.318
+  [ -n "${HERMES_INSTALLER_URL:-}" ] || HERMES_INSTALLER_URL="https://hermes-agent.nousresearch.com/install.sh"
+  [ -n "${CLAUDE_CODE_VERSION:-}" ] || CLAUDE_CODE_VERSION="2.1.318"
+  docker build -f "$M3/hermes-ephemeral/Dockerfile" \
+    --build-arg HERMES_INSTALLER_URL="$HERMES_INSTALLER_URL" \
+    "$M3/hermes-ephemeral" -t "ea/hermes-ephemeral:$IMAGE_TAG"
+  docker build -f "$M3/claude-coder/Dockerfile" \
+    --build-arg CLAUDE_CODE_VERSION="$CLAUDE_CODE_VERSION" \
+    "$M3/claude-coder" -t "ea/claude-coder:$IMAGE_TAG"
   docker save "ea/hermes-ephemeral:$IMAGE_TAG" "ea/claude-coder:$IMAGE_TAG" | ssh "$VM_XB" "docker load"
-  ok "§2 executor images built + loaded"
+  # llm-proxy twin for the ea estate (M3 §2a): executors on ea-net reach
+  # 'llm-proxy' via the network alias — the V1 proxy (poc-net) stays untouched.
+  ssh "$VM_XB" "sudo mkdir -p /opt/ea/llm-proxy && sudo cp /opt/poc/llm-proxy/proxy.js /opt/ea/llm-proxy/proxy.js 2>/dev/null || true"
+  rsync -az "$M3/llm-proxy/proxy.js" "$VM_XB:/opt/ea/llm-proxy/proxy.js"
+  ok "§2 executor images built + loaded (llm-proxy staged)"
 }
 
 stage_m3_secrets() {
@@ -186,10 +220,14 @@ stage_m3_secrets() {
   # ANTHROPIC_API_KEY base, etc.). The token script runs on the VM; repo copy is
   # the source of truth.
   ssh "$VM_XB" "sudo mkdir -p /opt/ea/secrets /opt/ea/deploy/m3 && sudo chown -R \"\$(id -un):\$(id -gn)\" /opt/ea/secrets /opt/ea/deploy/m3"
-  ssh "$VM_XB" "sudo test -r /opt/poc/secrets/app-key.pem && sudo cp /opt/poc/secrets/app-key.pem /opt/ea/secrets/app-key.pem || die 'V1 app key missing at /opt/poc/secrets/app-key.pem'" \
+  # NOTE: no `die` inside remote commands — it's a local function. Also no
+  # `sudo test` — sudo can't run shell builtins; use `sudo bash -c`.
+  ssh "$VM_XB" "sudo bash -c 'test -r /opt/poc/secrets/app-key.pem'" \
+    || die "V1 app key missing at /opt/poc/secrets/app-key.pem on $VM_XB"
+  ssh "$VM_XB" "sudo cp /opt/poc/secrets/app-key.pem /opt/ea/secrets/app-key.pem" \
     || die "app-key copy from V1 failed"
-  ssh "$VM_XB" "sudo test -r /opt/poc/secrets/m3.env && sudo cp /opt/poc/secrets/m3.env /opt/ea/secrets/m3.env || true"
-  ssh "$VM_XB" "chmod 600 /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && chmod 700 /opt/ea/deploy/m3"
+  ssh "$VM_XB" "sudo bash -c 'test -r /opt/poc/secrets/m3.env && cp /opt/poc/secrets/m3.env /opt/ea/secrets/m3.env || true'"
+  ssh "$VM_XB" "sudo chmod 600 /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chown arvisdev:arvisdev /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chmod 700 /opt/ea/deploy/m3"
   rsync -az "$M3/issue-token.sh" "$VM_XB:/opt/ea/deploy/m3/issue-token.sh" \
     && ssh "$VM_XB" "chmod 700 /opt/ea/deploy/m3/issue-token.sh" \
     || die "issue-token.sh rsync failed"
@@ -300,7 +338,7 @@ gate_tests() {
     # B4 coder real work
     if [ -n "${PROJECT_LOCAL_DIR:-}" ] && [ -d "$PROJECT_LOCAL_DIR" ]; then
       task_id="m3b-$(date +%H%M%S)"
-      if bash "$REPO_ROOT/deploy-v2/m2/tests/run-task.sh" "{\"task_id\":\"$task_id\",\"executor\":\"coder\",\"agent_ref\":\"ephemeral-org/eph-backend-engineer\",\"agent_repo_url\":\"https://github.com/$CATALOG_REPO\",\"repo_folder\":\"ephemeral-org/eph-backend-engineer\",\"task_prompt\":\"add a /healthz handler to the ea-demo Go service: respond 200 'ok' on /healthz\",\"behavioral_spec\":\"WP-C01\",\"repo_target\":\"github.com/$PROJECT_REPO\",\"requester\":\"m3-b4\",\"ttl_s\":600}" >/dev/null 2>&1; then
+      if bash "$REPO_ROOT/deploy-v2/m2/tests/run-task.sh" "{\"task_id\":\"$task_id\",\"executor\":\"coder\",\"agent_ref\":\"ephemeral-org/eph-backend-engineer\",\"agent_repo_url\":\"https://github.com/$CATALOG_REPO\",\"repo_folder\":\"ephemeral-org/eph-backend-engineer\",\"task_prompt\":\"add a /healthz handler to the ea-demo Go service: respond 200 'ok' on /healthz\",\"behavioral_spec\":\"WP-C01\",\"repo_target\":\"repos/$PROJECT_REPO\",\"requester\":\"m3-b4\",\"ttl_s\":600}" >/dev/null 2>&1; then
         git -C "$PROJECT_LOCAL_DIR" fetch origin "task/$task_id" 2>/dev/null || true
         if git -C "$PROJECT_LOCAL_DIR" log --oneline "origin/task/$task_id" >/dev/null 2>&1; then
           echo "B4 coder: commit exists on origin/task/$task_id : PASS"
@@ -334,8 +372,10 @@ secret_hygiene() {
   log "§5 — secret hygiene checks (R4, run before claiming done)"
   if [ "$CHECK_ONLY" = "1" ]; then return 0; fi
   local f1="$EVIDENCE/env-hermes.txt" f2="$EVIDENCE/env-coder.txt"
-  docker run --rm "ea/hermes-ephemeral:$IMAGE_TAG" env > "$f1"
-  docker run --rm "ea/claude-coder:$IMAGE_TAG" env > "$f2"
+  # --entrypoint /bin/sh: the executor entrypoints reject unknown args (exit 2);
+  # env dumps must bypass them (the real spawn entrypoint is unchanged).
+  docker run --rm --entrypoint /bin/sh "ea/hermes-ephemeral:$IMAGE_TAG" -c env > "$f1"
+  docker run --rm --entrypoint /bin/sh "ea/claude-coder:$IMAGE_TAG" -c env > "$f2"
   if grep -Ei 'token|key|secret' "$f1" "$f2"; then
     die "secrets baked into an image env — M3 §5: secrets are injected at spawn, never baked (rebuild without them)"
   fi
@@ -347,9 +387,13 @@ secret_hygiene() {
   done
   log "§5   docker history: no secret-writing layers"
   if command -v trivy >/dev/null; then
-    trivy image --exit-code 1 "ea/hermes-ephemeral:$IMAGE_TAG" "ea/claude-coder:$IMAGE_TAG" \
-      && log "§5   trivy: secrets vuln class = 0" \
-      || die "trivy found issues — remediate before claiming done"
+    # trivy takes ONE target per invocation — scan each image separately
+    local img secret_ok=0
+    for img in "ea/hermes-ephemeral:$IMAGE_TAG" "ea/claude-coder:$IMAGE_TAG"; do
+      trivy image --scanners secret --exit-code 1 "$img" \
+        || { die "trivy found issues in $img — remediate before claiming done"; }
+      log "§5   trivy secrets = 0: $img"
+    done
   else
     warn "trivy not installed on the build host — install it (R4) and re-run this check"
   fi

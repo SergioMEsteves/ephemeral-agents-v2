@@ -1,0 +1,50 @@
+# M3-era m2 compose — written by deploy-v2/m3/install.sh §2' (config switch,
+# not a code change). Executor images are TAG pins loaded locally (M3 §2);
+# the M5 install rewrites this with digest pins + EA_EXECUTOR_DEFAULT.
+name: ea-m2
+services:
+  lifecycle:
+    image: "ea/lifecycle:1.0.0"
+    environment:
+      DOCKER_HOST: "unix:///var/run/docker.sock"
+      LISTEN: "0.0.0.0:8090"
+      REAPER_INTERVAL: "30s"
+      EA_TTL_DEFAULT: "900s"
+      EA_IMAGE: "ea/executor-stub:1.0.0"
+      EA_IMAGE_HERMES: "ea/hermes-ephemeral:1.0.0"
+      EA_IMAGE_CODER: "ea/claude-coder:1.0.0"
+      EA_DOCKER_DEBUG: "true"                 # M3 debug: log exact docker run args
+    env_file:
+      - /opt/ea/secrets/m3.env                # M3 §2 per-run secrets (never in git/images)
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/opt/ea/deploy/m3:/opt/ea/deploy/m3:ro"   # M3 §1c: token-issuance script
+      - "/opt/ea/secrets:/opt/ea/secrets:ro"       # M3 §1c: app-key.pem (read-only)
+      - "/var/ea/tasks:/var/ea/tasks"
+    restart: unless-stopped
+    # deploy gate (deploy-v2/m2/install.sh): entrypoint refuses to serve until
+    # the pinned image exists locally (no-pull rule).
+  worker:
+    image: "ea/worker:1.0.0"
+    entrypoint: ["/usr/local/bin/worker"]
+    environment:
+      TEMPORAL_ADDR: "${EA_TEMPORAL_ADDR:-temporal:7233}"
+      LIFECYCLE_API: "http://lifecycle:8090"
+      EA_DOCKER_DEBUG: "true"
+      RABBITMQ_URL: "amqp://ea:${RABBITMQ_PASS:?set RABBITMQ_PASS in .env}@rabbitmq:5672/"
+    depends_on: [lifecycle]
+    restart: unless-stopped
+  llm-proxy:
+    image: "node:20-slim"
+    container_name: ea-llm-proxy
+    command: ["node", "/proxy.js"]
+    volumes:
+      - "/opt/ea/llm-proxy/proxy.js:/proxy.js:ro"
+    restart: unless-stopped
+networks:
+  default:
+    external: true
+    name: ea-net
+# M3 §2a: llm-proxy twin for the ea estate (claude-code gateway traffic →
+# openrouter). The V1 llm-proxy (poc-net) is left untouched; ea executors
+# resolve 'llm-proxy' via the network alias on ea-net.
