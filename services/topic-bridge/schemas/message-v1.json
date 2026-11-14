@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "schemas/message-v1.json",
-  "title": "ephemeral-agents POC task message (v1)",
-  "description": "The inter-zone contract: the message the manager publishes to the agent.tasks topic, consumed by the M1 adapter. Owned by the M1 delivery plan (WP-1.1).",
+  "title": "ephemeral-agents task message (v1)",
+  "description": "The inter-zone contract: the message the manager publishes to the agent.tasks topic, consumed by the lifecycle's message adapter. Contract owner: the V2 schema policy (platform design §5 - additive-only evolution).",
   "type": "object",
   "required": ["task_id", "agent_ref", "behavioral_spec", "repo_target", "requester"],
   "additionalProperties": false,
@@ -31,7 +31,17 @@
     "ttl_s": {
       "type": "integer",
       "minimum": 1,
-      "description": "OPTIONAL - the manager is the ONLY writer; sized max(3 x B1 boot-time p50, brief estimate). When absent, M2's lifecycle applies POC_TTL_DEFAULT (900s). The reaper is authoritative either way (R1 backstop)."
+      "description": "OPTIONAL - the manager is the ONLY writer; sized max(3 x B1 boot-time p50, brief estimate). When absent, the lifecycle applies EA_TTL_DEFAULT (900s). The reaper is authoritative either way (R1 backstop)."
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["high", "normal", "low"],
+      "description": "OPTIONAL (M1, OQ1/OQ4) - coarse priority enum; the broker queue is declared with x-max-priority and the manager validates + passes the field through (the CoS never talks to the broker directly, D8). Absent = normal broker semantics. Additive-only evolution; field and consumer land in the same gated change."
+    },
+    "approval_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "OPTIONAL (M1, TP-V2-M1 assertion 10) - SHA-256 hex over the UTF-8 behavioral_spec, whitespace-exact (byte-for-byte, no normalization). Tamper-EVIDENCE for post-hoc audit, not tamper-prevention: the manager enforces retry integrity (identical spec hash across a task_id's retries) and mismatch-reject-and-surface; the gateway-side approval-registration upgrade is a later, separately-gated change."
     }
   }
 }

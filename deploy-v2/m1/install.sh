@@ -66,6 +66,7 @@ done
 [ -f "$M1/hosts.env" ] && { set -a; . "$M1/hosts.env"; set +a; }
 VM_XB="${VM_XB:-vm-xb}"
 TEMPORAL_ADDR="${TEMPORAL_ADDR:-$VM_XB:7233}"
+export TEMPORAL_ADDRESS="$TEMPORAL_ADDR"   # the temporal CLI reads TEMPORAL_ADDRESS
 IMAGE_TAG="${IMAGE_TAG:-1.0.0}"
 
 log()  { printf '[m1 %s] %s\n' "$(date -u +%H:%M:%S)" "$*" | tee -a "$LOG"; }
@@ -87,7 +88,7 @@ prereqs() {
   log "§0 — prereq checks (M0 gate)"
   [ "${M0_DONE:-0}" = "1" ] && { log "§0   M0_DONE=1 — skipping live prereq checks"; return 0; }
   command -v temporal >/dev/null || die "temporal CLI not found on build host (install per M0 §4)"
-  temporal operator cluster health 2>/dev/null | grep -q "HEALTHY" \
+  temporal operator cluster health 2>/dev/null | grep -q "SERVING" \
     || die "Temporal not healthy (TEMPORAL_ADDR=$TEMPORAL_ADDR)"
   local envf="$REPO_ROOT/deploy-v2/m0/rabbitmq/.env"
   [ -f "$envf" ] || die "deploy-v2/m0/rabbitmq/.env missing — run M0 install first"
@@ -222,7 +223,7 @@ gate_tests() {
     base="$(wf_count)"
     bash "$M1/tests/publish.sh" 20 & ppid=$!
     sleep 1
-    ssh "$VM_XB" "docker kill m1-topic-bridge-1 && docker start m1-topic-bridge-1"
+    ssh "$VM_XB" "docker kill ea-m1-topic-bridge-1 && docker start ea-m1-topic-bridge-1"
     wait "$ppid" || true
     sleep 5
     delta=$(( $(wf_count) - base ))
