@@ -396,3 +396,11 @@ services/             Go services (evolve here as milestones require)
 - **TP-M1 gate: PASS** — all 6 mandatory cases PASS (TC-M1-01 poison-pill→DLQ with reason property, TC-M1-02 50→50, TC-M1-03 duplicate idempotency +0, TC-M1-04 kill-9 no loss, TC-M1-05 Temporal restart recovery, TC-M1-06 rollback/re-deploy: 5 messages published while bridge down → durable queue held them, drained to 0 on restart, workflows started). TC-M1-06 was run after T1–T5 as a separate, stronger variant.
 - **Evidence pack:** `deploy-v2/m1/evidence/` — `m1-tests.txt` (T1–T5), `m1-dlq-sample.json` (x-reject-reason header), `tp-m1-results.md` (signed results table). Signed on owner's behalf per standing authorization (2026-11-05).
 - **M2 installation authorized.** Next: `deploy-v2/m2/install.sh` (executor-stub → worker lifecycle).
+
+## Ninth update — S4 staged build: m2 (lifecycle) install + TP-M2 signed (2026-11-14)
+
+- **m2 install + gate V1–V5 all PASS** (second run): V1 clean, V2 failure path, V3 timeout, V4 crash recovery (load-bearing — independent reaper reaped the orphan), V5 10 mixed runs zero survivors. TC-M2-06 (no-pull rule) run separately: gate refuses to serve without the pinned image, restores cleanly. Evidence: `deploy-v2/m2/evidence/`.
+- **TP-M2: PASS — M3 installation authorized.** Signed on owner's behalf per standing authorization. Evidence pack: `tp-m2-results.md`.
+- **Root-cause fixed during the gate:** the first m2 gate run failed V1/V5 — the V2 `m2/compose.yaml` carried the M5-era executor default (`EA_EXECUTOR_DEFAULT: hermes`), so M2-era gate tests spawned the real hermes executor (not in scope at M2, exits 2 with unstaged m3.env). Fixed by restoring the M2-era stub-only compose (the M3 install writes the M3-era executor switch per the compose-evolution rule); also fixed m2/install.sh prereq (`SERVING` + `TEMPORAL_ADDRESS`), T-container names (`ea-m2-*`), and pre-staged `/opt/ea/secrets/m3.env` + m3 mount dirs for the M3-era compose forward-compat. Recorded in the V2 issue ledger.
+- **Estate state:** `ea-m2-lifecycle-1` + `ea-m2-worker-1` on vm-xb (compose `ea-m2`, ea-net); V1 stack untouched. ea-tasks.dlq reset during re-run.
+- **Next:** M3 install (executors: hermes-ephemeral + claude-coder, m3.env staging, token issuance) → TP-M3, then M4 (memory), M5 (gateway+manager), TP-V2-M1 closing the staged build.

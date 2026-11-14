@@ -60,7 +60,7 @@ ASSUME_YES="${ASSUME_YES:-0}"
 for arg in "$@"; do
   case "$arg" in
     --check-only) CHECK_ONLY=1 ;;
-    --no-gate) NO_GATE=1 ;;
+    --no-gate) NO_GATE=1; ASSUME_YES=1 ;;
     -h|--help) sed 's/^# \{0,1\}//' "$0"; exit 0 ;;
     *) echo "unknown option: $arg"; exit 64 ;;
   esac
@@ -89,7 +89,8 @@ prereqs() {
   log "§0 — prereq checks (M0 + M1 gates)"
   [ "${M0_DONE:-0}" = "1" ] || {
     command -v temporal >/dev/null || die "temporal CLI missing on build host"
-    temporal operator cluster health 2>/dev/null | grep -q HEALTHY || die "Temporal not healthy (M0)"
+    export TEMPORAL_ADDRESS="$VM_XB:7233"   # the temporal CLI reads TEMPORAL_ADDRESS
+    temporal operator cluster health 2>/dev/null | grep -q SERVING || die "Temporal not healthy (M0)"
   }
   [ "${M1_DONE:-0}" = "1" ] || {
     if ! ssh "$VM_XB" "docker ps --format '{{.Names}}' | grep -q topic-bridge"; then
@@ -153,12 +154,16 @@ deploy_lifecycle() {
   rsync -az "$M2/compose.yaml" "$VM_XB:/opt/ea/deploy-v2/m2/compose.yaml"
   # RABBITMQ_PASS feeds compose interpolation (${RABBITMQ_PASS} in compose.yaml);
   # sourced from the M0 rabbitmq .env — one password, one source of truth.
+  # NOTE: the M2-era compose.yaml is the stub-only state — the M3-era executor
+  # config (EA_IMAGE_HERMES/CODER via ${EA_REGISTRY}, EA_EXECUTOR_DEFAULT,
+  # m3.env env_file, m3 mounts) is written by the M3 install (M3 §2' — EA_IMAGE
+  # is a config switch per executor type; the stub pin stays until the M3
+  # executor tags pass, M3 §6 rollback rule) and EA_EXECUTOR_DEFAULT by the M5
+  # install. The M2 gate must never run the hermes executor (M3-era env is not
+  # staged yet).
   local rmp; rmp="$(grep '^RABBITMQ_PASS=' "$REPO_ROOT/deploy-v2/m0/rabbitmq/.env" | cut -d= -f2)"
   [ -n "$rmp" ] || die "RABBITMQ_PASS missing — run deploy-v2/m0/install.sh §3 first"
-  # EA_REGISTRY feeds compose interpolation (${EA_REGISTRY:?} in compose.yaml) —
-  # the registry the m2 compose pulls executor images from (hosts.env REGISTRY).
-  [ -n "${REGISTRY:-}" ] || die "REGISTRY missing — set REGISTRY=<registry-host>:5000 in hosts.env"
-  printf '%s\n' "RABBITMQ_PASS=$rmp" "EA_REGISTRY=$REGISTRY" | ssh "$VM_XB" 'umask 077; cat > /opt/ea/deploy-v2/m2/.env && chmod 600 /opt/ea/deploy-v2/m2/.env'   # stdin + 600: secret not in argv/logs
+  printf '%s\n' "RABBITMQ_PASS=$rmp" | ssh "$VM_XB" 'umask 077; cat > /opt/ea/deploy-v2/m2/.env && chmod 600 /opt/ea/deploy-v2/m2/.env'   # stdin + 600: secret not in argv/logs
   ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && docker compose up -d"
   # no-pull deploy gate: pinned image must exist locally before serving
   ssh "$VM_XB" "docker image inspect ea/executor-stub:$IMAGE_TAG >/dev/null" \
@@ -166,7 +171,7 @@ deploy_lifecycle() {
   # pre-deploy gate: lifecycle /health inside the container
   local i
   for i in $(seq 1 40); do
-    if ssh "$VM_XB" "docker exec m2-worker-1 bash -c 'exec 3<>/dev/tcp/lifecycle/8090 && printf \"GET /health HTTP/1.0\r\nHost: lifecycle\r\n\r\n\" >&3 && head -1 <&3 | grep -q \" 200 \"'" >/dev/null 2>&1; then
+    if ssh "$VM_XB" "docker exec ea-m2-worker-1 bash -c 'exec 3<>/dev/tcp/lifecycle/8090 && printf \"GET /health HTTP/1.0\r\nHost: lifecycle\r\n\r\n\" >&3 && head -1 <&3 | grep -q \" 200 \"'" >/dev/null 2>&1; then
       break
     fi
     sleep 3
@@ -212,13 +217,13 @@ gate_tests() {
     bash "$R2" '{"agent_ref":"agent-roster/ephemeral-org/eph-fullstack-engineer","repo_target":"repos/ephemeral-v2-demo","requester":"principal","task_id":"t004-'"$RUNID"'","behavioral_spec":"Work package WP-T04 (crash recovery): identical bounded-runtime behavior to WP-T03, with the added condition that the worker process dies mid-package. Acceptance criteria: the orphaned container is still reaped by the independent lifecycle reaper - zero survivors, regardless of worker availability.","inject":"hang","ttl_s":120}' &
     v4pid=$!
     sleep 5
-    ssh "$VM_XB" "docker kill m2-worker-1"
+    ssh "$VM_XB" "docker kill ea-m2-worker-1"
     # FIX (run4 root cause): reaper reaps at ea.expires + REAPER_GRACE(30s) + up to
     # one interval; expiry is 120s after spawn, so the doc's bare "sleep 35" evaluated
     # ~80s BEFORE the reaper could act. Wait past expiry + grace + interval + margin.
     sleep 185
     t004="$(ssh "$VM_XB" "docker ps -a --filter label=ea.task=t004-${RUNID} -q || true")"
-    ssh "$VM_XB" "docker start m2-worker-1"
+    ssh "$VM_XB" "docker start ea-m2-worker-1"
     wait "$v4pid" || true
     if [ -z "$t004" ]; then
       echo "V4 crash: reaper got t004's container (zero survivors) : PASS"
@@ -251,7 +256,7 @@ gate_tests() {
 observability_check() {
   log "§4 — observability spot-checks (M2.5)"
   if [ "$CHECK_ONLY" = "1" ]; then return 0; fi
-  ssh "$VM_XB" "docker exec m2-worker-1 bash -c 'exec 3<>/dev/tcp/lifecycle/8090 && printf \"GET /report HTTP/1.0\r\nHost: lifecycle\r\n\r\n\" >&3 && cat <&3' 2>/dev/null | tail -n +2" \
+  ssh "$VM_XB" "docker exec ea-m2-worker-1 bash -c 'exec 3<>/dev/tcp/lifecycle/8090 && printf \"GET /report HTTP/1.0\r\nHost: lifecycle\r\n\r\n\" >&3 && cat <&3' 2>/dev/null | tail -n +2" \
     | tee "$EVIDENCE/m2-report-snapshot.txt" >/dev/null \
     || warn "GET /report not yet available (M2.5) — record, do not gate"
   ssh "$VM_XB" "ls /var/ea/tasks/ 2>/dev/null || true" | tee "$EVIDENCE/m2-task-logs-list.txt"
