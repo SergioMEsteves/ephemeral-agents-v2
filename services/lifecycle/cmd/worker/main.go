@@ -17,7 +17,7 @@
 // RetryOptions{MaximumAttempts: 2}) and the executes_activity activity on the
 // default namespace. The activity spawns an ephemeral
 // executor via the lifecycle API, polls until complete/failed/TTL, reaps,
-// publishes {task_id, status, artifact} to agent.tasks.response, and returns.
+// publishes {task_id, status, artifact} to ea-tasks.response, and returns.
 //
 // Config (env, per deploy/m2/compose.yaml):
 //

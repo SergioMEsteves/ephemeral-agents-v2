@@ -1,0 +1,50 @@
+# M0 — Temporal + its Postgres on vm-xb
+# Source: version 1/installation-deployment/M0-Chassis-Installation-and-Deployment.md §4
+# This Postgres belongs to Temporal only — vm-hindsight gets its own in M4.
+# Do not share instances.
+# ea-named compose project (V1's /opt/poc/deploy/m0 project is `m0` — a distinct
+# project name keeps the V2 containers from colliding with the live V1 stack).
+name: ea-m0-temporal
+services:
+  temporal:
+    image: "temporalio/auto-setup:1.27.0"    # pin; auto-setup runs the schema init the bare server image lacks
+    ports: ["7233:7233"]                     # fixed host port — VM-local CLI + Go SDK smoke target <execution-host>:7233
+    environment:
+      BIND_ON_IP: "0.0.0.0"                  # bind all interfaces; the auto-setup template's bind var is BIND_ON_IP (default 127.0.0.1)
+      DB: postgres12
+      DB_PORT: "5432"
+      POSTGRES_USER: temporal
+      POSTGRES_PWD: ${TEMPORAL_DB_PASS}
+      POSTGRES_SEEDS: postgres
+    depends_on: [postgres]
+    # ea-net membership is REQUIRED — worker/bridge/lifecycle resolve
+    # "temporal" on the shared execution network. V1 had this as a manual
+    # `docker network connect`, which every compose recreation silently
+    # drops (V2 issue-ledger lesson: declare it in compose, never attach by hand).
+    # rabbitmq-pattern: services live ONLY on ea-net (aliases = service
+    # names). Keep a container on TWO networks and Docker's embedded DNS
+    # SERVFAILs peer lookups; declare, never attach by hand (V2 issue ledger).
+    networks:
+      ea-net:
+        aliases: [temporal]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/7233'"]  # server image ships no temporal CLI
+      interval: 15s
+  postgres:
+    image: "postgres:16"                     # pin
+    environment:
+      POSTGRES_DB: temporal
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: ${TEMPORAL_DB_PASS}
+    volumes: ["temporal-pg-data:/var/lib/postgresql/data"]
+    networks:
+      ea-net:
+        aliases: [postgres]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 10s
+volumes:
+  temporal-pg-data: {}
+networks:
+  ea-net:
+    external: true

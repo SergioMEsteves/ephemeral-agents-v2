@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package publisher publishes task responses to the agent.tasks.response
+// Package publisher publishes task responses to the ea-tasks.response
 // queue via the RabbitMQ DEFAULT exchange (empty exchange name, queue name as
 // the routing key). The queue is declared unbound by M0 §3 by design.
 package publisher
@@ -30,7 +30,7 @@ import (
 )
 
 // QueueName is the response queue; also the routing key on the default exchange.
-const QueueName = "agent.tasks.response"
+const QueueName = "ea-tasks.response"
 
 // AMQP wraps a lazily-reconnecting connection+channel.
 type AMQP struct {

@@ -35,6 +35,19 @@
       (the V2 deploy layer does not yet exist; it will be born `ea-`-named).
       `schemas/message-v1.json` contains one `POC_TTL_DEFAULT` mention in
       prose describing V1 M2 behavior — provenance citation, retained.
+- [x] **V2 deploy layer born ea-named — `deploy-v2/` created 2026-11-13** (owner
+      chose `deploy-v2/` as the tree name): 33 files — m0 (rabbitmq/temporal
+      composes, install.sh, hosts.env.example, tests) + m1 (topic-bridge) + m2
+      (lifecycle/worker) + m5 (hindsight). Full ea- transform applied: repo-side
+      paths repointed `deploy/mN` → `deploy-v2/mN`, broker user `poc:` → `ea:`,
+      queue topology `ea-tasks`/`ea-tasks.dlq`/`ea-tasks.response` (durable,
+      x-max-priority:3), labels `ea.task|ea.owner|ea.expires`, image
+      `ea/executor-stub`, demo repo `ephemeral-v2-demo`, `/opt/ea` paths.
+      Coexistence amendments: m0 §3/§4 reuse the live V1 broker/Temporal
+      containers when present; §1 no longer renames hostnames on
+      already-provisioned VMs (owner-supplied estate hostnames kept — e.g.
+      `vm-hermes-agent`); the `poc` OS user stays per the mapping table.
+      m0 Tier-1 harness 9/9 PASS; all 5 service modules build+test green.
 - [x] Registry re-tag **executed 2026-11-13** (build phase opened by owner):
       the registry-resident images re-tagged `ea/…:1.0.0`, digest-identical
       (3/3 OK — claude-coder, hermes-ephemeral, lifecycle; digests verified

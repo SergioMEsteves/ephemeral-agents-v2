@@ -14,7 +14,7 @@
 
 // Package taskconfig defines the per-run task configuration carried in the
 // M1 message (schemas/message-v1.json) and the M2 response payload published
-// to agent.tasks.response. Pure logic lives here so it is unit-testable
+// to ea-tasks.response. Pure logic lives here so it is unit-testable
 // without Docker, Temporal, or RabbitMQ.
 package taskconfig
 
@@ -103,7 +103,7 @@ func (c TaskConfig) ExpiryTime(defaultTTL time.Duration, start time.Time) time.T
 	return start.Add(c.EffectiveTTL(defaultTTL))
 }
 
-// Response is the payload published to the agent.tasks.response queue on
+// Response is the payload published to the ea-tasks.response queue on
 // completion (success or failure) — exactly {task_id, status, artifact}.
 type Response struct {
 	TaskID   string `json:"task_id"`

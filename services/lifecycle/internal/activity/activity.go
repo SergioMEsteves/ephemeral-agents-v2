@@ -26,7 +26,7 @@ import (
 )
 
 // ResponsePublisher publishes {task_id, status, artifact} to the
-// agent.tasks.response queue via the RabbitMQ DEFAULT exchange (empty
+// ea-tasks.response queue via the RabbitMQ DEFAULT exchange (empty
 // exchange name, queue name as routing key — M0 declares it unbound).
 type ResponsePublisher interface {
 	PublishResponse(ctx context.Context, r taskconfig.Response) error
