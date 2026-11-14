@@ -390,3 +390,9 @@ services/             Go services (evolve here as milestones require)
   - `services/topic-bridge/schemas/message-v1.json` re-copied from the authoritative `schemas/message-v1.json` (drift guard caught it).
 - **Estate state after the run**: V1 bridge `m1-topic-bridge-1` still up, consuming `agent.tasks.durable` (V1 untouched); `ea-tasks.dlq` holds the 3 T4 poison pills (expected, correct DLQ routing); `agent.tasks.dlq` 0 — no V1 pollution. Both brokers share the `agent.tasks` exchange; V1's `agent.tasks.durable`/`agent.tasks.dlq` and V2's `ea-tasks`/`ea-tasks.dlq` are distinct consumers.
 - **Next**: run TP-M1 (version 1/test procedures/M1-Adapter-Test-Procedure.md) with file evidence from `deploy-v2/m1/evidence/`, then M2 install (executor-stub → worker lifecycle).
+
+## Eighth update — TP-M1 signed (2026-11-14)
+
+- **TP-M1 gate: PASS** — all 6 mandatory cases PASS (TC-M1-01 poison-pill→DLQ with reason property, TC-M1-02 50→50, TC-M1-03 duplicate idempotency +0, TC-M1-04 kill-9 no loss, TC-M1-05 Temporal restart recovery, TC-M1-06 rollback/re-deploy: 5 messages published while bridge down → durable queue held them, drained to 0 on restart, workflows started). TC-M1-06 was run after T1–T5 as a separate, stronger variant.
+- **Evidence pack:** `deploy-v2/m1/evidence/` — `m1-tests.txt` (T1–T5), `m1-dlq-sample.json` (x-reject-reason header), `tp-m1-results.md` (signed results table). Signed on owner's behalf per standing authorization (2026-11-05).
+- **M2 installation authorized.** Next: `deploy-v2/m2/install.sh` (executor-stub → worker lifecycle).
