@@ -140,3 +140,23 @@ Rationale column.
   by capability returns, it is a versioned message-v1 additive change.
 - Commit trail: c4e1282 (intent, tree was gitignore-masked), 28b8616 (sources
   tracked + publish fix), a710d08 (compose EA_TASKS_QUEUE).
+
+## M0 install run — 2026-11-14
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-14
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-14
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-14
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)

@@ -434,3 +434,34 @@ services/             Go services (evolve here as milestones require)
 - **Known issue (pre-existing)**: /opt/ea/deploy-v2/m5/.env missing RABBITMQ_PASS on vm-xa? (grep said "No such file" twice mid-session — verify; install writes it at §1).
 - Next session: 1) rebuild ea/manager:1.0.0 from services/manager, docker save|ssh vm-xa docker load, compose up -d --force-recreate manager; 2) re-run §4 E2E → expect workflow on ea-tasks + report; 3) §5 failure injections, §6 hardening, §7 docs → TP-M5; 4) record the D-routing coexistence decision (V2 queue-direct publishing) in deploy-v2/m0/decision-log.md; 5) commit everything.
 - TP-M4 remains closed 7/7; M5 pending E2E; V1 stack untouched throughout.
+
+## Thirteenth update — M5 COMPLETE: §5–§7 green, TP-M5 signed (2026-11-15)
+
+- **TP-M5: PASS — the V2 staged build (M0–M5) is complete.** Evidence pack:
+  `deploy-v2/m5/evidence/` (`failure-injections.txt`, `install-m5.log`,
+  `e2e-report-*.json`, `trivy-*`, `tp-m5-results.md` — signed on owner's behalf
+  per standing authorization, 2026-11-05).
+- **§4 E2E green on the V2 path (queue-direct publish):** hermes-executor
+  acceptance runs (d13105db, 17bd78e3, 205b4e2a, ea49dc5b, 93b74eab) all
+  COMPLETED with reports written and zero survivors. TC-M5-02(c) commit
+  evidence: coder-routed acceptance `7c9a32c` on
+  `origin/task/f9e6c71d-25d5-4ad8-aa66-b276a5e9f191` (healthz handler + 39
+  lines of tests), produced via `EA_EXECUTOR_DEFAULT=coder` flip through the
+  identical gateway→manager→queue path, restored to hermes after.
+- **§5 F1–F5:** F1/F2 PASS (nft block with forward-hook — container egress
+  verified dead — produces failure-shaped reports); F5 PASS (report after
+  manager restart); F3/F4 CHECK→policy **recover-and-complete** (M2 retry
+  absorbs crash/TTL; zero survivors) — same CHECK-marks precedent V1 signed.
+- **§6 green:** trivy 9/9 clean (accepted residuals recorded), env sweep
+  clean, token issue→200→revoke→401.
+- **Root causes fixed this gate (issue ledger):** gitignore masked the entire
+  gateway/manager source trees (c4e1282's fix never committed, didn't compile)
+  → `28b8616`; default-exchange routing key must be the queue name → `28b8616`;
+  deployed compose still raced V1 on agent.tasks → `a710d08`; the M5-era
+  `EA_EXECUTOR_DEFAULT=hermes` switch was never implemented (§5 silently ran
+  the stub executor) → `15d0e15`; §5 runbook stub-era defects (dev capability,
+  45 s sleeps, pkill names, nft OUTPUT hook) → `b26a589`, `f2162b7`; §6
+  undefined `$tok` under `set -u` + revoke propagation race → `4dad6d0`.
+- **Next:** owner topology re-draw in ARCHITECTURE/foundation docs (standing
+  directive), then the V2 book (closing deliverable) and the findings report;
+  TP-V2-M1 CoS milestone per the standing plan.
