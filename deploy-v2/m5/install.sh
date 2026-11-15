@@ -438,8 +438,9 @@ credential_hardening() {
     log "§6   issued token -> HTTP $tcode on the catalog repo (want 200 pre-revoke)"
     [ "$tcode" = "200" ] || die "§6   issued token did not authenticate (HTTP $tcode)"
     ssh "$VM_XB" 'set -a; . /opt/poc/secrets/m3.env; set +a; bash /opt/ea/deploy-v2/m3/issue-token.sh --revoke-last' >/dev/null 2>&1
-    tcode="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $src" "https://api.github.com/repos/$GH_OWNER/agent-roster/contents/")"
-    log "§6   revoked token -> HTTP $tcode (want 401 post-revoke)"
+    sleep 5   # revocation propagation — an immediate check raced GitHub (seen live: 200 post-revoke)
+    tcode="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $tok" "https://api.github.com/repos/$GH_OWNER/agent-roster/contents/")"
+    log "§6   revoked token -> HTTP $tcode (want 401 post-revoke)" 
     [ "$tcode" = "401" ] || die "§6   revoked token still authenticates (HTTP $tcode) — token lifecycle broken"
   fi
   ok "§6 hardening"
@@ -513,7 +514,7 @@ main() {
   if [ "${M5_FROM:-1}" -le 3 ]; then full_stack_bringup; fi
   if [ "${M5_FROM:-1}" -le 4 ]; then e2e_acceptance_run; fi
   select_executor_default   # M5-era executor default — runs on every invocation (idempotent)
-  failure_injections
+  if [ "${M5_FROM:-1}" -le 5 ]; then failure_injections; fi
   credential_hardening
   lock_open_items
   ea_complete_summary
