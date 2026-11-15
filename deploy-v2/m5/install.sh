@@ -169,6 +169,21 @@ build_and_deploy_front_of_house() {
   ok "§1 front-of-house up on $VM_XA"
 }
 
+# ---------------------------------------------------------------- §2' executor default (M5-era)
+# The M3-era compose pins EA_IMAGE=stub and omits EA_EXECUTOR_DEFAULT — the M2/M3
+# gates must run the stub. M5 flips the default to hermes (message-v1 has no
+# executor field; the lifecycle's EA_EXECUTOR_DEFAULT decides, M3 §2'). Idempotent.
+select_executor_default() {
+  log "§2' — M5-era executor default: EA_EXECUTOR_DEFAULT=hermes in the ea-m2 compose"
+  if [ "$CHECK_ONLY" = "1" ]; then return 0; fi
+  scp -q "$M5/set-executor-default.py" "$VM_XB:/tmp/set-executor-default.py"
+  ssh "$VM_XB" "python3 /tmp/set-executor-default.py /opt/ea/deploy-v2/m2/compose.yaml hermes"
+  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && docker compose up -d --force-recreate lifecycle"
+  ssh "$VM_XB" "docker inspect ea-m2-lifecycle-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^EA_EXECUTOR_DEFAULT=hermes$'" \
+    || die "§2' EA_EXECUTOR_DEFAULT=hermes not applied to ea-m2-lifecycle-1"
+  ok "§2' executor default = hermes (stub remains the rollback pin)"
+}
+
 # ---------------------------------------------------------------- §3 bring-up
 full_stack_bringup() {
   log "§3 — ordered full-stack bring-up (S1–S7, stage-gated)"
@@ -244,11 +259,13 @@ failure_injections() {
     # F1: llm-wiki clone unreachable (block outbound HTTPS to github.com on the executor VM)
     log "F1 — block outbound git/HTTPS to github.com on $VM_XB during a task (llm-wiki clone fails)"
     block_github_443
+    sleep 5
     inject_and_verify "F1"
     unblock_github_443
     # F2: agent catalog unreachable (same block path — the catalog clone lives on github.com too)
     log "F2 — block vm-xb -> GitHub 443 (nftables; agent-repo clone path)"
     block_github_443
+    sleep 5
     inject_and_verify "F2"
     unblock_github_443
     # F3: agent crash
@@ -361,6 +378,9 @@ add rule inet eablock forward ip daddr 143.55.64.0/20 tcp dport 443 counter drop
 add rule inet eablock forward ip daddr 185.199.108.0/22 tcp dport 443 counter drop
 add rule inet eablock forward ip daddr 192.30.252.0/22 tcp dport 443 counter drop
 NFT
+  # record the block's load status in the evidence stream — a silently empty
+  # rule set makes every F1/F2 verdict meaningless (seen on the first §5 run).
+  log "nft block loaded: $(ssh "$VM_XB" "sudo -n nft list table inet eablock 2>/dev/null | grep -c drop || echo 0") drop rule(s)"
 }
 unblock_github_443() {
   ssh "$VM_XB" "sudo -n nft delete table inet eablock 2>/dev/null || true"
@@ -492,6 +512,7 @@ main() {
   if [ "${M5_FROM:-1}" -le 1 ]; then build_and_deploy_front_of_house; open_firewall; else log "M5_FROM=${M5_FROM} — skipping §1/§3/§4 (already green)"; fi
   if [ "${M5_FROM:-1}" -le 3 ]; then full_stack_bringup; fi
   if [ "${M5_FROM:-1}" -le 4 ]; then e2e_acceptance_run; fi
+  select_executor_default   # M5-era executor default — runs on every invocation (idempotent)
   failure_injections
   credential_hardening
   lock_open_items
