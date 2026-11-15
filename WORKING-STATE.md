@@ -465,3 +465,24 @@ services/             Go services (evolve here as milestones require)
 - **Next:** owner topology re-draw in ARCHITECTURE/foundation docs (standing
   directive), then the V2 book (closing deliverable) and the findings report;
   TP-V2-M1 CoS milestone per the standing plan.
+
+## Fourteenth update — closing deliverables: findings report + V2 book first edition (2026-11-15)
+
+- **Findings report written** — `version 2/V2-findings-report.md`: what was
+  built, gate table M0–M5, five findings (coexistence as cheapest isolation;
+  gates catching every major error pre-ship; stage-gate re-assertion rule;
+  display-masking hazard; executor assertability), commit trail of record.
+- **Issue ledger extended 5 → 13** — m1 x-max-priority declare (6), m2
+  future-era compose (7), m4 V1-takeover (8), m5 gitignore source-masking (9),
+  routing-key bug (10), stub-executor §5 (11), runbook stub-era defects (12),
+  §6 $tok/propagation (13) — each symptom → wrong assumption → root cause → rule.
+- **V2 book first edition complete** — `version 2/book/` (commit `4dc5bd1`):
+  15 chapters (V2 deltas for ch4–10; NEW ch11 Two Organizations One Estate —
+  the coexistence centerpiece; ch12 failure ledger with the honest 13-entry
+  histogram; ch13 what remains; ch14 operator's chapter; ch15 evaluator's
+  chapter), the two owner-directed plain-language specials
+  (`special-1-who-may-start-work.md`, `special-2-what-does-approved-mean.md`),
+  and Part I pointer stubs. All grounded in the committed record,
+  de-identified, with owner-drawn diagram slots in ch11/ch14/ch15.
+- **Awaiting owner:** the two topology diagrams (ch11 + ch14 slots), then
+  the book is final; next milestone TP-V2-M1 (CoS on vm-xa).
