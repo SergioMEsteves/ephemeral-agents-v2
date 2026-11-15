@@ -226,3 +226,21 @@
   land as part of the M1 completion (or the A+ gate, which asserts the
   capability check) — tracked as M1 build items, not closed defects.
 
+## 15. Owner amendment — the CoS holds an OpenRouter key directly
+
+- **Symptom:** the CoS gateway's model list did not include the OpenRouter
+  catalog — by design: the CoS was wired to the llm-proxy's anthropic-compat
+  path, which exposes only the translated model shape.
+- **Decision (owner, 2026-11-15):** the owner asked to configure OpenRouter
+  and the API key on the ea-cos gateway directly. Amends the M1 §5 credential
+  contract: the CoS profile env now carries `OPENROUTER_API_KEY`
+  (the owner's OpenRouter key, staged from the single m3.env source, value
+  never displayed) + `MODEL_DEFAULT: z-ai/glm-5.3-flash`.
+- **Consequence:** the "highest-spend actor inside the proxy perimeter"
+  property is suspended for the CoS until the key is re-centralized — the
+  proxy remains the executor path unchanged. Tracked for the A+/hardening
+  pass: restore the proxy-perimeter property (proxy model-list passthrough
+  or per-class token), or accept the CoS as a key-holder permanently.
+- **Rule:** credential-contract changes are owner decisions recorded in this
+  ledger with their A+ follow-up named.
+
