@@ -6,6 +6,7 @@
 # the CoS AGENTS.md loaded. Reboot-safe: restart: unless-stopped in the
 # compose; the board state lives in /state (bind mount, D12).
 set -u
+export PATH="/root/.local/bin:$PATH"   # the installer puts the hermes CLI here
 
 TASK_ID="cos-resident-$(date -u +%Y%m%d)"
 START_MS="$(date +%s%3N)"
@@ -27,5 +28,7 @@ fi
 BOOT_MS=$(( $(date +%s%3N) - START_MS ))
 echo "{\"event\":\"self-report\",\"task_id\":\"$TASK_ID\",\"boot_ms\":$BOOT_MS,\"sources\":{\"agent_repo\":true,\"llm-wiki\":\"$([ -d "$LLM_WIKI/.git" ] && echo true || echo degraded)\",\"hindsight\":\"$([ -n "${HINDSIGHT_URL:-}" ] && echo true || echo false)\"}}"
 
-# 2. the resident gateway — the CoS IS the profile; the desktop connects to :8080 (host 8084)
-exec hermes gateway start --profile "$AGENTS_MD" --state-dir /state --listen 0.0.0.0:8080
+# 2. the resident backend — `hermes serve` (the desktop's remote-connection
+# server per the S7 runbook procedure), NOT `gateway run` (that serves
+# messaging platforms: Telegram/Discord/... — not the desktop protocol)
+exec hermes serve
