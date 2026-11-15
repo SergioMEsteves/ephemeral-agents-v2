@@ -259,7 +259,10 @@ failure_injections() {
     sleep 10
     cid="$(ssh "$VM_XB" "docker ps --filter label=ea.owner=lifecycle -q | head -1 || true")"
     if [ -n "$cid" ]; then
-      ssh "$VM_XB" "docker exec $cid sh -c 'pkill -9 1 2>/dev/null || pkill -9 agent 2>/dev/null || true'"
+      # pkill matches process NAMES; the agent is PID 1 — kill it by pid, with a
+      # docker-kill fallback if the exec cannot signal it.
+      ssh "$VM_XB" "docker exec $cid sh -c 'kill -9 1' 2>/dev/null" \
+        || ssh "$VM_XB" "docker kill $cid" || true
     fi
     verify_task "F3" "$tid"
     # F4: TTL exceeded
@@ -306,7 +309,7 @@ run_one_task() {
 }
 run_one_task_short_ttl() {
   curl -s -X POST "$GATEWAY_URL/" -H 'content-type: application/json' \
-    -d '{"title":"f-inject","agent_capability":"ephemeral-org/eph-backend-engineer","task_brief":"long task","ttl_s":15}' || true
+    -d '{"title":"f-inject","agent_capability":"ephemeral-org/eph-backend-engineer","task_brief":"Long-running job: run the shell command sleep 600 and wait for it to finish before writing your completion report. Do nothing else.","ttl_s":15}' || true
 }
 task_id_of() { printf '%s' "$1" | sed -n 's/.*"task_id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p'; }
 report_status() {
@@ -348,10 +351,15 @@ block_github_443() {
   ssh "$VM_XB" "sudo -n nft -f -" <<'NFT'
 add table inet eablock
 add chain inet eablock output { type filter hook output priority 0 ; policy accept ; }
+add chain inet eablock forward { type filter hook forward priority -5 ; policy accept ; }
 add rule inet eablock output ip daddr 140.82.112.0/20 tcp dport 443 counter drop
 add rule inet eablock output ip daddr 143.55.64.0/20 tcp dport 443 counter drop
 add rule inet eablock output ip daddr 185.199.108.0/22 tcp dport 443 counter drop
 add rule inet eablock output ip daddr 192.30.252.0/22 tcp dport 443 counter drop
+add rule inet eablock forward ip daddr 140.82.112.0/20 tcp dport 443 counter drop
+add rule inet eablock forward ip daddr 143.55.64.0/20 tcp dport 443 counter drop
+add rule inet eablock forward ip daddr 185.199.108.0/22 tcp dport 443 counter drop
+add rule inet eablock forward ip daddr 192.30.252.0/22 tcp dport 443 counter drop
 NFT
 }
 unblock_github_443() {
@@ -479,10 +487,11 @@ main() {
   prereqs
   check_assets
   confirm "M5: front-of-house + bring-up + E2E + injections + hardening + docs closeout"
-  build_and_deploy_front_of_house
-  open_firewall
-  full_stack_bringup
-  e2e_acceptance_run
+  # M5_FROM=5 skips the already-green §1/§3/§4 (no image rebuild since they
+  # ran — the TP regression rule only forces a §4 re-run on rebuild/redeploy).
+  if [ "${M5_FROM:-1}" -le 1 ]; then build_and_deploy_front_of_house; open_firewall; else log "M5_FROM=${M5_FROM} — skipping §1/§3/§4 (already green)"; fi
+  if [ "${M5_FROM:-1}" -le 3 ]; then full_stack_bringup; fi
+  if [ "${M5_FROM:-1}" -le 4 ]; then e2e_acceptance_run; fi
   failure_injections
   credential_hardening
   lock_open_items
