@@ -28,7 +28,15 @@ fi
 BOOT_MS=$(( $(date +%s%3N) - START_MS ))
 echo "{\"event\":\"self-report\",\"task_id\":\"$TASK_ID\",\"boot_ms\":$BOOT_MS,\"sources\":{\"agent_repo\":true,\"llm-wiki\":\"$([ -d "$LLM_WIKI/.git" ] && echo true || echo degraded)\",\"hindsight\":\"$([ -n "${HINDSIGHT_URL:-}" ] && echo true || echo false)\"}}"
 
-# 2. the resident backend — `hermes serve` (the desktop's remote-connection
-# server per the S7 runbook procedure), NOT `gateway run` (that serves
-# messaging platforms: Telegram/Discord/... — not the desktop protocol)
-exec hermes serve
+# 2. the resident backend — `hermes serve --host 0.0.0.0` (the desktop's
+# remote-connection server; public binds REQUIRE an auth provider —
+# HERMES_DASHBOARD_SESSION_TOKEN is the bundled session-token provider that
+# authorizes the Desktop's remote-gateway 'Session token' field).
+# --skip-build: the container has no web-UI build step; serve the existing dist.
+hermes profile list 2>/dev/null | grep -q "cos " || hermes profile create cos --description "Chief of Staff — proposes, owner disposes" >/dev/null
+cp /profile/AGENTS.md /root/.hermes/profiles/cos/AGENTS.md   # the CoS prompt IS the profile
+hermes profile use cos >/dev/null                            # sticky default profile
+hermes config set model.default z-ai/glm-5.3-flash >/dev/null
+hermes config set model.provider openrouter >/dev/null
+
+exec hermes serve --host 0.0.0.0 --port 8080 --skip-build
