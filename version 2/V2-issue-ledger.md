@@ -206,3 +206,23 @@
   GitHub revocation propagates within seconds.
 - **Rule:** both halves of a lifecycle check read the same variable; a
   revocation check sleeps past propagation (5 s) before asserting.
+
+## 14. M1 build-start security items not yet built (proxy caller-auth, hindsight token classes)
+
+- **Symptom (build-time finding, 2026-11-15):** preparing the CoS deployment
+  surfaced that two §9.1 build-start security dependencies the CoS credential
+  contract assumes were never built in the staged run: the llm-proxy still
+  forwards with the caller's own key and no per-class tokens (v3 sanitize
+  only), and the built ea-hindsight has no CoS-write/executor-read token
+  classes (auth.go was in the impact inventory, not in the build).
+- **Wrong assumption:** that "build-start security items" from §9.1 were all
+  executed at S0/S1 — only registry TLS + basic-auth landed.
+- **Root cause:** the security stage list was treated as complete at S1;
+  nothing re-checked the remaining §9.1 items before M1.
+- **Rule:** a milestone's install preconditions include every §9.1 item it
+  names — re-verified at the milestone, not assumed from earlier stages.
+- **Disposition:** credentials staged (m1-cos/stage-credentials.sh, values
+  never printed); the proxy caller-auth + hindsight token-class enforcement
+  land as part of the M1 completion (or the A+ gate, which asserts the
+  capability check) — tracked as M1 build items, not closed defects.
+
