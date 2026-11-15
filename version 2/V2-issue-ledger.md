@@ -101,3 +101,108 @@
   credential bytes remain in either repo's tracked files; runtime path
   unchanged (install scripts write `RABBITMQ_PASS` to gitignored
   `/opt/poc/deploy/m1|2/.env`, 0600).
+## 6. m1 bridge could not consume `ea-tasks` (PRECONDITION_FAILED)
+
+- **Symptom:** the m1 gate failed at T1 — zero messages consumed; the
+  topic-bridge logged `PRECONDITION_FAILED: inequivalent arg 'x-max-priority'`.
+- **Wrong assumption:** that `ea-tasks`' `x-max-priority: 3` declaration
+  (the single OQ4 declaration point) did not need to be mirrored in the
+  consumer's own queue declare.
+- **Root cause:** `topic-bridge/cmd/adapter/main.go` declared the queue
+  without `x-max-priority`; RabbitMQ rejects inequivalent re-declares.
+- **Rule:** every queue-declare site must byte-match the canonical
+  declaration (`x-max-priority: 3` on the `ea-*` task queues); a
+  queue-shape constant lives in one place per service.
+
+## 7. m2 gate ran the wrong executor (compose carried a future default)
+
+- **Symptom:** the first m2 gate run failed V1/V5 — real hermes executors
+  spawned, exited 2 with unstaged m3 env.
+- **Wrong assumption:** that the m2 compose could carry the M5-era
+  `EA_EXECUTOR_DEFAULT: hermes` for forward-compatibility.
+- **Root cause:** the compose-evolution rule was violated — the m2-era
+  compose must be stub-only (the M3 install writes the executor switch).
+- **Rule:** a milestone's compose carries only that milestone's config;
+  future-era settings land in the milestone that owns them.
+
+## 8. m4 hindsight compose took over V1's stack
+
+- **Symptom:** deploying the m4 hindsight stack replaced V1's containers
+  and reused V1's data volume — V1's memory system was down.
+- **Wrong assumption:** that compose project names and volume names
+  inherited from V1 were safe.
+- **Root cause:** the m4 compose kept V1's project name `hindsight` and
+  volume name.
+- **Rule:** every V2 compose sets `name: ea-*`, `ea-*` containers, and an
+  own volume; the restoration sequence (V1 up, V2 up) is part of the fix
+  runbook, not an afterthought.
+
+## 9. m5's committed fix never existed — gitignore masked whole source trees
+
+- **Symptom:** `ea/manager:1.0.0` rebuilt from the committed code did not
+  compile (`undefined: EnvTasksQueue`), and the queue-direct fix was
+  absent from the commit that claimed it (`c4e1282`).
+- **Wrong assumption:** that a `git add services/manager` had committed
+  the source — the `.gitignore` binary patterns (`services/**/manager`,
+  `services/**/gateway`, `services/**/adapter`) masked the *entire*
+  source directories, so the sources were silently untracked.
+- **Root cause:** ignore patterns intended for compiled binaries also
+  matched the directories holding the sources; `git status` showed a
+  clean tree, so nothing looked wrong.
+- **Rule:** ignore patterns that hide a directory must carry explicit
+  negations for the source tree, verified by `git check-ignore` on every
+  file the milestone claims to commit; "clean tree" is not evidence of
+  tracked sources.
+
+## 10. queue-direct publish used the capability as the routing key
+
+- **Symptom:** with `TASKS_EXCHANGE` unset, the manager published to the
+  default exchange with the agent-capability string as the routing key —
+  silently unrouted (messages vanish, no error).
+- **Wrong assumption:** that clearing the exchange alone was the fix.
+- **Root cause:** the publish call site kept the capability routing key;
+  against the default exchange the routing key must be the queue name.
+- **Rule:** publish-mode constants (exchange, routing key) must change
+  together and carry a test that asserts the effective routing target.
+
+## 11. §5 injections silently exercised the stub executor
+
+- **Symptom:** the GitHub-block injections (F1/F2) "succeeded" — with the
+  block provably loaded and verified live, failure-shaped reports never
+  appeared.
+- **Wrong assumption:** that the §4 E2E's hermes-path success implied the
+  §5 injections used hermes too — the lifecycle's `EA_EXECUTOR_DEFAULT`
+  was unset, so the executor resolved to the `EA_IMAGE` stub pin.
+- **Root cause:** the M5-era executor switch (`EA_EXECUTOR_DEFAULT:
+  hermes`) documented in m3's compose-evolution comment was never
+  implemented by the m5 install, and the M5_FROM=5 stage gate skipped the
+  §1–§2 stages that would have applied it.
+- **Rule:** every stage-gated run re-asserts the executor default (§2' in
+  m5/install.sh) and hard-fails if it is not applied; a test that depends
+  on which executor runs asserts that executor by name.
+
+## 12. §5 runbook was stub-era (five defects)
+
+- **Symptom:** injections published rejected tasks (`"dev"` is not a real
+  catalog capability), waited 45 s for ~13-min hermes reports, killed
+  nothing (`pkill` matches names, not PIDs), and blocked the wrong path
+  (nft `output` hook — container egress traverses `forward`).
+- **Wrong assumption:** that the V1-era runbook mechanics survived the
+  executor change.
+- **Root cause:** the runbook was never re-derived against real executors.
+- **Rule:** every wait is a poll on the observable (report file),
+  kill-by-PID with a docker-kill fallback, fault injection blocks the
+  path the fault requires (forward hook), and the injected capability is
+  a real catalog ref.
+
+## 13. §6 token check aborted on an undefined variable and raced revocation
+
+- **Symptom:** the §6 hardening run died silently between "issued token
+  200" and the revoke step (`tok: unbound variable` under `set -u`);
+  an earlier run's immediate post-revoke check read 200.
+- **Wrong assumption:** that the post-revoke check used the variable the
+  pre-revoke check used (`$src`), and that revocation is instant.
+- **Root cause:** the post-revoke curl referenced an undefined `$tok`;
+  GitHub revocation propagates within seconds.
+- **Rule:** both halves of a lifecycle check read the same variable; a
+  revocation check sleeps past propagation (5 s) before asserting.
