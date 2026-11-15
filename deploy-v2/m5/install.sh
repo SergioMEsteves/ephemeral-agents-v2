@@ -439,7 +439,7 @@ credential_hardening() {
     [ "$tcode" = "200" ] || die "§6   issued token did not authenticate (HTTP $tcode)"
     ssh "$VM_XB" 'set -a; . /opt/poc/secrets/m3.env; set +a; bash /opt/ea/deploy-v2/m3/issue-token.sh --revoke-last' >/dev/null 2>&1
     sleep 5   # revocation propagation — an immediate check raced GitHub (seen live: 200 post-revoke)
-    tcode="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $tok" "https://api.github.com/repos/$GH_OWNER/agent-roster/contents/")"
+    tcode="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $src" "https://api.github.com/repos/$GH_OWNER/agent-roster/contents/")"
     log "§6   revoked token -> HTTP $tcode (want 401 post-revoke)" 
     [ "$tcode" = "401" ] || die "§6   revoked token still authenticates (HTTP $tcode) — token lifecycle broken"
   fi
