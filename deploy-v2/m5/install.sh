@@ -238,51 +238,54 @@ e2e_acceptance_run() {
 failure_injections() {
   log "§5 — failure-injection runbook F1–F5 (each: clean reap + human-visible error)"
   if [ "$CHECK_ONLY" = "1" ]; then log "check-only: skip injections"; return 0; fi
-  local f _f3pid cid
+  local f tid cid
   {
     echo "# M5 failure injections — $(date -u)"
     # F1: llm-wiki clone unreachable (block outbound HTTPS to github.com on the executor VM)
     log "F1 — block outbound git/HTTPS to github.com on $VM_XB during a task (llm-wiki clone fails)"
     block_github_443
-    f="$(run_one_task)"
+    inject_and_verify "F1"
     unblock_github_443
-    assert_clean_reap "F1" "$f"
-    # F2: agent catalog unreachable
+    # F2: agent catalog unreachable (same block path — the catalog clone lives on github.com too)
     log "F2 — block vm-xb -> GitHub 443 (nftables; agent-repo clone path)"
     block_github_443
-    f="$(run_one_task)"
+    inject_and_verify "F2"
     unblock_github_443
-    assert_clean_reap "F2" "$f"
     # F3: agent crash
     log "F3 — pkill -9 the agent process mid-task"
-    run_one_task >/dev/null &
-    _f3pid=$!
+    f="$(run_one_task)"
+    tid="$(task_id_of "$f")"
+    [ -n "$tid" ] || log "F3 publish rejected: $f"
     sleep 10
     cid="$(ssh "$VM_XB" "docker ps --filter label=ea.owner=lifecycle -q | head -1 || true")"
     if [ -n "$cid" ]; then
       ssh "$VM_XB" "docker exec $cid sh -c 'pkill -9 1 2>/dev/null || pkill -9 agent 2>/dev/null || true'"
     fi
-    wait "$_f3pid" || true
-    assert_clean_reap "F3" "crashed agent ($cid)"
+    verify_task "F3" "$tid"
     # F4: TTL exceeded
     log "F4 — task with TTL_S smaller than work time (reaper path with real agents)"
     f="$(run_one_task_short_ttl)"
-    assert_clean_reap "F4" "$f"
+    tid="$(task_id_of "$f")"
+    verify_task "F4" "$tid"
     # F5: manager restart mid-task (response-consumer reconnect + pending persistence)
     log "F5 — docker restart manager mid-task; report must still be written after restart"
-    _before="$(ssh "$VM_XA" "ls /opt/ea/reports/*.json 2>/dev/null | wc -l")"
-    run_one_task >/dev/null &
-    _f5pid=$!
+    f="$(run_one_task)"
+    tid="$(task_id_of "$f")"
+    [ -n "$tid" ] || log "F5 publish rejected: $f"
     sleep 10
-    ssh "$VM_XA" "cd /opt/ea/deploy-v2/m5 && docker compose restart manager"
-    wait "$_f5pid" || true
-    sleep 45   # reaper margin + consumer reconnect + pending reload + report write
-    _after="$(ssh "$VM_XA" "ls /opt/ea/reports/*.json 2>/dev/null | wc -l")"
-    survivors="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
-    if [ "$survivors" = "0" ] && [ "$_after" -gt "$_before" ]; then
-      echo "F5 manager-restart: report written after restart ($_before -> $_after reports), zero survivors : PASS"
+    ssh "$VM_XA" "cd /opt/ea/deploy-v2/m5 && sudo docker compose restart manager"
+    if wait_report "$tid" "${INJECT_TIMEOUT_S:-900}"; then
+      local survivors rstatus
+      survivors="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
+      rstatus="$(report_status "$tid")"
+      if [ "$survivors" = "0" ] && [ "$rstatus" = "success" ]; then
+        echo "F5 manager-restart: report written after restart (status=$rstatus survivors=$survivors) : PASS"
+      else
+        echo "F5 manager-restart: status=$rstatus survivors=$survivors : FAIL"
+      fi
+      echo "F5 report JSON: $(ssh "$VM_XA" "cat /opt/ea/reports/$tid.json")"
     else
-      echo "F5 manager-restart: survivors=$survivors reports=$_before->$_after : FAIL"
+      echo "F5 manager-restart: report never landed within ${INJECT_TIMEOUT_S:-900}s : FAIL"
     fi
   } | tee "$EVIDENCE/failure-injections.txt"
   if grep -q ": FAIL" "$EVIDENCE/failure-injections.txt"; then
@@ -293,36 +296,66 @@ failure_injections() {
   fi
 }
 
-# helpers for the injection runbook (small task each time)
+# helpers for the injection runbook.
+# NOTE: real executors take ~13 min boot-to-report — every wait below POLLS for
+# the report instead of sleeping a fixed interval (the stub-era 45s sleep could
+# never observe a real task, and "dev" was never a real catalog capability).
 run_one_task() {
   curl -s -X POST "$GATEWAY_URL/" -H 'content-type: application/json' \
-    -d '{"title":"f-inject","agent_capability":"dev","task_brief":"tiny task for the injection runbook"}' || true
+    -d '{"title":"f-inject","agent_capability":"ephemeral-org/eph-backend-engineer","task_brief":"tiny task for the injection runbook"}' || true
 }
 run_one_task_short_ttl() {
   curl -s -X POST "$GATEWAY_URL/" -H 'content-type: application/json' \
-    -d '{"title":"f-inject","agent_capability":"dev","task_brief":"long task","ttl_s":5}' || true
+    -d '{"title":"f-inject","agent_capability":"ephemeral-org/eph-backend-engineer","task_brief":"long task","ttl_s":15}' || true
+}
+task_id_of() { printf '%s' "$1" | sed -n 's/.*"task_id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p'; }
+report_status() {
+  ssh "$VM_XA" "python3 -c \"import json;print(json.load(open('/opt/ea/reports/$1.json')).get('status',''))\"" 2>/dev/null || echo unreadable
+}
+wait_report() {  # $1 task_id, $2 timeout_s -> 0 when the report JSON lands on vm-xa
+  local tid="$1" t="${2:-900}" i
+  for i in $(seq 1 "$((t / 10))"); do
+    ssh "$VM_XA" "test -f /opt/ea/reports/$tid.json" >/dev/null 2>&1 && return 0
+    sleep 10
+  done
+  return 1
+}
+verify_task() {  # $1 label, $2 task_id — survivors=0 AND a failure-shaped report
+  local label="$1" tid="$2" survivors st
+  if [ -z "$tid" ]; then echo "$label publish rejected (no task_id) : FAIL"; return 0; fi
+  if wait_report "$tid" "${INJECT_TIMEOUT_S:-900}"; then
+    survivors="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
+    st="$(report_status "$tid")"
+    if [ "$survivors" = "0" ] && [ "$st" != "success" ]; then
+      echo "$label report status=$st survivors=$survivors : PASS"
+    elif [ "$st" = "success" ]; then
+      echo "$label report status=success survivors=0 — injection did NOT bite (fault path not exercised) : CHECK"
+    else
+      echo "$label report status=$st survivors=$survivors : FAIL"
+    fi
+    echo "$label report JSON: $(ssh "$VM_XA" "cat /opt/ea/reports/$tid.json")"
+  else
+    survivors="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
+    echo "$label report never landed within ${INJECT_TIMEOUT_S:-900}s survivors=$survivors : FAIL"
+  fi
+}
+inject_and_verify() {  # $1 label — publish one task while the fault is active, then verify
+  local label="$1" tid
+  tid="$(task_id_of "$(run_one_task)")"
+  verify_task "$label" "$tid"
 }
 block_github_443() {
-  ssh "$VM_XB" "sudo nft add table inet eablock && sudo nft add chain inet eablock output '{ ip daddr 140.82.112.0/20 tcp dport 443 counter drop }'" 2>/dev/null \
-    || warn "nftables block unavailable (needs root on $VM_XB) — operator runs it manually (M5 §5 F2)"
+  ssh "$VM_XB" "sudo -n nft -f -" <<'NFT'
+add table inet eablock
+add chain inet eablock output { type filter hook output priority 0 ; policy accept ; }
+add rule inet eablock output ip daddr 140.82.112.0/20 tcp dport 443 counter drop
+add rule inet eablock output ip daddr 143.55.64.0/20 tcp dport 443 counter drop
+add rule inet eablock output ip daddr 185.199.108.0/22 tcp dport 443 counter drop
+add rule inet eablock output ip daddr 192.30.252.0/22 tcp dport 443 counter drop
+NFT
 }
 unblock_github_443() {
-  ssh "$VM_XB" "sudo nft delete table inet eablock 2>/dev/null || true"
-}
-assert_clean_reap() {
-  local tag="$1" resp="$2" survivors
-  sleep 45   # one reaper interval + margin
-  survivors="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
-  if [ "$survivors" = "0" ]; then
-    echo "$tag zero-survivors: 0 : PASS"
-    if echo "$resp" | grep -qiE 'error|fail'; then
-      echo "$tag human-visible error in report : PASS"
-    else
-      echo "$tag human-visible error : CHECK manually (record the chosen policy: error vs. degrade, M5 §5)"
-    fi
-  else
-    echo "$tag zero-survivors: $survivors : FAIL"
-  fi
+  ssh "$VM_XB" "sudo -n nft delete table inet eablock 2>/dev/null || true"
 }
 
 # ---------------------------------------------------------------- §6 hardening
