@@ -244,3 +244,27 @@
 - **Rule:** credential-contract changes are owner decisions recorded in this
   ledger with their A+ follow-up named.
 
+## 16. New private project repos cannot be cloned from VM-Xa (no repo credential)
+
+- **Symptom (owner, 2026-11-15):** creating a new project + GitHub repo,
+  cloning it on VM-Xa fails on permissions — the estate deliberately built
+  VM-Xa credential-free for GitHub.
+- **Wrong assumption:** that the "no GitHub token" contract line could stand
+  while the architecture gives VM-Xa two legitimate repo needs: the CoS's
+  workspace IS the project repo checkout (M1 §4, repo as source of truth),
+  and executors clone project repos per task.
+- **Root cause:** the credential contract predated the repo-as-workspace
+  reality (the same tension D12 resolved for state; new private repos made
+  it concrete).
+- **Fix (owner-approved, 2026-11-15):** the CoS holds a **scoped READ-ONLY**
+  fine-grained PAT (Contents: Read, project repos) staged as a git
+  credential file (0600, mounted read-only, value never printed) — the
+  contract line becomes "no WRITE token, repo-read scoped". Executors keep
+  the designed mechanism unchanged: per-run GitHub App installation tokens
+  minted at spawn, revoked at reap.
+- **New-project checklist (owner, per project):** create the repo → install
+  the `ephemeral-agents-poc` GitHub App on it (1 min) → done: the CoS clone
+  is covered by the scoped PAT, executor credentials mint per task.
+- **Rule:** contract denials are re-examined whenever an architecture
+  decision gives a component a new legitimate resource need.
+

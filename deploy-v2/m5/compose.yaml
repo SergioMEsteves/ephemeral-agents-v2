@@ -60,6 +60,7 @@ services:
       AGENTS_MD: "/profile/AGENTS.md"
     volumes:
       - /opt/ea/cos/profile:/profile:ro
+      - /opt/ea/cos/profile/git-credentials:/root/.git-credentials:ro
       - /opt/ea/cos/state:/state
       - /opt/ea/cos/roster:/work/roster:ro
       - /opt/ea/repos:/work/repos

@@ -15,6 +15,7 @@ echo "{\"event\":\"boot\",\"task_id\":\"$TASK_ID\"}"
 
 # 1. hydration — roster persona is bind-mounted (read-only); llm-wiki + hindsight per the executor contract
 LLM_WIKI="${LLM_WIKI_DIR:-/work/llm-wiki}"
+git config --global credential.helper store   # /root/.git-credentials (mounted, read-only)
 mkdir -p "$LLM_WIKI"
 git -C "$LLM_WIKI" fetch --depth 1 origin main 2>/dev/null || git clone --depth 1 https://github.com/arvisdev/llm-wiki.git "$LLM_WIKI" 2>/dev/null || echo "{\"event\":\"wiki-degrade\",\"reason\":\"clone unavailable — graceful\"}"
 
@@ -38,5 +39,20 @@ cp /profile/AGENTS.md /root/.hermes/profiles/cos/AGENTS.md   # the CoS prompt IS
 hermes profile use cos >/dev/null                            # sticky default profile
 hermes config set model.default z-ai/glm-5.3-flash >/dev/null
 hermes config set model.provider openrouter >/dev/null
+# the default profile (what `serve` binds as its base) gets the same model —
+# GLM 5.3 Flash is the VM-Xa default, not just the CoS profile's.
+hermes -p default config set model.default z-ai/glm-5.3-flash >/dev/null
+hermes -p default config set model.provider openrouter >/dev/null
+# key staging: the CLI resolves provider keys from env files (profile .env and
+# $HERMES_HOME/.env), NOT the process env — mirror the compose-staged
+# OPENROUTER_API_KEY into both, or chat sessions fail with
+# ProviderNotConfiguredError even though `serve` itself works.
+stage_key() {
+  if ! grep -q '^OPENROUTER_API_KEY=' "$1" 2>/dev/null && [ -n "${OPENROUTER_API_KEY:-}" ]; then
+    printf 'OPENROUTER_API_KEY=%s\n' "$OPENROUTER_API_KEY" >> "$1"
+  fi
+}
+stage_key /root/.hermes/.env
+stage_key /root/.hermes/profiles/cos/.env
 
 exec hermes serve --host 0.0.0.0 --port 8080 --skip-build
