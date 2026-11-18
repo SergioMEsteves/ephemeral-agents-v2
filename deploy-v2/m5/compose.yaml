@@ -30,3 +30,36 @@ services:
       REPORTS_DIR: "/reports"
     volumes: ["/opt/ea/reports:/reports"]     # human-report artifacts land here
     restart: unless-stopped
+
+  # CoS — persistent Chief-of-Staff Hermes profile (M1/TP-V2-M1): the agent
+  # proposes, the owner disposes; the Go manager validates. Resident,
+  # reboot-durable (D12 board state), gateway published on 8084 (desktop's
+  # named remote connection; 8083 is the ea gateway). Env = the M1 §5
+  # allow-list + the owner-amended OpenRouter key (ledger entry 15).
+  cos:
+    container_name: ea-m5-cos
+    image: "ea/hermes-ephemeral:1.0.0"
+    entrypoint: /profile/cos-entrypoint.sh
+    restart: unless-stopped
+    init: true
+    ports:
+      - "8084:8080"
+    environment:
+      MODEL_API_BASE: "http://${BROKER_HOST}:9999"
+      MODEL_API_TOKEN: "${LLM_PROXY_COS_TOKEN}"
+      OPENROUTER_API_KEY: "${OPENROUTER_API_KEY}"
+      MODEL_DEFAULT: "z-ai/glm-5.3-flash"
+      ANTHROPIC_BASE_URL: "http://${BROKER_HOST}:9999"
+      ANTHROPIC_API_KEY: "${LLM_PROXY_COS_TOKEN}"
+      GATEWAY_SESSION_TOKEN: "${COS_SESSION_TOKEN}"
+      HERMES_DASHBOARD_SESSION_TOKEN: "${COS_SESSION_TOKEN}"
+      GATEWAY_API_TOKEN: "${COS_API_TOKEN}"
+      GATEWAY_URL: "http://gateway:8080"
+      HINDSIGHT_URL: "http://${HINDSIGHT_HOST}:8082"
+      HINDSIGHT_WRITE_TOKEN: "${HINDSIGHT_WRITE_TOKEN}"
+      AGENTS_MD: "/profile/AGENTS.md"
+    volumes:
+      - /opt/ea/cos/profile:/profile:ro
+      - /opt/ea/cos/state:/state
+      - /opt/ea/cos/roster:/work/roster:ro
+      - /opt/ea/repos:/work/repos
