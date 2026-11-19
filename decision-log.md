@@ -616,3 +616,16 @@ unnecessary. Decisions recorded in the rewritten
   timing; the two gaps are documentation, not estate work. The Xsm
   chassis milestone is queued behind the first real small-project
   onboarding.
+
+## 2026-11-17 — Book Special-3: connecting the Desktop to a project
+
+- **Gap closed:** the textbook had no plain-language procedure for the
+  desktop↔agent-machine connection (the 2026-11-08 textbook-gap finding);
+  the operator steps existed only in `RUNBOOK-V2-BUILD.md` stage S7.
+- **Change:** `version 2/book/special-3-connecting-your-desktop.md` — the
+  one-time wiring in plain language: what the CoS backend is (distinct
+  from the pipeline gateway :8083), the seven desktop steps, the session
+  token as the Desktop's only credential (link-security rule), the
+  test semantics, the three failure modes, and the reconnect-after-reboot
+  property (TP-V2-M1 assertion 12). Book README Part III updated.
+  Commit c6f0842.
