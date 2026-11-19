@@ -562,3 +562,57 @@ unnecessary. Decisions recorded in the rewritten
 - **Decision:** the declare-start gate is the checklist's last unchecked
   box — owner instruction. Nothing in this entry was executed against the
   estate.
+
+## 2026-11-17 — ADR-0002: two-template onboarding (VM-Xlg / VM-Xsm)
+
+- **Context:** the owner agreed D6 (one project = one VM = one gateway =
+  one CoS) is right for large projects but an annoyance for several small
+  projects, and proposed two onboarding templates: VM-Xlg (the existing
+  one-project-one-VM rule) and VM-Xsm (one VM hosting multiple small
+  project stacks). Hermes Agent recommended formalizing the choice as an
+  onboarding decision recorded in the project manifest, with the Xsm
+  chassis deferred to its own milestone, and the owner chose option (b):
+  record the decision + dry-run the recipe against the existing VM-Xa.
+- **Decision (ADR-0002, `version 2/adr-0002-template-onboarding.md`):**
+  1. **VM-Xlg** = today's rule unchanged; onboarding = the existing
+     7-step checklist. VM-Xa stays the first Xlg instance and the live
+     front-of-house; new clones are `vm-xlg-2`, `vm-xsm-1`, … — the
+     template lives in the PVE template + recipe, not in renaming a
+     running VM.
+  2. **VM-Xsm** = one VM, N small project stacks, each with its own
+     compose namespace (`ea-<proj>-`), gateway port, CoS container,
+     queues, volumes, repo mount, Hindsight scope key. Decided shape;
+     **chassis stage deliberately deferred** until the first real
+     small-project onboarding.
+  3. **Declaration:** `project.yaml` gains `isolation_tier: xlg | xsm`,
+     written at onboarding, read by the CoS, validated by the manager
+     like `repo_target` (same pattern as the priority field).
+  4. **Honest coupling named:** Xsm shares resource ceilings and the
+     secrets surface; never shares compose names, ports, queues,
+     volumes, or scope keys; the shared exchange keeps queue-direct
+     publishing per project queue.
+- **Files changed:** ADR-0002 created; `RUNBOOK-V2-NEW-PROJECT.md` gained
+  the template-selection section and the manifest step references
+  `isolation_tier`; M1 design §10 manifest shape gains the field.
+  This entry also closes review finding M9 (D6's supersession of the
+  POC-era no-new-VM decision is now explicit).
+- **Dry-run of the 7-step checklist against the existing VM-Xa**
+  (table-top, read-only; each "create fresh" step verified as "current
+  instance matches the recipe"):
+  1. VM provisioned / static IP / hosts.env — ✓ (`VM_XA=192.0.2.10`).
+  2. Stack deployed, digest-pinned images — ✓ (gateway :8083, manager,
+     CoS :8084, `ea/*` images).
+  3. Project repo + manifest — **✗ gap:** the recipe's own first project
+     (ephemeral-agents-v2) has no `project.yaml` yet. Expected: the
+     manifest is a manifest-milestone deliverable (M1 §10 queues it after
+     M1), but the recipe reads as if it exists at onboarding. Fix: the
+     runbook step 3 should state the manifest is written when the
+     manifest-check milestone lands, not assumed at onboarding.
+  4. CoS profile provisioned — ✓ (`cos` profile, model pinned, key staged).
+  5. Desktop registry entry — ✓ (`ea-cos`, session-token auth).
+  6. Smoke — **pending:** TP-V2-M1 is the milestone this smoke belongs to.
+  7. Record — ✓ (this entry).
+- **Verdict:** the Xlg recipe matches reality except step 3's manifest
+  timing; the two gaps are documentation, not estate work. The Xsm
+  chassis milestone is queued behind the first real small-project
+  onboarding.

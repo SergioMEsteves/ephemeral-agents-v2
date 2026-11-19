@@ -421,6 +421,7 @@ project repo itself (the source of truth, D4):
 ```yaml
 # project.yaml (illustrative shape, at repo root)
 project: my-project
+isolation_tier: xlg        # xlg = dedicated VM (ADR-0002); xsm = shared small-project VM
 repos:
   - name: core
     url: github.com/arvisdev/my-project

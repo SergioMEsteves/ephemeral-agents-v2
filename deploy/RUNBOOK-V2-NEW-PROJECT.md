@@ -10,6 +10,23 @@
 > **project-agnostic**: all teams run on the same spine. What is
 > per-project is listed below.
 
+## Template selection (onboarding's first decision)
+
+> **Two templates, declared per project (ADR-0002).** Choose at onboarding
+> and record it in the project manifest (`isolation_tier: xlg | xsm`).
+>
+> - **VM-Xlg** (large project) — the full recipe below, unchanged: one
+>   project = one VM = one gateway = one CoS. Full blast-radius isolation.
+> - **VM-Xsm** (small projects) — one VM hosting N small project stacks,
+>   each with its own compose namespace, gateway port, CoS container,
+>   queues, volumes, and Hindsight scope key. *Deferred milestone: the
+>   shape is decided in ADR-0002 but the chassis stage is not built yet.*
+>   Until the Xsm chassis stage exists, all onboarding uses the Xlg
+>   recipe.
+>
+> VM-Xa stays the first Xlg instance and the live front-of-house for the
+> ephemeral-agents-v2 project; new clones are `vm-xlg-2`, `vm-xsm-1`, etc.
+
 ## What is per-project
 
 | Component | Isolation | Why |
@@ -35,7 +52,8 @@
    no data migration, ever.
 3. **Create the project repo** (or register the existing one) and write
    the **project manifest** (`project.yaml`, M1 design §10): repo layout,
-   `max_parallel_agents`, TTL defaults, executor defaults, model pinning
+   `isolation_tier` (ADR-0002), `max_parallel_agents`, TTL defaults,
+   executor defaults, model pinning
    (when the configuration topic closes). The CoS reads it; the manager
    validates `repo_target` against it.
 4. **Provision the CoS profile:** the stage-S6 recipe from the build
