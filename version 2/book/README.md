@@ -57,6 +57,10 @@ parts:
 - **What does "approved" mean?** — the approval flow from desktop to
   queue, the hash pinning, and why the report event, not the worker,
   closes the card.
+- **Connecting your Desktop to a project** — the one-time wiring: what
+  the gateway connection is, the seven desktop steps, the session
+  token as the Desktop's only credential, and the three failure modes
+  when the test fails.
 
 ## Conventions
 
