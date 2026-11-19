@@ -1,13 +1,12 @@
 # Chapter 5 — The Durable Core
 
-> **V2 pointer.** The thesis-level treatment of the durable core — the
+> **What this chapter adds.** The thesis-level treatment of the durable core — the
 > workflow engine, the two clocks, the reaper, and the zero-survivors
-> guarantee — lives in the V1 book (`book/ch5-the-durable-core.md`) and is
-> unchanged in principle. This chapter covers the V2 delta: the durable core
+> guarantee — is stated in full here and is unchanged in principle. This chapter covers the V2 delta: the durable core
 > rebuilt under a second name, on one estate, *beside* the first one.
 
 > **In plain terms.** The mill that executes tickets — pick up, keep safe,
-> spawn, watch, clean up, report — is the same mill V1 built. V2 rebuilt it
+> spawn, watch, clean up, report — is the same mill the first build constructed. This build rebuilt it
 > with new names so it could run next to the original without either
 > interfering, and in the rebuilding the V2 build learned the three rules
 > this chapter is about: network membership is declared in the blueprint,
@@ -17,7 +16,7 @@
 
 ## 5.1 What V2 inherits whole
 
-Every structural decision of V1's core carries forward: work lives in a
+Every structural decision of the first build's core carries forward: work lives in a
 durable workflow instance keyed by `task_id`, not in a process; the
 sequence *dispatch → spawn → poll → reap → report* is one inspectable
 record; the two clocks (wall-clock `ttl_s` carried by the order, reasoning
@@ -31,16 +30,16 @@ zero survivors). Evidence: `deploy-v2/m1/evidence/`, `deploy-v2/m2/evidence/`.
 
 ## 5.2 `ea-net`: membership is compose-declared
 
-V1's shared network carried a lesson the V2 build then paid for once more
+The first build's shared network carried a lesson the V2 build then paid for once more
 — in ledger entry 2, and at higher stakes, because this time the breakage
-took *V1's* path down, not V2's.
+took the *first* path down, not the second.
 
 After the m0 apply, components could not resolve the engine service by
-name: embedded DNS returned SERVFAIL, and the estate's V1 path was down
+name: embedded DNS returned SERVFAIL, and the estate's first-build path was down
 while every container showed `Up`. The root cause was two independent bugs
 in the same class:
 
-1. V1 had wired the shared network with a manual `docker network connect` —
+1. The first build had wired the shared network with a manual `docker network connect` —
    an attachment that every compose recreation silently drops. A network
    attached by hand is a network attached *once*.
 2. A container attached to *two* networks with the same alias on both makes
@@ -62,13 +61,13 @@ networks:
 # (per-service:) networks: { ea-net: { aliases: [rabbitmq] } }
 ```
 
-The deeper point is the one V1's book made about load-bearing state: if a
+The deeper point is the one made about load-bearing state in the first book: if a
 property matters to correctness, it must live in the artifact that survives
 recreation — not in a session's worth of hand-typed commands.
 
 ## 5.3 The queue family, declared once
 
-V1's core had one queue and its dead-letter sibling. V2 declares a
+The first build's core had one queue and its dead-letter sibling. V2 declares a
 three-member family, in one place, in the M0 milestone (commit `1f98b82`,
 broker section of `deploy-v2/m0/install.sh`):
 
@@ -81,10 +80,10 @@ broker section of `deploy-v2/m0/install.sh`):
 The family is declared through the broker's management API by the install
 script, guarded idempotently (the declare step runs only when the queue is
 absent), with the broker password staged through a stdin-fed config file
-never argv. The V1-era topic exchange keeps its name and stays shared —
+never argv. The first-build-era topic exchange keeps its name and stays shared —
 `ea-tasks` even carries a topic binding on it from this declaration — but
 V2's manager addresses the queue directly (Chapter 4, §4.4). Coexistence
-property, verified live at M1: V1's `agent.tasks.durable` / `agent.tasks.dlq`
+property, verified live at M1: the first organization's `agent.tasks.durable` / `agent.tasks.dlq`
 and V2's `ea-tasks` / `ea-tasks.dlq` are *distinct consumers on the same
 broker*, each draining only its own family.
 
@@ -110,7 +109,7 @@ share one name.
 The rule now in force: **every queue-declare site must byte-match the
 canonical declaration (`x-max-priority: 3` on the `ea-*` task queues), and
 a queue-shape constant lives in one place per service.** The failure mode
-it closes is exactly the drift class V1's book catalogued: two writers, one
+it closes is exactly the drift class the first book catalogued: two writers, one
 implied contract, no one owning the shape.
 
 ## 5.5 What the gates proved about the family
@@ -142,7 +141,7 @@ queue family is the isolation boundary that matters; the broker is shared
 infrastructure, like the network.
 
 **Decision: compose-declared membership, aliases = service names.**
-Alternative: hand-attachment at install time (the V1 habit) — rejected by
+Alternative: hand-attachment at install time (the first build's habit) — rejected by
 ledger entry 2: it does not survive recreation, and its failure mode is
 silent (`Up` everywhere, name resolution dead).
 
@@ -151,7 +150,7 @@ Alternative: per-consumer declarations derived from configuration —
 rejected by ledger entry 6: derivation is where inequivalence is born.
 
 **Decision: single workflow engine, honest about the trade.** Carried
-forward unchanged from V1 (and stated there); the V2 build neither
+forward unchanged from the first build (and stated in the first book); this build neither
 challenged nor relieved it — distribution remains deferred until scale
 demands it.
 
@@ -160,9 +159,9 @@ demands it.
 The durable core is the reason everything else stays simple, and V2 adds a
 second payoff: because the core's boundaries are all *named* — one network,
 one queue family, one engine — two copies of the whole core can coexist on
-one estate with no shared mutable state. V1's stacks were verifiable
+one estate with no shared mutable state. The first build's stacks were verifiable
 mid-build throughout the V2 build (its queues drained by its own bridge,
-its dashboards answering), and no V2 route ever touched a V1 queue. The
+its dashboards answering), and no route of this build ever touched a first-build queue. The
 organization-scale claim — N systems per estate — got its first real data
 point here, and the data point is boring, which is the highest compliment
 infrastructure can earn. The coexistence rules themselves (compose project

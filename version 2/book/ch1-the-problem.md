@@ -131,6 +131,15 @@ whose workforce happens to be artificial. The rest of this book builds it,
 piece by piece, and then proves — with a real implementation tested on real
 infrastructure — that it works.
 
+## 1.5 What this build adds to the problem
+
+This book's build (`ea-`) does not restate the seven walls or solve them by
+redefining them — it inherits them exactly as stated above, and takes them as
+the specification it is measured against. Every corrective finding in this
+build is a failure *inside* the organization, not a new wall: the organization
+itself is the answer, and the work is to build it so it holds. Part I states
+the theory; Part II builds it; Part III reports what broke and what was learned.
+
 ---
 
 *Part I continues in Chapter 2: The Thesis — the theory behind this

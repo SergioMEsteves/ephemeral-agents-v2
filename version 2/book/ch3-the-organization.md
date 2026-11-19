@@ -159,3 +159,20 @@ registrar (judgment without a check).
 
 Part II now builds this picture component by component — and for each one,
 shows not just what it is, but the decisions and alternatives behind it.
+
+## 3.6 The shape is fixed; the occupancy is the build's question
+
+Nothing in this chapter changes in the build this book reports. What changes
+is *occupancy*: the same organization — the same departments, the same
+work-order route, the same three human positions — is installed and run
+*twice* on one estate, as two independent copies living side by side
+(Chapter 11 shows the coexistence rules and the race they surfaced). One
+further change: the Chief of Staff, named above as a bus-org principal, is
+promoted from a role on paper to a resident, gated part of the running
+system — the CoS milestone, told in Specials 1 and 2. Both changes are
+additions to the shape, not departures from it.
+
+---
+
+*Part II begins with Chapter 4: The Work Order — the smallest contract in
+the system, and the one everything else depends on.*

@@ -22,9 +22,9 @@ Chapter 1's reframe:
 
 - **"Organization"** — not a smarter agent, but a structure *around* agents.
   The unit of value is the organization, not the individual model.
-- **"Proven"** — this is not a position paper. Part III of this book reports a
-  full proof-of-concept build, executed on real infrastructure, with every
-  claim tied to a test that could have failed and didn't.
+- **"Proven"** — this is not a position paper. Chapters 14 and 15 of this book
+  report a full build, executed on real infrastructure, with every claim tied
+  to a test that could have failed and didn't.
 
 The thesis deliberately does *not* claim that agents will think better, or
 that a particular model vendor wins. Every principle below is
@@ -113,7 +113,7 @@ automatically once the other structures are real.
 ## 2.3 What the theory predicts (the new doors)
 
 If the thesis holds, capabilities emerge that neither chatbots nor ad-hoc
-agent deployments offer. These predictions are what Part III tests:
+agent deployments offer. These predictions are what Chapters 14 and 15 test:
 
 1. **An elastic workforce.** The organization can run ten tasks in an
    afternoon, each with a different specialist, without hiring, training, or
@@ -131,6 +131,12 @@ agent deployments offer. These predictions are what Part III tests:
    keep judgment and acceptance; agents take the structured, verifiable work.
    The handoff points — "send it over" — are where human authority is
    exercised, and they are few and well-defined.
+6. **Coexistence.** The organization can live *beside another copy of itself*
+   on one estate — separate names, ports, queues, and data — with the
+   principles and the gate discipline held, and with the first organization's
+   own work never interrupted. This is the build's own addition to the
+   theory, and Part II reports how the prediction fared, including where it
+   broke and what was changed.
 
 ## 2.4 The benefit, honestly framed
 
@@ -149,9 +155,9 @@ about **what class of work becomes available**:
 
 The bet, stated for a decision-maker: the overhead of the organization is
 fixed and small (one durable engine, one registry, one memory store — all
-proven in Part III to be lightweight), while the work it unlocks is the kind
-companies currently *cannot* delegate to AI at all. You are not buying a
-faster chatbot; you are buying a new category of delegable work.
+proven in Chapters 14 and 15 to be lightweight), while the work it unlocks is
+the kind companies currently *cannot* delegate to AI at all. You are not
+buying a faster chatbot; you are buying a new category of delegable work.
 
 ## 2.5 What must be true for the thesis to stand
 
@@ -167,10 +173,12 @@ Part I and all of Part II, the design is only allowed to assume:
   (Chapter 9).
 - A roster of real role definitions can drive both selection and hydration
   (Chapters 3 and 10).
+- A second copy of the organization can run on the same estate without
+  interfering with the first (Chapter 11).
 
-Each assumption becomes a *tested claim* in Part III. Where an assumption
-turned out to be wrong during the build, the book says so and shows the
-correction — because the honest version of this thesis is stronger than the
+Each assumption becomes a *tested claim* in Chapters 14 and 15. Where an
+assumption turned out to be wrong during the build, the book says so and shows
+the correction — because the honest version of this thesis is stronger than the
 polished one.
 
 ---

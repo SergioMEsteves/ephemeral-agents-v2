@@ -24,17 +24,17 @@ production-ready, and it must not be operated as such:
   rate limiting, no scale-out. The A+ isolation upgrade (rootless +
   segmentation) is the first *change* milestone, not part of this baseline
   (Chapter 13).
-- **Two organizations share the estate.** The defining V2 twist: V1's
+- **Two organizations share the estate.** The defining twist of this build: the first organization's
   stacks run beside V2's on the same VMs and the same broker. Two
   consequences an evaluator must respect:
   1. **Never publish test messages to the shared `agent.tasks` topic
-     exchange.** It is V1's route; a valid message-v1 payload published
-     there will start a *real V1 workflow* (V2 observed exactly this race
+     exchange.** It is the first organization's route; a valid message-v1 payload published
+     there will start a *real first-build workflow* (V2 observed exactly this race
      live before switching to queue-direct publishing). Submit through the
      V2 gateway (`:8083`), or publish directly to the `ea-tasks` queue
      (the D-routing design) as the m0 gate's own harness does.
-  2. **V1's queues and dashboards are live production for its own record.**
-     Verify V1's health as a *side condition* of every V2 check — its
+  2. **The first organization's queues and dashboards are live production for its own record.**
+     Verify the first organization's health as a *side condition* of every check — its
      staying green throughout your evaluation is itself a claim you are
      reproducing (the coexistence claim, findings §4.1).
 
@@ -76,7 +76,7 @@ yourself. Evidence packs for every row live in `deploy-v2/mN/evidence/`.
 | Engine on the shared network, compose-declared | `ssh <user>@<execution-host> 'docker inspect <temporal-container> --format "{{json .NetworkSettings.Networks}}"'` | the shared network only, alias declared — no manual attaches (ledger 2) |
 | Cross-VM publish proof | the m0 gate's publish test (from the front VM over AMQP) | message lands in `ea-tasks`, fetched + acked with the original payload |
 
-**V1 side-condition:** V1's own queues still show their consumers; the
+**First-organization side-condition:** the first build's own queues still show their consumers; the
 broker serves both organizations.
 
 ### M1 — the message bridge
@@ -119,7 +119,7 @@ broker serves both organizations.
 | llm-wiki hydration (G3) | shallow-clone the wiki repo from an executor context | clone + README readable |
 | Catalog regression (G4) | re-run the boot-time harness with sources live | self-report still shows all three sources true |
 | Hydration latency (G5) | the 3-run latency table | totals ≈ 0.8–0.9 s against a 600 s TTL — ~99.8% headroom |
-| Data isolation (G6) | `ssh <user>@<memory-host> 'docker volume ls'` | `ea-hindsight_ea-hindsight-pg-data` — distinct engine, host, and volume from V1's store; V1 rows absent from V2 reads (the seeded-entry proof) |
+| Data isolation (G6) | `ssh <user>@<memory-host> 'docker volume ls'` | `ea-hindsight_ea-hindsight-pg-data` — distinct engine, host, and volume from the first build's store; the first build's rows absent from this build's reads (the seeded-entry proof) |
 | Curation loop | push a new standard doc + CHANGELOG entry to the wiki repo; clone fresh | new doc found alongside the old ones (D-curation: humans curate; agents never write to it) |
 
 **Honesty note:** no embedding provider is staged — the zero-vector
@@ -130,7 +130,7 @@ functional; semantic ranking is *not* part of what M4 demonstrates.
 
 | Check | Command | Expect |
 |---|---|---|
-| Gateway health | `curl http://<front-host>:8083/healthz` | 200. (V1's gateway stays on `:8080` — check it too; both must answer.) |
+| Gateway health | `curl http://<front-host>:8083/healthz` | 200. (the first organization's gateway stays on `:8080` — check it too; both must answer.) |
 | Executor default asserted | `ssh <user>@<front-host> 'docker inspect ea-m2-lifecycle-1 --format "{{json .Config.Env}}"'` on the execution VM's compose | `EA_EXECUTOR_DEFAULT=hermes` — applied by the m5 §2' stage, idempotently, on every invocation |
 | Submit | `curl -s -X POST http://<front-host>:8083/ -H 'Content-Type: application/json' -d '{"title":"Evaluator smoke test","agent_capability":"<real catalog ref>","task_brief":"Create hello.txt containing hello."}'` | immediate `{"task_id":"<uuid>","status":"accepted"}` — the gateway holds no state and no credentials |
 | Watch the workflow | Temporal UI (below), locate `TaskWorkflow` for your task_id | exactly one workflow; event history: started → activity → completed |
@@ -158,12 +158,12 @@ m0 decision log — a loopback-only design later opened by owner decision is
 a regression to *report*, not to exploit). Watch:
 
 1. **Queues → `ea-tasks`:** your message lands (0→1) and drains (1→0).
-   Exactly one consumer while healthy. Beside it, V1's
+   Exactly one consumer while healthy. Beside it, the first build's
    `agent.tasks.durable` with *its* consumer — both queues served by the
    one broker, never crossing.
 2. **`ea-tasks.dlq`:** after the T4/TC-M1-01-style poison test, the
    rejected messages with their rejection-reason headers.
-3. **Exchanges:** `agent.tasks` carries V1's routing only; V2 publishes
+3. **Exchanges:** `agent.tasks` carries the first build's routing only; V2 publishes
    queue-direct (D-routing) — if you see a V2 bridge bound to the topic
    exchange, that is a regression against the coexistence decision
    (ledger entry 10's context).
@@ -186,7 +186,7 @@ Run these in order while one request executes:
 | t≈2 s | Temporal UI | one `TaskWorkflow` for the task_id | durable engine; exactly one workflow per request |
 | t≈3–4 s | execution VM | executor container up; ~1.4 s boot, three files hydrated | ephemeral execution; the asserted executor (not the stub) |
 | during | demo repo (coder tasks) | commit lands on `task/<task_id>` | credentialed write-back, per-run token |
-| at end | execution VM | executor container gone; queue empty; **V1's dashboards still 200** | zero survivors **and** coexistence untouched |
+| at end | execution VM | executor container gone; queue empty; **the first organization's dashboards still 200** | zero survivors **and** coexistence untouched |
 | at end | gateway | report `status: success` with artifact pointer | the human report loop — the only access an engineer needs |
 
 ## Claim-by-claim verification (against the findings report)
@@ -196,7 +196,7 @@ confirm it hands-on:
 
 | Claim (findings §) | Verify by |
 |---|---|
-| Coexistence is the cheapest isolation — two live organizations, one estate (§4.1) | The dashboard views above: both queues served by one broker, `ea-*` and V1 containers coexisting; the takeover incident (ledger 8) repaired by one compose `name:` — read `deploy-v2/m4/evidence/isolation-check.txt` |
+| Coexistence is the cheapest isolation — two live organizations, one estate (§4.1) | The dashboard views above: both queues served by one broker, `ea-*` and first-build containers coexisting; the takeover incident (ledger 8) repaired by one compose `name:` — read `deploy-v2/m4/evidence/isolation-check.txt` |
 | The gate rule caught every major error before it shipped (§4.2) | For each of the 13 ledger entries, read its discovery vector in Chapter 12 — gate, review, or byte-level check; confirm the fix commits exist in the repo history |
 | Stage gates re-assert skipped preconditions (§4.3) | Re-run the m5 install with the stage-gate env set: §2' re-applies and asserts the executor default on every invocation, hard-failing otherwise |
 | Display masking is a debugging hazard (§4.4) | Byte-read a tracked compose (`grep -n RABBITMQ_URL deploy-v2/m1/compose.yaml`): interpolation only, no literal — never trust terminal-masked display |
@@ -208,7 +208,7 @@ confirm it hands-on:
 ## The front door: today and next
 
 **Today:** the structured HTTP POST on `:8083` is the wired entry point —
-the same shape V1 proved, ea-named, with the manager validating every
+the same shape the first build proved, ea-named, with the manager validating every
 request before publish.
 
 **Next:** the Chief-of-Staff milestone (TP-V2-M1) places a persistent

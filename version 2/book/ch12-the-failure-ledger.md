@@ -3,20 +3,20 @@
 > **In plain terms.** This is the chapter where the V2 build admits everything.
 > Thirteen distinct defects were found and root-caused while re-building the
 > organization beside its predecessor — far fewer than the ~35 the first build
-> produced, which is itself a finding: the V1 book's rules were pre-applied
+> produced, which is itself a finding: the first book's rules were pre-applied
 > where the design said they should be, and most of them held. Each entry is
-> told in the V1 ledger's format — *symptom → wrong assumption → root cause →
+> told in the first ledger's format — *symptom → wrong assumption → root cause →
 > the rule now followed* — one numbered entry per issue, in build order
 > (`version 2/V2-issue-ledger.md`). If you read one technical chapter of the
 > V2 book, read this one.
 
 ## 12.1 The taxonomy: the same five classes, a different distribution
 
-V1's ledger (Chapter 12 of the first book) sorted ~35 defects into five
+The first book's ledger chapter sorted ~35 defects into five
 classes. Every V2 entry was sorted the same way, so the two builds can be
 compared. The honest histogram:
 
-| Class | V2 share | V2 entries | V1 share | Character |
+| Class | This build's share | Entries | First build's share | Character |
 |---|---|---|---|---|
 | **C1 · Contract mismatch** | ~31% (4) | 5, 6, 9, 10 | ~40% | Two parties disagreeing about names, shapes, or fields — in V2, half of these are *checkers* disagreeing with what they check |
 | **C2 · Deployment context** | ~46% (6) | 1, 3, 7, 8, 11, 12 | ~25% | Code correct in one environment, wrong in another — coexistence made this the build's dominant risk |
@@ -25,10 +25,10 @@ compared. The honest histogram:
 | **C5 · Estate drift** | ~8% (1) | 4 | ~5% | The real world changing underneath the system |
 
 Three honest caveats before anyone reads the percentages as law. First, *n*
-is 13 against V1's ~35 — the ratios are coarse, and the stories in §12.2
+is 13 against the first build's ~35 — the ratios are coarse, and the stories in §12.2
 carry more weight than the histogram. Second, entry 2 genuinely spans two
 classes: its compose-recreation half is C2, its embedded-DNS half is C4; it
-is filed under the half that surprised. Third, V1's proud observation —
+is filed under the half that surprised. Third, the first build's proud observation —
 "almost no defects were logic errors inside a component" — does **not**
 fully carry: entry 10 is a bug in the manager's own publish call site, and
 entry 1 is a bug in a script's output. What *does* carry is the mechanism:
@@ -39,9 +39,9 @@ credentials that outlive scripts — which is exactly where a second
 organization standing next to the first should put pressure.
 
 The distribution's most useful signal is what shrank. C3 and C4 nearly
-vanished, and that is V1's rules visibly working: margins around grace
+vanished, and that is the first build's rules visibly working: margins around grace
 periods, propagation-aware revocation checks, and translate-at-the-boundary
-discipline were pre-applied, and the timing class that cost V1 ~15% cost V2
+discipline were pre-applied, and the timing class that cost the first build ~15% cost this build
 one late-night entry. The class that *grew* is C2 — because the build's
 defining constraint was not "make it work" but "make it work **next to**
 the working thing," and every assumption that was safe in a single-tenant
@@ -102,9 +102,9 @@ and carry a test asserting the effective routing target.
 **1 · A netplan write that would orphan a VM at reboot.**
 *Symptom:* the chassis apply left `/etc/netplan/01-netcfg.yaml` with
 `unknown key 'version'` — network survived in memory, but a reboot would
-have stranded the role VMs. *Wrong assumption:* that the V1 install
+have stranded the role VMs. *Wrong assumption:* that the first build's install
 script's heredoc was copy-safe — it had never been exercised on a clean VM,
-because V1's baseline was captured on machines that already had netplan
+because the first build's baseline was captured on machines that already had netplan
 configs. *Root cause:* the emitted block lacked the `network:` root key.
 *The rule:* any script that writes a config file is verified against a
 real parse (`netplan apply` / schema validation) **in the same run**, and
@@ -133,12 +133,12 @@ that owns them. *The rule* is exactly that. (This entry wrote §14.6 of
 this book.)
 
 **8 · The hindsight compose took over the predecessor's stack.**
-*Symptom:* deploying the V2 memory stack replaced the V1 containers and
-reused V1's data volume — V1's memory system went down. *Wrong
-assumption:* that compose project and volume names inherited from V1 were
+*Symptom:* deploying the V2 memory stack replaced the first organization's containers and
+reused the first build's data volume — the first organization's memory system went down. *Wrong
+assumption:* that compose project and volume names inherited from the first build were
 safe. *Root cause:* the m4 compose kept the project name `hindsight` and
 the volume name. *The rule:* every V2 compose sets `name: ea-*`, `ea-*`
-containers, and an own volume; the restoration sequence (V1 up, V2 up) is
+containers, and an own volume; the restoration sequence (first organization up, this build up) is
 part of the fix, not an afterthought. One compose `name:` was the entire
 difference between coexistence and takeover.
 
@@ -160,7 +160,7 @@ that executor **by name**.
 that did not exist in the catalog, waited a fixed 45 s for reports that
 take ~13 minutes, killed by name instead of PID, and blocked the wrong
 netfilter hook (container egress traverses `forward`, not host `output`).
-*Wrong assumption:* that the V1-era runbook mechanics survived the executor
+*Wrong assumption:* that the first-build-era runbook mechanics survived the executor
 change. *Root cause:* it was never re-derived against real executors. *The
 rule:* every wait polls the observable (the report file); kills are by PID
 with a docker-kill fallback; fault injection blocks the path the fault
@@ -186,7 +186,7 @@ propagation (5 s) before asserting.
 `temporal` (embedded-DNS SERVFAIL) — the predecessor's path was down while
 every container showed `Up`. *Wrong assumption:* that declaring the
 external network next to the implicit default was enough. *Root cause (two
-independent bugs):* the V1-era stack wired the shared network with a
+independent bugs):* the first-build-era stack wired the shared network with a
 manual `docker network connect`, which every compose recreation silently
 drops; and a container attached to two networks with the same alias on
 both makes Docker's embedded DNS fail peer lookups — so the stack cannot
@@ -223,7 +223,7 @@ entry 7's rule is why entry 11 could even be recognized, and entry 5's
 byte-level rule is what finally caught what display masking had been
 hiding all along.
 
-The four meta-rules carried from V1, with V2 amendments:
+The four meta-rules carried from the first build, with V2 amendments:
 
 - **Idempotent, stage-gated installs** — with the new sub-rule (entry 11 /
   findings §4.3): a stage gate must *re-assert the preconditions the
@@ -244,7 +244,7 @@ The four meta-rules carried from V1, with V2 amendments:
 
 ## 12.4 What the ledger says about the thesis
 
-The findings report counts four of the thirteen entries as classes V1's
+The findings report counts four of the thirteen entries as classes the first build's
 book had already predicted — volume/env pairs (3), network attachment (2),
 tracked literals (5) — rules written into the V2 design *before* the build
 and still earning their keep; the other nine were genuinely new. That ratio

@@ -1,7 +1,7 @@
 # Chapter 7 — The Executors
 
 > **In plain terms.** Chapter 6 defined *who* does the work; the executor is
-> the *body* they occupy. V1 established that there are bodies, and that a
+> the *body* they occupy. The first build established that there are bodies, and that a
 > generic body becomes a specific specialist in about a second. V2's subject
 > is different: **who is allowed to turn the real agent on.** The executor is
 > now a switch with three positions — stub, hermes, coder — and flipping it
@@ -11,7 +11,7 @@
 
 ## 7.1 Carried forward: role ≠ body
 
-The V1 design decisions hold unchanged in V2: a role is knowledge and
+The first build's design decisions hold unchanged: a role is knowledge and
 behavior (prose in the roster); a body is capability and plumbing (an
 image). Two real harnesses — the general hermes executor and the code
 executor — serve the whole roster; role files are hydrated at boot, not
@@ -32,7 +32,7 @@ The lifecycle spawns whatever `EA_IMAGE` pins and configures whatever
    has *zero agent logic*, and that is its purpose: it proves the
    lifecycle's mechanics — spawn, env injection, reaping, TTL, zero
    survivors — without any dependency on agent internals.
-2. **Hermes** (`ea/hermes-ephemeral`) — the general executor: the V1
+2. **Hermes** (`ea/hermes-ephemeral`) — the general executor: the first build's
    hydration contract at boot (roster clone, role resolution, the three
    persona files, the self-report), then the real agent runtime, then a
    task report. Measured boot p50: **1433 ms** from container spawn to
@@ -160,7 +160,7 @@ F1/F2 recorded PASS with the block's rule count in the evidence stream.
 The two cases whose injections were absorbed by the estate's own recovery
 policies (a mid-task kill met by the retry policy; a short TTL met by the
 clamp-and-self-heal path) are recorded as CHECK-with-recorded-policy —
-the same honest grading V1's gate used, and Part III's subject.
+the same honest grading the first build's gate used, and Part III's subject.
 
 ## 7.7 Design decisions and alternatives
 
@@ -196,4 +196,4 @@ coder prove the organization, and the milestone that flips the switch
 proves the flip. The M5-era gap cost one gate cycle and produced three
 standing rules; the acceptance request now walks the whole switch — stub
 gates first, hermes end-to-end, the coder's commit `7c9a32c` at the end —
-on one estate, beside the V1 organization's own live stack.
+on one estate, beside the first organization's own live stack.

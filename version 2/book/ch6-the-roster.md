@@ -1,9 +1,8 @@
 # Chapter 6 — The Roster
 
-> **V2 pointer.** The thesis-level treatment of the roster — why roles are
+> **What this chapter adds.** The thesis-level treatment of the roster — why roles are
 > written not assumed, the prose-persona decision, the single-task contract,
-> and how a role is born — lives in the V1 book (`book/ch6-the-roster.md`)
-> and is unchanged in principle. This chapter covers the V2 delta: the
+> and how a role is born — is stated in full here and is unchanged in principle. This chapter covers the V2 delta: the
 > roster becoming the *only* catalog, the three hydration files as a
 > standing contract, and the index that both a registrar and a test suite
 > now read.
@@ -17,7 +16,7 @@
 
 ## 6.1 What carries forward
 
-V1's roster decisions all stand: files in a version-controlled repository,
+The first build's roster decisions all stand: files in a version-controlled repository,
 not rows in a database; personas as prose, not parameters; the roster as
 the routing surface (job titles *are* the routing table); and the
 no-secrets property — the roster remains the most public artifact in the
@@ -28,17 +27,17 @@ artifact, write the report, exit; flag adjacent work; fail loudly.
 
 ## 6.2 The catalog realization: one directory, both readers
 
-The V1 design documents had planned a second artifact — a separate
+The design documents had planned a second artifact — a separate
 machine-readable "available agent list" the manager would match against.
 D-catalog-realization (2026-11-08, recorded in the M5 decision log) retired
 that plan before it could be born: **the machine-readable catalog the
 manager matches against and the executors hydrate from is the agent-roster
 repository itself** — the same repo that holds the human staff directory.
 
-The rationale is V1's Lesson L4 turned into architecture: one source of
+The rationale is Lesson L4 turned into architecture: one source of
 truth serves both readers, so there is no "documentation copy" that can
 drift from the runtime copy. The version-closure rule shaped *how* the
-decision was recorded — the V1 contract doc stays as the baselined design
+decision was recorded — the contract doc stays as the baselined design
 record, untouched, and the realizing decision lives in the decision log
 (agent-roster commit `f9ec562` for the catalog files; cross-references in
 `a1e7dea`). You do not edit a baselined document to change its future; you
@@ -68,7 +67,7 @@ contract hydrates at boot:
 | `skill-and-tools.md` | the craft (what the role can do) and the instruments (what it may use) |
 | `behavioral-spec.md` | the operating rules — work pattern and the completion contract the whole system leans on |
 
-Three files, no more — V1's maintainability constraint, unchanged. What is
+Three files, no more — the first build's maintainability constraint, unchanged. What is
 new in V2 is *who else* hydrates from the contract. The chief-of-staff
 milestone makes the hydration contract's first **persistent** consumer: the
 resident CoS hydrates its persona files from `bus-org/chief-of-staff/` in
@@ -102,7 +101,7 @@ executable role, 22 `eph-*` entries, in the wrapped shape:
 }
 ```
 
-Each field keeps its single consumer (V1's assignment, unchanged): `role`
+Each field keeps its single consumer (the first build's assignment, unchanged): `role`
 and `ref` are what the manager matches a request's capability against;
 `folder` is what the worker hydrates from (the `#folder` half of the work
 order's `agent_ref`); `skills` are human-facing keywords; `spec_ref` is the
@@ -110,7 +109,7 @@ fallback instruction pointer.
 
 Two things changed around the shape, though:
 
-1. **The wrapped shape is the realized shape.** V1's book recorded that the
+1. **The wrapped shape is the realized shape.** The first book recorded that the
    index *accepted two shapes* (bare array and wrapped object) because the
    build's real shape had differed from the documented one. V2's catalog
    realization commits the wrapped `{"agents": […]}` form as the
@@ -122,7 +121,7 @@ Two things changed around the shape, though:
    prerequisite artifact: the index is present and non-empty, every entry
    is shape-complete and unique, and every `spec_ref` resolves to a real
    file — with schema-negative message cases beside it (out-of-range
-   priority, bad hash pattern, unknown field). The V1 build discovered
+   priority, bad hash pattern, unknown field). The first build discovered
    catalog-shape mismatches *during* gates; the V2 build refuses to reach
    a gate with one. 14/14 green at the pre-build gap-closure commit
    (`f451791`).
@@ -133,7 +132,7 @@ Two things changed around the shape, though:
 Alternative: build the planned separate agent list — rejected: it would be
 a second, machine-facing copy of information the roster already holds, and
 the only question about two copies is *when* they diverge. The catalog rule
-V1 applied to the llm-wiki ("owner-curated only") also applies naturally:
+the first build applied to the llm-wiki ("owner-curated only") also applies naturally:
 the roster's prose is curated by people; the index is small enough to
 curate alongside it.
 
@@ -150,7 +149,7 @@ not a milestone's signed run.
 
 ## 6.6 What the roster does not do
 
-The V1 boundaries hold: it does not pick who is chosen (that is judgment's
+The first build's boundaries hold: it does not pick who is chosen (that is judgment's
 work, the CoS's selection per the M1 design); it does not define how a
 worker executes (that is the harness, Chapter 7); it holds no secrets. V2
 adds one more negative: it does not *discover* capabilities. The index

@@ -3,10 +3,10 @@
 > **In plain terms.** Everything behind the door — the work order, the
 > durable core, the roster, the credentials, the memory — was rebuilt under
 > the `ea-` names and re-proved gate by gate. This chapter is the door
-> itself: the same two services as Version 1, standing on the same machine
-> as the still-running V1 door, at a new address. It ends with the thing
-> V1's book promised at this exact point — the Chief of Staff — except that
-> V2 can report something V1 could not: the design is finished, specified
+> itself: the same two services as the first organization's door, standing on the same machine
+> as the still-running first door, at a new address. It ends with the thing
+> the first book promised at this exact point — the Chief of Staff — except that
+> this build can report something the first build could not: the design is finished, specified
 > down to individual gate assertions, and waiting for its build. Nothing in
 > that design is running yet, and this chapter is careful never to pretend
 > otherwise.
@@ -26,7 +26,7 @@ move it:
   ambiguity cannot survive the strict schema (Chapter 4).
 
 The V2 build is the strongest evidence yet that the boundary earns its
-place. The whole staged build (M0 through M5) ran on an estate where V1 was
+place. The whole staged build (M0 through M5) ran on an estate where the first organization was
 still live and serving — and at no point did conversational traffic reach a
 queue, or queue traffic reach a conversation. The front door's job is to
 make the crossing *deliberate*, and across five milestones every crossing
@@ -36,18 +36,18 @@ was.
 
 The front-of-house VM now hosts two front doors:
 
-- **V1's door** — the original gateway, listening on the host at **8080**,
-  still serving V1's pipeline for as long as the coexistence window runs
+- **The first organization's door** — the original gateway, listening on the host at **8080**,
+  still serving the first build's pipeline for as long as the coexistence window runs
   (Chapter 11).
 - **V2's door** — `ea/gateway:1.0.0`, the same thin, stateless receptionist
   service, rebuilt under the `ea-` name, listening on the host at
   **8083**. Inside the container nothing changed at all: the service still
-  listens on 8080, exactly as its V1 ancestor does. Coexistence moved one
+  listens on 8080, exactly as its first-build ancestor does. Coexistence moved one
   compose line — the published port — and no line of code.
 
 Behind it sits **the registrar (the "manager")** — `ea/manager:1.0.0`,
 reached by the gateway as `manager:8086` inside the V2 network. On each
-request it does what Chapter 3 specified and V1 proved:
+request it does what Chapter 3 specified and the first build proved:
 
 1. clones the roster and reads the machine index (Chapter 6);
 2. matches the request's capability to a role — exact match first, then a
@@ -60,7 +60,7 @@ request it does what Chapter 3 specified and V1 proved:
 5. later, correlates the result back from `ea-tasks.response` and turns it
    into a **human report** — status, artifact pointer, and, on failure, a
    reason a person can read. V2's reports land in a report directory of
-   their own (`/opt/ea/reports`), beside — never inside — V1's.
+   their own (`/opt/ea/reports`), beside — never inside — the first build's.
 
 The report loop closes the circle, and the single-path rule still holds:
 the human never talks to the durable engine, the queue, or the workers
@@ -98,7 +98,7 @@ stage-skipping re-run skipped the stage that set the switch (ledger entry
 - **Immediate acknowledgment, asynchronous result.** The gateway answers
   in about a second with an ID; the work arrives later as a report.
   Synchronous execution remains the rejected alternative, for the same
-  reasons as in V1: long tasks would hold connections hostage, and the
+  reasons as in the first build: long tasks would hold connections hostage, and the
   human would be locked out of the thinking layer precisely when they
   need it most. A handoff is not a session.
 - **The registrar is code, not a model.** Matching, validation, policy —
@@ -115,13 +115,13 @@ stage-skipping re-run skipped the stage that set the switch (ledger entry
 
 **Changed — exactly one thing, and not for the door's sake:**
 
-- **The publish path is queue-direct.** V1's manager published through the
+- **The publish path is queue-direct.** The first build's manager published through the
   shared `agent.tasks` topic exchange. V2's manager publishes directly to
   the `ea-tasks` queue (default exchange, routing key = queue name). This
   was forced by coexistence, not by front-door design — both
   organizations' bridges bound the shared exchange, and first-start won.
   The full story — the race, the observed takeover of two V2 tasks by
-  V1's pipeline, the fix, and its honest trade-off (capability-based
+  the first build's pipeline, the fix, and its honest trade-off (capability-based
   topic routing is deferred) — is Chapter 11's centerpiece, and the
   book's.
 
@@ -138,8 +138,8 @@ stage-skipping re-run skipped the stage that set the switch (ledger entry
 
 ## 10.5 The next milestone: the Chief of Staff, designed and waiting
 
-V1's Chapter 10 ended on a design question: *should the greeter be a
-person or a program?* — and answered it with an architecture. V2 carried
+The first book's Chapter 10 ended on a design question: *should the greeter be a
+person or a program?* — and answered it with an architecture. This build carried
 that answer through three design reviews, an owner decision record, and
 an Architecture Decision Record, to the point where the answer is fully
 specified. What follows is the **standing design** for milestone
@@ -164,7 +164,7 @@ separately gated milestone.
 as it validates any other request — roster existence, priority enum,
 payload integrity — and the mechanical matching path remains as the
 fallback when the CoS is unavailable or the request arrives already
-structured. One line, carried from V1 and sharpened by every reliability
+structured. One line, carried from the first build and sharpened by every reliability
 lesson since: **judgment proposes, code disposes.**
 
 **The two-tier work board (ADR-0001).** The CoS's work state lives in two

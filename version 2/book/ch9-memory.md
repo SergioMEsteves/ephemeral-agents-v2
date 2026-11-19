@@ -1,15 +1,15 @@
 # Chapter 9 — Memory
 
-> **In plain terms.** Workers forget; the organization must not. V1 built
+> **In plain terms.** Workers forget; the organization must not. The first build assembled
 > the filing cabinet; V2 re-organized it: the shared knowledge library
 > became **a plain git repository** that every worker shallow-clones at
-> boot, the memory store moved to its **own stack beside V1's** — and the
-> build's one attempt to skip the separation took V1's memory system down
+> boot, the memory store moved to its **own stack beside the first build's** — and the
+> build's one attempt to skip the separation took the first organization's memory system down
 > mid-build, which is the incident this chapter tells honestly.
 
 ## 9.1 The line carried forward — and the three-piece separation
 
-The V1 discipline holds: a worker holds nothing between tasks; before it
+The first build's discipline holds: a worker holds nothing between tasks; before it
 dies it makes one structured write; at boot it makes one read. V2 sharpens
 the architecture into three deliberately separated pieces:
 
@@ -19,7 +19,7 @@ the architecture into three deliberately separated pieces:
 | **The store** | The memory service, holding **pointer entries only** | The memory VM — V2's own stack |
 | **The content** | The actual reports and documents | The project repository — sole source of truth |
 
-The pointer-store convention is the load-bearing change from V1's
+The pointer-store convention is the load-bearing change from the first build's
 "store holds the learnings." A pointer entry records *that* work happened,
 what it was about, and *where the artifact lives* — and a pointer cannot
 go stale the way a held copy would, because the repo is always current
@@ -30,7 +30,7 @@ the pointer.
 
 ## 9.2 The wiki became a repository (D-wiki-git)
 
-V1's shared knowledge library was served; V2's decision is that **the
+The first build's shared knowledge library was served; V2's decision is that **the
 llm-wiki is not a service at all — it is a git repository.** The
 mechanics:
 
@@ -64,23 +64,23 @@ organization touches.
 
 ## 9.3 The store beside, not instead: ea-hindsight on 8082
 
-The memory service runs in V2's own stack on the memory VM, with V1's
+The memory service runs in V2's own stack on the memory VM, with the first build's
 stack untouched and running beside it:
 
 - **Compose project `ea-hindsight`** with `ea-hindsight-*` container names
-  — distinct from V1's project on the same VM.
-- **Its own volume** — V2's memory starts clean; V1's data volume is
+  — distinct from the first build's project on the same VM.
+- **Its own volume** — This build's memory starts clean; the first build's data volume is
   never touched.
-- **Port 8082** — V1 keeps 8081; two memory systems, one VM, no shared
+- **Port 8082** — the first build keeps 8081; two memory systems, one VM, no shared
   port, no shared storage.
 - **A separate Postgres instance** (the pgvector image) — its own engine,
   its own host, distinct from the broker estate's databases; the
   isolation case verifies engine + host + volume, all three.
 
 The fresh-store property doubles as a routing proof: V2's store contained
-only V2-era entries — V1's rows absent from every read result — which
+only V2-era entries — the first build's rows absent from every read result — which
 verifies both that reads route to the right stack *and* that no data
-leaked across the boundary. The read/write contracts are V1's (scoped
+leaked across the boundary. The read/write contracts are the first build's (scoped
 cross-task recall at boot, one learning written at end, the hydration
 marker line in the task log), and the self-report now carries **three
 sources** — roster, wiki, memory — each true/false, plus measured boot
@@ -91,15 +91,15 @@ time, so every gate can see exactly what a worker inherited.
 The build's one coexistence violation came from the mildest possible
 cause: inheritance.
 
-**The symptom.** Deploying the m4 memory stack *replaced V1's containers
-and reused V1's data volume*. V1's memory system went down mid-build —
+**The symptom.** Deploying the m4 memory stack *replaced the first organization's containers
+and reused the first build's data volume*. The first organization's memory system went down mid-build —
 the exact failure the whole `ea-` naming program existed to prevent,
-caused by one field: the compose kept V1's project name and V1's volume
+caused by one field: the compose kept the first build's project name and volume
 name, so "bring up V2's memory" was interpreted as "reconcile the stack
-named `hindsight`," and the reconciliation removed V1's containers.
+named `hindsight`," and the reconciliation removed the first build's containers.
 
 **The wrong assumption.** That compose project names and volume names
-inherited from V1 were safe — that naming was a V1-rename concern, not a
+inherited from the first build were safe — that naming was a first-build-rename concern, not a
 live collision mechanism.
 
 **The root cause.** Compose treats project name as identity. Every other
@@ -111,9 +111,9 @@ containers `ea-hindsight-*`, own volume, port 8082.
 **The restoration sequence is part of the fix.** The rule reads: *every
 V2 compose sets an `ea-` project name, `ea-` containers, and an own
 volume; the restoration sequence is part of the fix runbook, not an
-afterthought.* Executed in order: takeover stack down → V1 up from its
+afterthought.* Executed in order: takeover stack down → the first organization up from its
 own deploy path (healthy on 8081) → V2 up (healthy on 8082) — both
-stacks coexisting with distinct volumes, V1's data intact throughout.
+stacks coexisting with distinct volumes, the first build's data intact throughout.
 
 The finding this incident fed (findings §4.1) is worth keeping verbatim
 in spirit: **one `name:` line was the difference between coexistence and
@@ -123,7 +123,7 @@ cheapest isolation" data point in its purest form.
 
 ## 9.5 The contracts, measured
 
-The M4 gate measured what V1 asserted:
+The M4 gate measured what the first build asserted:
 
 - **Hydration latency ×3**: totals **0.79–0.92 s** per boot — the wiki
   clone dominates (0.6–0.73 s), the memory read is ~10 ms (store-local),
@@ -134,7 +134,7 @@ The M4 gate measured what V1 asserted:
   *different* task's q-driven read payload — the org-not-worker line as
   a test result, with the full read/write JSON filed as evidence.
 - **End-to-end from a fresh store**: the first real hydration read the
-  V2 stack — not V1's — proving wiring *and* isolation in the same
+  V2 stack — not the first build's — proving wiring *and* isolation in the same
   observation.
 
 The degradation rules are unchanged and still load-bearing: memory
@@ -145,7 +145,7 @@ durable core, not its satellites.
 ## 9.6 Design decisions and alternatives
 
 **Decision: pointer store over content store.** Alternative: the memory
-service holds the reports (V1's shape). Rejected: a held copy goes stale
+service holds the reports (the first build's shape). Rejected: a held copy goes stale
 and creates a second truth; pointers keep the repo authoritative and the
 store small. Cost named: dangles; mitigations: the repo's own history
 index.

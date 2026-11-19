@@ -1,6 +1,6 @@
 # Chapter 8 — Credentials
 
-> **In plain terms.** V1's rule stands: a worker gets its own key, made for
+> **In plain terms.** The first build's rule stands: a worker gets its own key, made for
 > its one task, scoped to the one place it needs to write, and destroyed
 > when the task ends — with the destruction *proven*. V2 keeps the
 > mechanism and hardens the proof: the token is issued, *verified working*,
@@ -11,7 +11,7 @@
 
 ## 8.1 The principle, carried forward
 
-The five properties from V1 (Chapter 2, P5 — least privilege, provably
+The five properties (Chapter 2, P5 — least privilege, provably
 brief) hold verbatim in V2: issued per task, scoped, short-lived, revoked
 at completion, and proven dead. What the V2 build changed is not the
 principle but the *evidence discipline*: every property in this chapter
@@ -20,7 +20,7 @@ two of the build's own failures taught the assertions their current shape.
 
 ## 8.2 Per-run App installation tokens
 
-The mechanism is V1's, re-proven under the `ea-` estate: an
+The mechanism is the first build's, re-proven under the `ea-` estate: an
 organization-owned application identity whose private key lives on the
 issuer VM — and nowhere else. Per run:
 
@@ -46,7 +46,7 @@ issue → verified 200 → revoke → verified 401 — is gate evidence, not a
 log line.
 
 The coexistence period added a custody rule of its own: V2 did **not
-mint** a new App identity. The live V1 app key was staged (copied, never
+mint** a new App identity. The live app key of the first organization was staged (copied, never
 printed, permissions 0600) into the V2 issuer path — one organization, one
 installation, one identity per estate while both organizations coexist.
 Minting a second App to run beside the first would have created two
@@ -99,7 +99,7 @@ that caught the propagation race of §8.3 on the next run.
 
 ## 8.5 No long-lived owner secret in any container
 
-V2 states the boundary that V1 practiced: **every long-lived credential is
+This build states the boundary that the first build practiced: **every long-lived credential is
 owned by exactly one service, and no container — executor or otherwise —
 ever holds an owner-level secret.**
 
@@ -141,7 +141,7 @@ wrong — and the install dies.**
 
 ## 8.7 Design decisions and alternatives
 
-**Decision: verify live *and* dead, repo-scoped.** V1 proved deadness;
+**Decision: verify live *and* dead, repo-scoped.** The first build proved deadness;
 V2 also proves liveness against the scoped resource before revoking. A
 token that fails the pre-revoke check means the issuance path is broken —
 a failure the dead-only check would have misread as success.
@@ -157,7 +157,7 @@ sequence over one variable, and the display-masking rule pushes all
 verification to byte-level reads.
 
 **Decision: one App identity per estate, staged not minted.** During
-coexistence, V2 inherits the V1 identity rather than splitting it. A
+coexistence, this build inherits the shared identity rather than splitting it. A
 second App would double the trust surface and orphan half the audit
 trail; inheritance keeps one blast radius and one story.
 

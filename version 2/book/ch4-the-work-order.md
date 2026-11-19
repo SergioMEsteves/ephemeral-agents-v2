@@ -1,9 +1,8 @@
 # Chapter 4 — The Work Order
 
-> **V2 pointer.** The thesis-level treatment of the work order — the
+> **What this chapter adds.** The thesis-level treatment of the work order — the
 > self-sufficient envelope, the field-by-field tour of message-v1, and the
-> "complete or rejected" discipline — lives in the V1 book
-> (`book/ch4-the-work-order.md`) and is unchanged in principle. This chapter
+> "complete or rejected" discipline — is stated in full here and is unchanged in principle. This chapter
 > covers what the V2 build *did to* the work order: how the contract may
 > evolve, the fields it grew, and where it travels.
 
@@ -17,7 +16,7 @@
 
 ## 4.1 What V2 does not change
 
-The V1 order's core properties carry forward untouched. `task_id` is still
+The work order's core properties carry forward untouched. `task_id` is still
 the single name of the work — and now explicitly *the idempotency key*: the
 Temporal workflow ID is `task_id`, so a duplicate task_id is absorbed, never
 a second workflow (proved signed at the M1 gate's duplicate case,
@@ -27,7 +26,7 @@ envelope is still self-sufficient; the registrar's composition rule, the
 strict schema with `additionalProperties: false`, and the deadline-carried
 `ttl_s` all stand. The V2 acceptance request — *add a health endpoint* —
 traveled through the V2 pipeline as an ordinary message-v1 order, and its
-commit (`7c9a32c` on the task branch) was produced by exactly the V1-shaped
+commit (`7c9a32c` on the task branch) was produced by exactly the first-build-shaped
 contract, plus the two fields this chapter describes.
 
 ## 4.2 The evolution rule: additive-only, with teeth
@@ -51,7 +50,7 @@ The corrected mechanics are:
    validate against the current schema and would otherwise reject the new
    field they are supposed to serve.
 3. The schema's own metadata is corrected at the same first touch (the
-   V1-era "POC task message" title was retired in the de-POC sweep).
+   the older "POC task message" title was retired in the de-POC sweep).
 
 The first field to travel this path was not new knowledge — it was the
 review's first exercise of the rule: `priority` and `approval_hash` entered
@@ -61,8 +60,8 @@ fields with their defaults documented in place).
 
 ## 4.3 The first additive field: `priority`
 
-The V1 book's rejected-decisions list included "no field for priority" by
-omission — V1 simply had no mechanism for ordering work. V2's
+The design's rejected-decisions list included "no field for priority" by
+omission — the first build simply had no mechanism for ordering work. V2's
 chief-of-staff milestone made ordering a first-class need, and the decision
 (D8) keeps the chapter's founding rule intact: **the requester declares
 priority *inside* the work package; the manager validates and applies it;
@@ -93,17 +92,17 @@ Three sub-decisions, each recorded:
 
 ## 4.4 The publish path: queue-direct (D-routing)
 
-V1's work order traveled over a *topic exchange* — published with the
+The first build's work order traveled over a *topic exchange* — published with the
 agent's capability as the routing key, so any interested component could
 subscribe without the publisher knowing it existed. That indirection, pure
 gain inside one organization, became a liability the moment two
 organizations shared one estate.
 
-**The race, observed live.** Both V1's bridge and V2's bridge bind
+**The race, observed live.** Both the first build's bridge and V2's bridge bind
 `agent.tasks.#` on the *shared* exchange, and both derive the same Temporal
 WorkflowId from `task_id`. First-start wins. In the first M5 end-to-end run,
-two V2 acceptance tasks were exchange-routed and V1's bridge won the race —
-the tasks were executed on V1's pipeline, artifacts written under V1's tree
+two V2 acceptance tasks were exchange-routed and the first build's bridge won the race —
+the tasks were executed on the first build's pipeline, artifacts written under the first build's tree
 (`bb41c4cd`, `cceeb912`). Nothing errored; the work simply happened in the
 wrong company. The M5 smoke test had passed earlier for exactly this reason:
 it published straight to the `ea-tasks` queue and never touched the exchange.
@@ -112,8 +111,8 @@ it published straight to the `ea-tasks` queue and never touched the exchange.
 publishes *directly to the `ea-tasks` queue via the default exchange*
 (routing key = queue name; `EA_TASKS_QUEUE=ea-tasks`, the exchange
 declaration skipped when unset). This removes the race at the publish point:
-a message addressed to a queue has no routing for V1's bridge to intercept,
-and V1's own publishes to the shared exchange continue to serve V1
+a message addressed to a queue has no routing for the first build's bridge to intercept,
+and the first build's own publishes to the shared exchange continue to serve the first organization
 undisturbed (commits `28b8616` for the publish path, `a710d08` for the
 compose wiring; the decision is recorded as D-routing in the build's
 decision log).
@@ -166,7 +165,7 @@ separately-gated change, since the gateway is untouched by M1. The gate's
 mismatch test injects on the manager side (replayed payload vs. recorded
 retry hash), not on the board side.
 
-The V1 chapter's rule survives translation: the gate must assert the
+The first book's rule survives translation: the gate must assert the
 outcome, not the absence of debris. A hash that *cannot* prevent tampering
 but *must* expose it is the same discipline pointed at a different failure.
 
@@ -182,7 +181,7 @@ and a version bump is a cost, not a ceremony.
 **Decision: queue-direct publishing.** Alternatives: keep exchange routing
 with a V2-only routing-key namespace (leaves both bridges racing on the
 shared exchange for any key both match — the observed failure mode), or a
-separate V2 exchange (recreates V1's topology beside V1 for one
+separate V2 exchange (recreates the first build's topology beside the first organization for one
 publisher's benefit, and still exercises no capability fan-out). Rejected
 in favor of the smallest change that removes the race at the publish
 point, with the trade-off recorded rather than hidden.
@@ -195,7 +194,7 @@ code path, and retry integrity needs no new component).
 
 ## 4.7 The rule this chapter teaches
 
-V1 taught: *the order is complete, or it is rejected.* V2 adds two clauses
+The first build taught: *the order is complete, or it is rejected.* V2 adds two clauses
 learned on the same estate: **the contract evolves only through the gate
 that builds its consumer** — a field without its consumer, or a consumer
 without its field, is an incomplete change and is refused the way an

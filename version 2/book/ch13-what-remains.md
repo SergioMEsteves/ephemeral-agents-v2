@@ -9,8 +9,7 @@
 ## 13.1 What the V2 build demonstrated
 
 The staged build (M0–M5, 2026-11-13 → 2026-11-15) re-proved the
-organization's defining guarantees *under a harder constraint than V1
-faced*: the first system stayed up the whole time, on the same VMs, on the
+organization's defining guarantees *under a harder constraint than the first build faced*: the first system stayed up the whole time, on the same VMs, on the
 same broker, against the same exchange. Each principle closes as
 demonstrated again, with V2-specific evidence:
 
@@ -19,20 +18,20 @@ demonstrated again, with V2-specific evidence:
 | Durable core | Temporal restart absorbed mid-gate (T5); TC-M2-04 crash recovery with the independent reaper; queue held 50 messages through a bridge kill with no loss |
 | Ephemeral workforce | Zero survivors across every gate — 10/10 mixed runs, all five failure injections, every E2E acceptance run |
 | Least privilege, provably brief | Per-run App tokens issued → authenticated → revoked → **401**, live in the §6 hardening stage; trivy secret scan 9/9 images clean |
-| Institutional memory | End-to-end hydration from the fresh V2 store (single seeded entry — V1 rows absent, proving isolation); full curation cycle through the git-repo llm-wiki (D-wiki-git), with a fresh clone finding the new document |
+| Institutional memory | End-to-end hydration from the fresh V2 store (single seeded entry — the first build's rows absent, proving isolation); full curation cycle through the git-repo llm-wiki (D-wiki-git), with a fresh clone finding the new document |
 | Judgment at the doors | The manager validated every task before publish; the single `x-max-priority` declaration point enforced the queue contract once, estate-wide |
-| **Coexistence** *(V2's own addition)* | Two live organizations on one estate: V1's dashboards stayed 200 and its queues kept draining by its own bridge during every V2 gate; V2 routes never touched V1 queues (after the shared-exchange race was found and fixed — Chapter 12, entry 10's context) |
+| **Coexistence** *(this build's own addition)* | Two live organizations on one estate: the first organization's dashboards stayed 200 and its queues kept draining by its own bridge during every gate; this build's routes never touched the first build's queues (after the shared-exchange race was found and fixed — Chapter 12, entry 10's context) |
 
 And the process claims are themselves demonstrated, not asserted: every
 root cause in the ledger was caught by a gate or a byte-level check before
 it could ship (findings §4.2); all six test procedures (TP-M0 … TP-M5)
 signed all-PASS with filed evidence; the whole build ran in three days
-against V1's four.
+against the first build's four.
 
 ## 13.2 What was deliberately deferred
 
 These are not failures. Each is a named boundary, carried in the decision
-log with its reasoning — the same discipline as V1's deferred list, updated
+log with its reasoning — the same discipline as the first build's deferred list, updated
 by what the build learned:
 
 1. **A+ isolation (the first post-build milestone candidate).** Workers
@@ -110,7 +109,7 @@ Derived from the build's evidence and the deferred list above:
    anything beyond the private network; the exit item before this stops
    being a POC.
 
-The ordering is the same shape as V1's: capability that has already earned
+The ordering is the same shape as the first build's: capability that has already earned
 its gate first (the CoS), then the gated change the evidence points at
 (A+), then cheap hygiene, then process investment, then the
 evidence-triggered and owner-deferred items. A roadmap that starts with
@@ -119,8 +118,8 @@ using yet.
 
 ## 13.4 The verdict
 
-V1's verdict — *feasible: demonstrated, not merely argued* — was tested
-again under a constraint V1 never faced: **can the organization be rebuilt,
+The first build's verdict — *feasible: demonstrated, not merely argued* — was tested
+again under a constraint the first build never faced: **can the organization be rebuilt,
 from the record, beside a live copy of itself, without stopping it?** The
 `ea-` build's evidence answers yes. Thirteen root-caused defects (Chapter
 12), six signed gates, zero production incidents, and at the end of three
@@ -144,19 +143,19 @@ first solution, and written down both times.**
 
 ## 13.5 Where to go from here — for each reader
 
-- **If you are the decision-maker:** the new fact since V1's book is
+- **If you are the decision-maker:** the new fact since the first book is
   §13.1's last row — the platform claim (many teams, one estate) has its
   first evidence, and the onboarding recipe exists (`deploy/RUNBOOK-V2-NEW-PROJECT.md`).
   The question is no longer "does this work?" but "which team goes
   second?"
 - **If you are the architect:** Part II as rebuilt is the diff you would
-  apply to V1's design: naming as a gated micro-gate, queue-direct
+  apply to the first build's design: naming as a gated micro-gate, queue-direct
   publishing, the executor switch as a milestone responsibility,
   stage-gates that re-assert skipped preconditions. Chapter 12's five
   V2 rules are the ones to encode before your first *second* deployment.
 - **If you are the skeptic:** the most falsifiable V2 claims are the
-  coexistence ones — that V1's dashboards stayed green mid-build, that
-  `ea-*` containers and V1's `poc-*`/`m*-*` containers ran side by side,
+  coexistence ones — that the first organization's dashboards stayed green mid-build, that
+  `ea-*` containers and the first organization's `poc-*`/`m*-*` containers ran side by side,
   that the takeover incident (one compose `name:`) was repaired and
   ruled against. Every gate's evidence pack is committed under
   `deploy-v2/mN/evidence/`; Chapter 15 tells you how to re-run the checks
