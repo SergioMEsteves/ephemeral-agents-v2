@@ -1,5 +1,5 @@
 # M0 — Temporal + its Postgres on vm-xb
-# Source: version 1/installation-deployment/M0-Chassis-Installation-and-Deployment.md §4
+# Implements the M0 chassis §4 Temporal topology (see deploy-v2/RUNBOOK-V2-BUILD.md).
 # This Postgres belongs to Temporal only — vm-hindsight gets its own in M4.
 # Do not share instances.
 # ea-named compose project (`m0` — a distinct project name keeps the V2
@@ -18,7 +18,7 @@ services:
       POSTGRES_SEEDS: postgres
     depends_on: [postgres]
     # ea-net membership is REQUIRED — worker/bridge/lifecycle resolve
-    # "temporal" on the shared execution network. V1 had this as a manual
+    # "temporal" on the shared execution network. The baseline build had this as a manual
     # `docker network connect`, which every compose recreation silently
     # drops (V2 issue-ledger lesson: declare it in compose, never attach by hand).
     # rabbitmq-pattern: services live ONLY on ea-net (aliases = service

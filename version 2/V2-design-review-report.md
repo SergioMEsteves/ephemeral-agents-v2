@@ -138,7 +138,7 @@ before TP-V2-M1 is signed.
   gateway errors, approval hashes in the project repo (private today;
   not guaranteed private for future projects); recovery on unparseable
   state must fail safe to no-submit and surface to the owner.
-- **Gateway audit-log provenance** — if V1's gateway already emits
+- **Gateway audit-log provenance** — if the baseline build's gateway already emits
   sufficient submit logs, cite it; otherwise it is a gateway change and
   must be enumerated like the manager changes in §4.
 - **Doc drift:** WORKING-STATE "Next actions" still lists the pre-review
@@ -175,7 +175,7 @@ residuals of rung A/M1, and the watch-item for isolation rung B).
 4. Capacity-before-trust with encoded OOM kill-order is the right SRE
    instinct; CoS observability is minimum-viable and honest.
 5. The build-phase commitments (file-level inventory asserted against by
-   every gate, V2 issue ledger, book-last) structurally close the V1
+   every gate, V2 issue ledger, book-last) structurally close the baseline build's
    "moving floor" and paper-over classes of problem.
 6. Decision hygiene remains exemplary — "decided" is distinguishable from
    "defaulted" everywhere in the record.
@@ -245,7 +245,7 @@ is the later, separately-gated enforcement change.
 asserted, not specified.** The board is now the *sole* recovery source
 for approved-but-unsubmitted work, lives only on VM-Xa (the state.json
 option's offsite copy was traded away without naming the cost — and this
-brushes V1 lesson 7.1, "nothing load-bearing lives only on a VM"), and
+brushes lesson 7.1, "nothing load-bearing lives only on a VM"), and
 the pass-2 fail-safe principle ("unparseable state ⇒ fail safe to
 no-submit, surface to owner") was not carried over to the board.
 **Fix (one paragraph in §6.8):** board storage medium as a build-time
@@ -283,7 +283,7 @@ signed.
   what the CoS *believes* happened, not what the manager accepted.
   Demote the board to the intent/state audit trail; the enforcement-
   relevant half requires the gateway/manager submit log — verify the
-  unchanged V1 gateway's actual logging against baseline code and cite
+  unchanged gateway's actual logging against baseline code and cite
   it, or enumerate the change (still uncited from pass 2).
 - **Board/queue reconciliation semantics:** the in-flight reflection
   trigger is unnamed (does the gateway expose a status signal the CoS

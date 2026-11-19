@@ -102,8 +102,8 @@ func NewHashLedger() *HashLedger {
 //     (or vice versa) is also a mismatch — the payload changed shape
 //     between attempts, which is exactly what retry integrity forbids.
 //
-// The empty-spec + empty-hash case for a brand-new task_id is the V1
-// behavior (no approval_hash present) and is HashOK — the hash is
+// The empty-spec + empty-hash case for a brand-new task_id is the
+// original behavior (no approval_hash present) and is HashOK — the hash is
 // additive-optional in message-v1.
 func (l *HashLedger) CheckRetry(taskID, behavioralSpec, declaredHash string) (HashVerdict, error) {
 	if taskID == "" {

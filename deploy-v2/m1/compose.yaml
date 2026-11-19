@@ -1,5 +1,5 @@
 # M1 — topic-bridge deployment on vm-xb
-# Source: version 1/installation-deployment/M1-Adapter-Installation-and-Deployment.md §3
+# Implements the M1 adapter §3 topology (see deploy-v2/RUNBOOK-V2-BUILD.md).
 # ea-named compose project (`m1` — a distinct project name keeps the V2
 # containers from colliding with any other project on the host).
 name: ea-m1

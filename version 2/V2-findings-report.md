@@ -8,7 +8,7 @@ record; every claim traces to a filed evidence pack or a pushed commit.*
 ## 1. What was built
 
 The staged build executed 2026-11-13 → 2026-11-15 across four VMs,
-re-producing the V1 proof-of-concept under the `ea-` naming family with
+re-producing the baseline build's proof-of-concept under the `ea-` naming family with
 the design decisions applied:
 
 - **M0** — estate foundation: broker user `ea:`, `ea-tasks` family
@@ -29,9 +29,9 @@ the design decisions applied:
   vm-xa; §4 E2E, §5 injections, §6 hardening, §7 docs closeout.
   TP-M5 PASS (7 mandatory cases; F3/F4 CHECK-with-recorded-policy).
 
-Coexistence was the build's defining constraint: V1's stacks stayed up
+Coexistence was the build's defining constraint: the first organization's stacks stayed up
 on the same VMs throughout. The result — two live organizations on one
-estate, V2 routes never touching V1 queues, V1 containers untouched —
+estate, V2 routes never touching the first organization's queues, its containers untouched —
 is itself a finding (§4.1).
 
 ## 2. Gate results
@@ -48,7 +48,7 @@ is itself a finding (§4.1).
 All signed on the owner's behalf under the standing authorization
 (2026-11-05): complete only on all-PASS with evidence.
 
-## 3. What the V2 build changed relative to V1
+## 3. What the V2 build changed relative to the baseline build
 
 1. **Naming is structural, not cosmetic.** The `ea-` rename
    (`ea-rename-mapping.md`) was executed as a gated micro-gate *before*
@@ -60,12 +60,12 @@ All signed on the owner's behalf under the standing authorization
    (entry 8).
 2. **Publishing is queue-direct.** V2's manager publishes to the
    `ea-tasks` queue via the default exchange (routing key = queue
-   name). Rationale and evidence: both V1's and V2's bridges bound
+   name). Rationale and evidence: both the first organization's and this build's bridges bound
    `agent.tasks.#` on the *shared* exchange and derived the same
    WorkflowId from `task_id` — first-start wins, so exchange-routed V2
-   tasks were executed by V1's pipeline live (observed on the first M5
+   tasks were executed by the first organization's pipeline live (observed on the first M5
    E2E). Queue-direct removes the race at the publish point. Trade-off:
-   capability-based topic routing is V1-only for now; fan-out by
+   capability-based topic routing is first-organization-only for now; fan-out by
    capability returns as a versioned message-v1 additive change
    (D-routing, recorded in `deploy-v2/m0/decision-log.md`).
 3. **The executor switch is an M5 responsibility.** M2/M3 must run the
@@ -77,16 +77,16 @@ All signed on the owner's behalf under the standing authorization
    file; kills are by PID with a docker-kill fallback; the fault
    injection blocks the `forward` hook (container egress), not host
    `output`; the injected capability is a real catalog ref.
-5. **V1 lessons pre-applied, and still earning new ones.** The thirteen
-   V2 issue-ledger entries (§5 below) include four that V1's book
+5. **Lessons pre-applied, and still earning new ones.** The thirteen
+   V2 issue-ledger entries (§5 below) include four that the book
    predicted the *class* of (volume/env pairs, network attachment,
    tracked literals) and nine that were genuinely new.
 
 ## 4. Findings — what the build demonstrated
 
 ### 4.1 Coexistence is the cheapest isolation
-The build never stopped V1. One compose `name:` difference was the
-difference between coexistence and takeover (ledger 8). Every V1 stack
+The build never stopped the first organization. One compose `name:` difference was the
+difference between coexistence and takeover (ledger 8). Every first-organization stack
 was verifiable mid-build (its dashboards 200, its queues drained by its
 own bridge). The organization-scale claim — N systems per estate —
 got its first real data point.

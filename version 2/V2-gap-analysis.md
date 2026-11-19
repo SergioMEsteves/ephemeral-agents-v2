@@ -23,7 +23,7 @@
 | G-4 | Go services ported ea-named and unit-tested locally, but **not built as images, not deployed, not integration-tested on the estate**. Harness-verified ≠ integration-verified (lesson 4). | **[B]** | staged build (chassis → smoke) |
 | G-5 | The M1 manager changes (priority validation, approval-hash ledger) are unit-tested pure logic; the wiring into the manager's publish path (where retries actually happen) is minimal — the retry path integration test does not exist yet. | **[G]** | contract suite extension + TP assertions 2/10 |
 | G-6 | `deploy-v2/rename-to-ea.sh` staged, never run: registry re-tag by digest, `ea-tasks` queue with `x-max-priority`, baseline re-run. Estate untouched. | **[B]** | declare-start, first estate session |
-| G-7 | Executor images still carry V1 registry names; digest-pinned pulls (`ea/…@sha256:…`) with lifecycle re-verification are designed, not implemented in the spawn path. | **[G]** | build-start security stage |
+| G-7 | Executor images still carry the pre-rename registry names; digest-pinned pulls (`ea/…@sha256:…`) with lifecycle re-verification are designed, not implemented in the spawn path. | **[G]** | build-start security stage |
 
 ## 3. Estate-readiness gaps (per PREBUILD-CHECKLIST.md, all owner-executed at declare-start)
 
@@ -39,8 +39,8 @@
 
 | # | Gap | Class |
 |---|---|---|
-| G-13 | The V2 issue ledger (§9.6 full V1-style build process record) does not exist yet — it is a build-phase artifact that must be created on day one of the build. | **[B]** |
-| G-14 | Contract test suite covers 3 boundaries (message-v1, catalog, spawn-env); the remaining V1 per-milestone scripts are not yet folded in (queue declare shape, report contract, credential-revocation timing). | **[G]** — grows with milestones |
+| G-13 | The V2 issue ledger (§9.6 full staged build-process record) does not exist yet — it is a build-phase artifact that must be created on day one of the build. | **[B]** |
+| G-14 | Contract test suite covers 3 boundaries (message-v1, catalog, spawn-env); the remaining baseline-build per-milestone scripts are not yet folded in (queue declare shape, report contract, credential-revocation timing). | **[G]** — grows with milestones |
 | G-15 | No CI (documented manual corpus re-run rule); accepted at M1. | **[D]** → queue item 8 |
 | G-16 | Capacity model + soak test (§9.3) designed, not measured — concurrency default 5 is a design number, not an evidence number. | **[P]** — post-M1 gate |
 | G-17 | V2 demo repo + GitHub App install don't exist (needed only when coder-style work arrives). | **[D]** |

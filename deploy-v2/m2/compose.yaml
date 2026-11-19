@@ -1,5 +1,5 @@
 # M2 — lifecycle + worker deployment on vm-xb
-# Source: version 1/installation-deployment/M2-Lifecycle-Installation-and-Deployment.md §2
+# Implements the M2 lifecycle §2 topology (see deploy-v2/RUNBOOK-V2-BUILD.md).
 # ea-named compose project (`m2` — a distinct project name keeps the V2
 # containers from colliding with any other project on the host).
 # M2-era compose state: the stub pin ONLY (the M2 gate proves lifecycle mechanics
@@ -9,8 +9,8 @@
 # a config switch per executor type; stub = rollback) and the M5-era default
 # (EA_EXECUTOR_DEFAULT: hermes) by the M5 install — the M2 gate must never run
 # the hermes executor (M3-era env is not staged yet). The M2-era compose.yaml
-# (V1 9e6592c) is the stub-only state; the M3 install re-syncs the M3-era
-# compose.yaml (V1 rsync m2/compose.yaml at M3 install §2').
+# This file is the stub-only state; the M3 install re-syncs the M3-era
+# compose.yaml (rsync m2/compose.yaml at M3 install §2').
 name: ea-m2
 services:
   lifecycle:

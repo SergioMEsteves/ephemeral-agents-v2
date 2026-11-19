@@ -35,7 +35,7 @@ type Embedder interface {
 //   - "http": OpenAI-compatible POST {url} with {model, input} (EMBEDDING_URL,
 //     EMBEDDING_MODEL, EMBEDDING_API_KEY)
 //   - "none": dev fallback returning a zero vector (writes succeed but
-//     similarity search is degenerate — POC/dev only)
+//     similarity search is degenerate — dev/fallback only)
 func NewEmbedder(provider, apiKey string, dim int) (Embedder, error) {
 	switch provider {
 	case "http":

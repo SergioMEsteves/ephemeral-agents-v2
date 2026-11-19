@@ -164,7 +164,7 @@ broker/manager-port connection from inside the CoS context must FAIL).
    drift pass):** the tracker's master-plan history is the *intent*
    trail; the local board history is *working intent*; the
    gateway/manager logs are the *enforcement* trail (what was actually
-   submitted and validated). Whether the unchanged V1 gateway already
+   submitted and validated). Whether the unchanged gateway already
    emits sufficient submit-side logs is a **build-time verification
    item** — cited if yes, enumerated as a change if no.
 7. **Change management** (D10): new info mid-run is classified additive vs.
@@ -364,8 +364,8 @@ then a corrective-info injection mid-run → follow-on revision package.
 
 ## 8. Executor harness policy
 
-The ephemeral executor harness set is **two images**, carried over from V1
-and confirmed by the owner on 2026-11-09:
+The ephemeral executor harness set is **two images**, carried over from the
+baseline build and confirmed by the owner on 2026-11-09:
 
 | Harness | Image | Role |
 |---|---|---|
@@ -381,7 +381,7 @@ Rationale and rules:
   Image/Model lines as selection input; it judges edge cases (e.g.,
   security-architect = IT but non-coding → hermes; data-engineer ETL =
   coding → claude-code) using the roster's own per-agent encodings.
-- **Proven in V1:** both images hydrate the same persona/skills/tools files
+- **Proven on the estate:** both images hydrate the same persona/skills/tools files
   end-to-end; the coder path is gate-proven (TC-M3-04: clone → GLM edit →
   commit → push) and the hermes path (boot, hydration, report) likewise.
 - **Admission criteria for any future third harness** (evaluated 2026-11-09:
@@ -396,7 +396,7 @@ Rationale and rules:
 
 ## 9. VM-Xb carryover (test-run impact)
 
-VM-Xb carries over from V1 **essentially unchanged**; the first V2 test run
+VM-Xb carries over from the baseline build **essentially unchanged**; the first V2 test run
 replaces/upgrades only VM-Xa (adds the CoS Hermes profile beside the
 unchanged gateway + manager) and points the desktop at it. Conditional
 VM-Xb items only:
@@ -447,9 +447,9 @@ Rules:
   manager validates.
 - Changing the layout is a commit: versioned, reviewable, in history.
 
-## 11. Multi-flow concurrency (resolves V1 open item 1)
+## 11. Multi-flow concurrency (resolves open item 1)
 
-V1 decided one-coder-per-task (dedicated `task/<task_id>` branch) with
+The concurrency design is one-coder-per-task (dedicated `task/<task_id>` branch) with
 sequential same-repo execution, proven by TC-M3-07. Resolution of the
 "N-parallel + worktrees" open item:
 
@@ -505,7 +505,7 @@ sequential same-repo execution, proven by TC-M3-07. Resolution of the
   defaults, and the executor field in index.json — separate upcoming design
   topic (likely hosted in the §10 project manifest or a sibling file).
 - **Secure key management:** deferred at the owner's request (2026-11-09);
-  baseline = V1's D-secret-vault direction (vault on VM-Xa as the
+  baseline = the D-secret-vault direction (vault on VM-Xa as the
   credential-issuing authority).
 
 ## 13. Rejected alternatives

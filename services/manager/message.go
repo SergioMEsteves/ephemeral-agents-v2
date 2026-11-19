@@ -217,8 +217,9 @@ func (m TaskMessage) MarshalStrict() ([]byte, error) {
 
 // RoutingKey is the D-routing rule on the shared topic exchange
 // `agent.tasks`: V2 tasks publish `ea.tasks.<capability>` — the `ea.`
-// prefix keeps V1's bridge (bound `agent.tasks.#`) from consuming V2
-// tasks (WorkflowId race, M5 coexistence fix); `ea-tasks` is bound
+// prefix keeps the first organization's bridge (bound `agent.tasks.#`)
+// from consuming this build's tasks (WorkflowId race, M5 coexistence fix);
+// `ea-tasks` is bound
 // `ea.tasks.#`.
 func RoutingKey(capability string) string {
 	return "ea.tasks." + capability

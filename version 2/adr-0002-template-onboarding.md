@@ -39,7 +39,7 @@ existing 7-step checklist in `RUNBOOK-V2-NEW-PROJECT.md`, unchanged.
 **Template 2 — VM-Xsm (small projects).** One VM hosts N small project
 stacks, each with its own compose namespace (`ea-<proj>-` prefix), own
 gateway port, own CoS container, own queues, own volumes, own repo mount,
-own Hindsight scope key. The coexistence rules that let V1 and V2 coexist
+own Hindsight scope key. The coexistence rules that let the first organization and this build coexist
 apply *within* the VM, per project. This template is a separate milestone —
 it is recorded here as the decided shape, but it is **not built** until a
 real small-project onboarding demands it (see Consequences).

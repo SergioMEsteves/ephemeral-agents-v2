@@ -1,6 +1,6 @@
 # V2 issue ledger
 
-> Per `V2-platform-design.md` §9.6: every V2 build issue, V1 format —
+> Per `V2-platform-design.md` §9.6: every V2 build issue in the standard format —
 > symptom → wrong assumption → root cause → the rule now followed.
 > One numbered entry per issue, appended in build order.
 
@@ -9,9 +9,9 @@
 - **Symptom:** `--apply-netplan` left `/etc/netplan/01-netcfg.yaml` with
   `unknown key 'version'` on the role VMs; network survives in memory but
   a reboot would orphan the VM.
-- **Wrong assumption:** that the V1 install script's heredoc was
-  copy-safe — it was never exercised on a clean VM during V1 (all VMs
-  already had netplan configs when the baseline was captured).
+- **Wrong assumption:** that the install script's heredoc was
+  copy-safe — it was never exercised on a clean VM in the baseline build
+  (all VMs already had netplan configs when the baseline was captured).
 - **Root cause:** the `install.sh` printf emitted a `version: 2` block
   without the `network:` root key.
 - **Rule:** any script that writes a config file gets verified against a
@@ -19,14 +19,14 @@
   the fix carries a byte-level check — display-rendered file contents
   are not evidence.
 
-## 2. Temporal fell off `poc-net` on recreation (same class as the V1 rabbitmq lesson)
+## 2. Temporal fell off `poc-net` on recreation (same class as the baseline rabbitmq lesson)
 
 - **Symptom:** after the m0 apply, `m2-worker` / `topic-bridge` could not
-  resolve `temporal` (embedded-DNS SERVFAIL); the estate's V1 path was
+  resolve `temporal` (embedded-DNS SERVFAIL); the estate's pre-rename path was
   down while every container showed `Up`.
 - **Wrong assumption:** that declaring the external `poc-net` next to the
   implicit default network was enough.
-- **Root cause (two independent bugs):** (a) V1 wired the shared network
+- **Root cause (two independent bugs):** (a) the baseline build wired the shared network
   with a manual `docker network connect`, which every compose recreation
   silently drops; (b) a container attached to TWO networks with the same
   alias on both makes Docker's embedded DNS SERVFAIL peer lookups, so the
@@ -46,8 +46,8 @@
 - **Wrong assumption:** that `.env` generation is side-effect-free; the
   DB password lives in the data volume, not the env file.
 - **Root cause:** m0's "generate if absent" ran on the fresh V2 tree (no
-  `.env` yet) while the V1-provisioned volume persisted. Owner decision
-  taken 2026-11-13: preserve V1 credentials through the coexistence
+  `.env` yet) while the baseline-provisioned volume persisted. Owner decision
+  taken 2026-11-13: preserve the estate's existing credentials through the coexistence
   period (rabbitmq pass reused; temporal aligned via socket-auth
   `ALTER USER` to the fresh V2 pass — the volume side is authoritative
   when old, the env file when new).
@@ -78,7 +78,7 @@
   were found to carry a literal 16-char broker password in
   `RABBITMQ_URL` — despite the adjacent comment claiming the password is
   interpolated from `.env`. Byte-level verification showed the tracked
-  value does NOT match the live broker password (stale, V1-era) and the
+  value does NOT match the live broker password (stale, pre-rename) and the
   live value is only in gitignored `.env` files — so no burn and no
   rotation required, but the disclosure still violates de-identification.
 - **Wrong assumption (two layers):** (a) the de-identification sweep
@@ -96,11 +96,11 @@
   that the literal is absent — comments are not evidence.
 - **Fixed 2026-11-13:** m1/m2/m5 composes now interpolate
   `${RABBITMQ_PASS:?set RABBITMQ_PASS in .env}` (V2 commit `0734c57`;
-  V1 backport `c2649a7` — 3 composes + 2 Go comments; the 3 `version 1/`
-  docs were already parameterized). Verified byte-level: zero
-  credential bytes remain in either repo's tracked files; runtime path
-  unchanged (install scripts write `RABBITMQ_PASS` to gitignored
-  `/opt/poc/deploy/m1|2/.env`, 0600).
+  the same fix was applied to the pre-rename tree — 3 composes + 2 Go
+  comments — before the reorganization removed those files). Verified
+  byte-level: zero credential bytes remain in this repo's tracked files;
+  runtime path unchanged (install scripts write `RABBITMQ_PASS` to
+  gitignored `.env` files, 0600).
 ## 6. m1 bridge could not consume `ea-tasks` (PRECONDITION_FAILED)
 
 - **Symptom:** the m1 gate failed at T1 — zero messages consumed; the
@@ -125,16 +125,16 @@
 - **Rule:** a milestone's compose carries only that milestone's config;
   future-era settings land in the milestone that owns them.
 
-## 8. m4 hindsight compose took over V1's stack
+## 8. m4 hindsight compose took over the first organization's stack
 
-- **Symptom:** deploying the m4 hindsight stack replaced V1's containers
-  and reused V1's data volume — V1's memory system was down.
+- **Symptom:** deploying the m4 hindsight stack replaced the first organization's containers
+  and reused its data volume — the first organization's memory system was down.
 - **Wrong assumption:** that compose project names and volume names
-  inherited from V1 were safe.
-- **Root cause:** the m4 compose kept V1's project name `hindsight` and
+  inherited from the baseline build were safe.
+- **Root cause:** the m4 compose kept the first organization's project name `hindsight` and
   volume name.
 - **Rule:** every V2 compose sets `name: ea-*`, `ea-*` containers, and an
-  own volume; the restoration sequence (V1 up, V2 up) is part of the fix
+  own volume; the restoration sequence (first organization up, V2 up) is part of the fix
   runbook, not an afterthought.
 
 ## 9. m5's committed fix never existed — gitignore masked whole source trees
@@ -187,7 +187,7 @@
   catalog capability), waited 45 s for ~13-min hermes reports, killed
   nothing (`pkill` matches names, not PIDs), and blocked the wrong path
   (nft `output` hook — container egress traverses `forward`).
-- **Wrong assumption:** that the V1-era runbook mechanics survived the
+- **Wrong assumption:** that the pre-rename runbook mechanics survived the
   executor change.
 - **Root cause:** the runbook was never re-derived against real executors.
 - **Rule:** every wait is a poll on the observable (report file),

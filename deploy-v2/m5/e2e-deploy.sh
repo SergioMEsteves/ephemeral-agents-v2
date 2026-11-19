@@ -2,7 +2,7 @@
 # =============================================================================
 # M5 — ordered full-stack bring-up (stage-gated S1–S7)
 # =============================================================================
-# Source: version 1/installation-deployment/M5-End-to-End-Installation-and-Deployment.md §3
+# Implements the M5 §3 end-to-end deploy flow (see deploy-v2/RUNBOOK-V2-BUILD.md).
 # Idempotent; each stage's healthcheck must pass before the next; any failure
 # halts + prints the failing stage (which names the owning milestone's gate
 # test — recovery never means re-running the chain).

@@ -2,11 +2,10 @@
 # =============================================================================
 # M3 — EXECUTOR SPIKES (Hermes Ephemeral + Claude Code): complete install
 # =============================================================================
-# Implements §1–§5 of:
-#   version 1/installation-deployment/M3-Executors-Installation-and-Deployment.md
+# Implements §1–§5 of the M3 executor installation procedure
+#   (deploy-v2/RUNBOOK-V2-BUILD.md).
 # Gate afterwards:
-#   version 1/test procedures/M3-Executors-Test-Procedure.md  (TP-M3 must PASS
-#   before the M4 installation may begin)
+#   TP-M3 must PASS before the M4 installation may begin.
 #
 # Steps:
 #   §1  GitHub-side checks (catalog repo, project repo, App key, token dry-run)
@@ -141,7 +140,7 @@ github_side() {
     done
   fi
   # App private key on vm-xb (presence + perms only — never print it).
-  # §1 runs BEFORE §2" staging, so check the SOURCE (V1) key; §2" copies it
+  # §1 runs BEFORE §2" staging, so check the source key; §2" copies it
   # to /opt/ea/secrets/app-key.pem (S0 credential-reuse policy).
   local key_src="${APP_KEY_SOURCE:-/opt/poc/secrets/app-key.pem}"
   if ssh "$VM_XB" "test -r $key_src" ; then
@@ -154,12 +153,12 @@ github_side() {
   # token dry-run: issue + verify + revoke
   log "§1   token issuance dry-run (issue -> verify -> revoke)"
   # issue-token.sh needs GITHUB_APP_ID / INSTALLATION_ID — pull them from the
-  # V1 m3.env on vm-xb (same credential-reuse source as §2"; names only in output)
+  # the estate's m3.env on vm-xb (same credential-reuse source as §2"; names only in output)
   if [ ! "${GITHUB_APP_ID:-}" ] || [ ! "${INSTALLATION_ID:-}" ]; then
     local ids
     ids="$(ssh "$VM_XB" "sudo grep -E '^(GITHUB_APP_ID|INSTALLATION_ID)=' /opt/poc/secrets/m3.env" 2>/dev/null || true)"
     if [ -n "$ids" ]; then
-      log "§1   token ids sourced from V1 m3.env (names: $(printf '%s\n' "$ids" | cut -d= -f1 | tr '\n' ' '))"
+      log "§1   token ids sourced from the estate's m3.env (names: $(printf '%s\n' "$ids" | cut -d= -f1 | tr '\n' ' '))"
       eval "$(printf '%s\n' "$ids" | tr -d '\r' | sed 's/^/export /')"
     fi
   fi
@@ -191,8 +190,8 @@ build_and_load() {
   confirm "build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)"
   if [ "$CHECK_ONLY" = "1" ]; then return 0; fi
   # Mandatory build-args per M3 doc §2 (both Dockerfiles fail without them —
-  # no silent defaults). Values pinned from V1's live image history (S0 policy:
-  # preserve the V1 build provenance):
+  # no silent defaults). Values pinned from the live image history (S0 policy:
+  # preserve the estate's build provenance):
   #   HERMES_INSTALLER_URL = https://hermes-agent.nousresearch.com/install.sh
   #   CLAUDE_CODE_VERSION  = 2.1.318
   [ -n "${HERMES_INSTALLER_URL:-}" ] || HERMES_INSTALLER_URL="https://hermes-agent.nousresearch.com/install.sh"
@@ -205,7 +204,7 @@ build_and_load() {
     "$M3/claude-coder" -t "ea/claude-coder:$IMAGE_TAG"
   docker save "ea/hermes-ephemeral:$IMAGE_TAG" "ea/claude-coder:$IMAGE_TAG" | ssh "$VM_XB" "docker load"
   # llm-proxy twin for the ea estate (M3 §2a): executors on ea-net reach
-  # 'llm-proxy' via the network alias — the V1 proxy (poc-net) stays untouched.
+  # 'llm-proxy' via the network alias — the first organization's proxy (poc-net) stays untouched.
   ssh "$VM_XB" "sudo mkdir -p /opt/ea/llm-proxy && sudo cp /opt/poc/llm-proxy/proxy.js /opt/ea/llm-proxy/proxy.js 2>/dev/null || true"
   rsync -az "$M3/llm-proxy/proxy.js" "$VM_XB:/opt/ea/llm-proxy/proxy.js"
   ok "§2 executor images built + loaded (llm-proxy staged)"
@@ -214,7 +213,7 @@ build_and_load() {
 stage_m3_secrets() {
   log "§2\" — stage M3 secrets on $VM_XB (app key + m3.env + token script)"
   if [ "$CHECK_ONLY" = "1" ]; then return 0; fi
-  # S0 policy: preserve V1 credentials — copy the live V1 app key + m3.env values
+  # S0 policy: preserve the estate's credentials — copy the live app key + m3.env values
   # into the V2 secret paths (never mint, never print). m3.env carries the per-run
   # env keys m3FromEnv() expects (GITHUB_APP_ID/INSTALLATION_ID, MODEL_DEFAULT,
   # ANTHROPIC_API_KEY base, etc.). The token script runs on the VM; repo copy is
@@ -223,9 +222,9 @@ stage_m3_secrets() {
   # NOTE: no `die` inside remote commands — it's a local function. Also no
   # `sudo test` — sudo can't run shell builtins; use `sudo bash -c`.
   ssh "$VM_XB" "sudo bash -c 'test -r /opt/poc/secrets/app-key.pem'" \
-    || die "V1 app key missing at /opt/poc/secrets/app-key.pem on $VM_XB"
+    || die "app key missing at /opt/poc/secrets/app-key.pem on $VM_XB"
   ssh "$VM_XB" "sudo cp /opt/poc/secrets/app-key.pem /opt/ea/secrets/app-key.pem" \
-    || die "app-key copy from V1 failed"
+    || die "app-key copy from the estate's secrets failed"
   ssh "$VM_XB" "sudo bash -c 'test -r /opt/poc/secrets/m3.env && cp /opt/poc/secrets/m3.env /opt/ea/secrets/m3.env || true'"
   ssh "$VM_XB" "sudo chmod 600 /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chown arvisdev:arvisdev /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chmod 700 /opt/ea/deploy-v2/m3"
   rsync -az "$M3/issue-token.sh" "$VM_XB:/opt/ea/deploy-v2/m3/issue-token.sh" \
@@ -234,7 +233,7 @@ stage_m3_secrets() {
   # verify the staged m3.env carries the keys m3FromEnv() needs (names only)
   local missing_keys
   missing_keys="$(ssh "$VM_XB" "for k in GITHUB_APP_ID INSTALLATION_ID MODEL_DEFAULT; do grep -q \"^\$k=\" /opt/ea/secrets/m3.env || echo \$k; done" || true)"
-  [ -z "$missing_keys" ] || die "m3.env missing keys (staged from V1 — verify /opt/poc/secrets/m3.env): $missing_keys"
+  [ -z "$missing_keys" ] || die "m3.env missing keys (staged from the estate's secrets — verify /opt/poc/secrets/m3.env): $missing_keys"
   ok "§2\" M3 secrets staged (key + m3.env + token script; values never printed)"
 }
 
@@ -363,7 +362,7 @@ gate_tests() {
     if [ "$NO_GATE" != "1" ]; then exit 1; fi
   else
     ok "M3 gate tests recorded (complete the manual B2/B3/B5 lines in $out before signing TP-M3)"
-    log "Next: run TP-M3 — version 1/test procedures/M3-Executors-Test-Procedure.md (file evidence in $EVIDENCE)."
+    log "Next: run TP-M3 (file evidence in $EVIDENCE)."
   fi
 }
 

@@ -5,7 +5,8 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-13 (sixth) — S4 OPEN. deploy-v2 transform
+*Last updated: 2026-11-18 (fifteenth) — Second-Edition reorganization
+complete; deploy-v2 transform
 COMPLETE: 33-file tree ea-named end-to-end (paths repointed to
 `deploy-v2/mN`, broker user `ea:`, ea-tasks queue family, ea labels,
 `ea/executor-stub`, demo repo `ephemeral-v2-demo`). Coexistence
@@ -54,24 +55,24 @@ record now complete; the declare-start gate stands.*
 - **V2 build phase: OPEN.** Repo-side half of the `ea-` rename micro-gate
   done (2026-11-11, `d2afc5d`): mapping table at
   `version 2/ea-rename-mapping.md`; grep audit over V2-owned trees clean
-  (V2 deploy layer will be born `ea-`-named; baseline `deploy/` keeps V1
-  names per §1 of the platform design). Estate half is separately gated
+  (the deploy layer is born `ea-`-named; the estate's pre-rename names are
+  documented in the mapping table per §1 of the platform design). Estate half is separately gated
   and pending owner go-ahead: registry re-tag of the 9 images under
   `ea/…` (digest equality), queue re-create under `ea-*` with the single
   `x-max-priority` declaration, baseline test path re-run green under
   `ea` names. Then: file-level impact inventory + endpoint table
   (§9.5) → build-start security items (§9.1) → staged build → M1.
 
-- **V1** (`github.com/arvisdev/ephemeral-agents`, public, FROZEN): complete
-  POC record — M0–M5 signed, book (15 chapters), findings report,
-  retrospective. Baseline cited by hash; see README. Read-only except bug
-  fixes / doc corrections / security patches (backport convention: fix in V2
-  first, `V1 backport:` commit to V1).
-- **V2** (this repo, private, LIVE): synced baseline from V1 @ `4de7a06…`
-  (book, deploy layer, schemas, license set — byte-identical). Ready to begin.
+- **Second-Edition rule (owner, 2026-11-18):** this repo is a standalone
+  Second Edition; version 1 (the POC) will be archived and unavailable —
+  no references or pointers to it remain anywhere in this repo. The
+  repo's own record (design docs, book, deploy layer, decision log) is
+  the complete provenance.
+- **V2** (this repo, private, LIVE): the live iteration — design record,
+  deploy layer, schemas, services. Ready to begin.
 - **Estate** (version-agnostic hardware, healthy as of 2026-11-08):
   - front-of-house VM: gateway (:8080) + manager only — deterministic Go, no
-    agent (deliberate V1 boundary)
+    agent (deliberate boundary)
   - execution VM: rabbitmq, temporal+pg, temporal-ui (:8080), broker mgmt UI
     (:15672, LAN-open by owner decision 2026-11-08), worker, bridge,
     lifecycle, llm-proxy (v3, mounts from /opt/poc/llm-proxy/)
@@ -338,7 +339,7 @@ proposes, the code disposes** — the manager validates every proposal.
    (market-analysis example → packages → reports). Prerequisite
    artifacts: the contract test suite and the file-level impact inventory
    (platform §9.5/§9.6).
-4. Later V2 open items (from V1 decision log) — *status-corrected per the
+4. Later open items (from the early decision log) — *status-corrected per the
    third-pass drift pass:* concurrency beyond sequential (resolved:
    manifest-configurable, default 5; scope-declaration milestone later);
    embeddings provider (resolved as policy: evidence-triggered);
@@ -374,7 +375,7 @@ WORKING-STATE.md      this file — read first every session
 version 2/            V2 design docs (V2-M1 design lands here)
 version 2/book/       Second Edition book (15 chapters)
 deploy-v2/            V2 deploy layer (ea-named; m0-m5 + m1-cos)
-schemas/              message-v1 contract (seeded from V1)
+schemas/              message-v1 contract
 decision-log.md       V2 decision log (append-only)
 services/             Go services (evolve here as milestones require)
 ```
@@ -389,7 +390,7 @@ services/             Go services (evolve here as milestones require)
   - `.gitignore`: `services/**/adapter` masked the topic-bridge source tree (`cmd/adapter/`) — added `!services/**/cmd/adapter/` negation; adapter source now tracked (`cmd/adapter/main.go`, `adapter_test.go`).
   - `services/topic-bridge/schemas/message-v1.json` re-copied from the authoritative `schemas/message-v1.json` (drift guard caught it).
 - **Estate state after the run**: V1 bridge `m1-topic-bridge-1` still up, consuming `agent.tasks.durable` (V1 untouched); `ea-tasks.dlq` holds the 3 T4 poison pills (expected, correct DLQ routing); `agent.tasks.dlq` 0 — no V1 pollution. Both brokers share the `agent.tasks` exchange; V1's `agent.tasks.durable`/`agent.tasks.dlq` and V2's `ea-tasks`/`ea-tasks.dlq` are distinct consumers.
-- **Next**: run TP-M1 (version 1/test procedures/M1-Adapter-Test-Procedure.md) with file evidence from `deploy-v2/m1/evidence/`, then M2 install (executor-stub → worker lifecycle).
+- **Next**: run TP-M1 with file evidence from `deploy-v2/m1/evidence/`, then M2 install (executor-stub → worker lifecycle).
 
 ## Eighth update — TP-M1 signed (2026-11-14)
 
@@ -486,3 +487,34 @@ services/             Go services (evolve here as milestones require)
   de-identified, with owner-drawn diagram slots in ch11/ch14/ch15.
 - **Awaiting owner:** the two topology diagrams (ch11 + ch14 slots), then
   the book is final; next milestone TP-V2-M1 (CoS on vm-xa).
+
+## Fifteenth update — Second-Edition reorganization: repo-wide V1-reference sweep (2026-11-18)
+
+- **Owner's rule (2026-11-18):** the Second Edition is standalone. Version 1
+  (the POC) will be archived and unavailable; no references or pointers to it
+  may remain anywhere in this repo — provenance citations, "V1 @ hash"
+  references, and "carried from V1" phrasing included. Every V1-derived
+  rule/lesson now reads as this build's own statement of fact, without naming
+  version 1 or pointing at any V1 artifact. Live coexistence identifiers on
+  the shared estate (the first organization's `poc-*` containers, `poc-net`,
+  `POC_*` env vars, `/opt/poc` paths, the shared `agent.tasks` exchange) keep
+  their real names but are attributed to the first organization / the
+  neighboring stack, never to "V1".
+- **Three passes executed (all repo-wide, uncommitted):**
+  1. *Book pass:* `version 2/book/` made fully self-contained; the root
+     `book/` copy removed; all V1 references rewritten as V2 fact.
+  2. *Deploy pass:* the deploy layer consolidated into `deploy-v2/`; the
+     V1-baseline `deploy/` tree deleted (evidence confirmed duplicated).
+  3. *Sweep pass (this update):* repo-wide grep for `V1|version 1|first
+     edition|version 1/|book/ch|poc/|/opt/poc`; every hit categorized —
+     contract identifiers kept (`message-v1`), live coexistence identifiers
+     kept and re-attributed, dated history left as dated history
+     (decision-log.md, deploy-v2/m*/decision-log.md, evidence dirs), all
+     other references rewritten as V2 fact (design docs, runbooks, install
+     scripts, compose comments, Go comments, README).
+- **Standing rule superseded:** the rule that the version-1 record is always
+  cited by pinned commit hash is retired — version 1 references are being
+  eliminated from the repo entirely. The repo's own record is the provenance.
+- **Verification:** final grep clean except the categorized exceptions
+  (message-v1 contract identifier, dated-history files, live coexistence
+  identifiers, M2 gate test-case names V1–V5).

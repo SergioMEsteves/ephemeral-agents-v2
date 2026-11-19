@@ -4,7 +4,7 @@
 > decisions that sit outside (and outlive) the V2-M1 Chief-of-Staff milestone:
 > the V2 naming family, the memory architecture, the concurrency default,
 > the embeddings stance, the queue-evolution policy, the isolation ladder,
-> and the V1 lessons that the V2 build pre-applies. Companion to
+> and the lessons the build pre-applies. Companion to
 > `V2-M1-cos-design.md`. Every decision here was made with the owner on
 > 2026-11-10 and is cross-referenced in `../decision-log.md`.
 
@@ -13,7 +13,7 @@
 V2 is a production-bound iteration, not a proof-of-concept. All V2-owned
 components use the **`ea-` naming family** (ephemeral-agents):
 
-| Component | V1 name | V2 name |
+| Component | pre-rename estate name | ea name |
 |---|---|---|
 | Container network | `poc-net` | `ea-net` |
 | Executor images | `poc/hermes-ephemeral:1.0.0`, `poc/claude-coder:1.0.0` | `ea/hermes-ephemeral`, `ea/claude-coder` |
@@ -26,13 +26,13 @@ Rules:
   gated change to `services/` (env wiring) and the V2 compose/deploy layer,
   plus registry re-tag/re-push of the executor images. It is the *opening
   action of the V2 build phase*, not a retroactive edit.
-- **The V1 evidence baseline is preserved in the frozen V1 record, not in
-  this repo** — the signed M0–M5 gate runs reference those exact V1 names,
-  and the V2 repo carries the V2 deploy layer only.
+- **The pre-rename evidence baseline is preserved in the owner's archive,
+  not in this repo** — the signed M0–M5 gate runs reference those exact
+  estate names, and this repo carries the ea-named deploy layer only.
 - **From the build action onward, V2 design docs reference only V2
-  names.** V1 components carried forward unchanged (e.g. VM-Xb's stack)
-  are stated once, as provenance ("carried forward from the V1 baseline @
-  `4de7a06…`"), and thereafter referred to by their V2 names.
+  names.** Components carried forward unchanged (e.g. VM-Xb's stack) are
+  stated once, as provenance ("carried forward from the baseline build"),
+  and thereafter referred to by their V2 names.
 - The runtime choice per project (docker vs. podman) joins the
   **configuration topic's agenda** — the per-project manifest surface
   (M1 design §10); its field structure is undecided (the topic was reset
@@ -66,7 +66,7 @@ Decisions:
    deleted, or a branch pruned — a known cost of pointer stores, mitigated
    by the repo's own history index and by git history itself.*
 4. **The store stays on the memory VM.** It already serves every executor
-   (V1's hydration contract: `/memory/read` at boot, logged as
+   (the hydration contract: `/memory/read` at boot, logged as
    `M4_MEMORY_HYDRATE`) and outlives VM rebuilds. The CoS writes through
    the same API the executors already read.
 5. **Flow:** memory surfaces a pointer ("relevant past work exists, here
@@ -83,14 +83,14 @@ Decisions:
   §11); the 5-slot default takes full effect when the scope-declaration
   milestone enables same-repo parallelism. Cross-repo and cross-type work
   can use the slots immediately.
-- V1 open item "long-term queue shape / concurrency beyond sequential"
+- The pre-build open item "long-term queue shape / concurrency beyond sequential"
   narrows to estate worker-capacity tuning (env values, not code) once
   parallel submission becomes the norm (OQ3 in the M1 design doc).
 
 ## 4. Embeddings provider — evidence-driven (owner, 2026-11-10)
 
 - **No provider is chosen upfront.** M1 builds with the current
-  zero-vector fallback (`EMBEDDINGS=none`, NaN-safe scoring, proven in V1
+  zero-vector fallback (`EMBEDDINGS=none`, NaN-safe scoring, proven in the
   M4/M5 gates).
 - **Trigger:** if recall of memory pointers proves poor in practice
   (missed relevant past work), plug in a small self-hosted embeddings
@@ -116,7 +116,7 @@ Recorded as a standing policy rather than a design project:
    updated in the **same gated change** as the consumer-side support
    (e.g. the manager pass-through); and consumers validate against the
    current schema version — which is exactly why a field and its
-   consumers must land together. The schema's V1-era "POC task message"
+   consumers must land together. The schema's original "POC task message"
    title is corrected at the same first touch. This was the review's
    first exercise of this policy: the policy and the schema as seeded
    were contradictory, and the record above supersedes the earlier
@@ -147,7 +147,7 @@ the owner; executors perform code development, business analysis,
 research, and other major company work; 5 concurrent agents on own
 hardware.
 
-What V1 already provides and carries forward unchanged — all *operational*
+What the estate already provides and carries forward unchanged — all *operational*
 protections: scoped per-task GitHub App tokens issued at spawn and revoked
 at exit, TTL-bounded lifetimes, the zero-survivors reaper as a hard gate,
 registry-pinned image sourcing. The ladder below adds *architectural*
@@ -157,7 +157,7 @@ protections.
 
 | Rung | What it is | Pros | Cons | Adopt when |
 |---|---|---|---|---|
-| **A — co-located containers** (V1 status quo, M1) | Docker container per task on the shared `ea-net` (renamed from V1's network), alongside broker, Temporal, worker, llm-proxy | Zero new work; proven M0–M5; fastest spawn (~800 ms); cheapest; whole toolchain signed against it | Shared host kernel; root Docker daemon present; executor can reach internal services on the network; cleanup is enforced promise, not physical guarantee | Default for M1 |
+| **A — co-located containers** (the estate status quo, M1) | Docker container per task on the shared `ea-net` (renamed from the first organization's network), alongside broker, Temporal, worker, llm-proxy | Zero new work; proven M0–M5; fastest spawn (~800 ms); cheapest; whole toolchain signed against it | Shared host kernel; root Docker daemon present; executor can reach internal services on the network; cleanup is enforced promise, not physical guarantee | Default for M1 |
 | **A+ — rootless runtime + egress allow-list** (adopt post-M1) | Rootless Podman (or Docker rootless mode): no root daemon; plus per-task network rules — executors reach only the project repo, the llm-proxy, and the registry | Removes the worst failure mode (escape → root daemon → own the execution VM); worst case per bad task becomes contained + unprivileged + TTL-reaped; closes the missing lateral-network layer (no legitimate reach to broker/DB/memory VM); near drop-in (same images, same CLI verbs) | Real but small lifecycle code change (Docker API → rootless flow); executor gates re-verified under the new runtime before re-signing; ~10–20% overhead for gVisor-class options avoided but rootless has its own volume/uid quirks | **Immediately after M1's gate** — first V2 hardening change, own gated milestone |
 | **B — gVisor-class sandbox** (gVisor/`runsc`, sibling: Kata) | Container syscalls intercepted by a user-space kernel; ~200 of ~300 syscalls unavailable; escape hits a software barrier, not the real kernel | Closes kernel escape without changing any workflow element (runtime flag swap); invisible to the contract (message-v1, manager, TTL, credentials unchanged); moderate overhead (10–20% CPU, slower I/O) | Compatibility risk with executor internals (git, node, CLI processes) — breakages look like random harness failures; new pinned runtime to maintain (dependency-refresh item); no network isolation by itself | When task content can originate outside the owner's control (external contributions, third-party work packages, unvetted data sources) |
 | **C — per-task micro-VM** (Firecracker / Kata / small QEMU) | Each task gets its own tiny VM: separate kernel, separate virtual network; container runs inside its own machine | Strongest wall available; a compromise cannot see or reach any other task or the estate services even in principle; makes zero-survivors physical ("destroy the VM"); natural network isolation | Heaviest (~128 MB+ RAM, seconds of boot per task — strains the 5-agent default on current sizing); largest engineering surface (VM provisioning path, image pipeline, every gate re-validated); disproportionate while all task content is owner-originated | When the estate serves anyone other than the owner, or any execution crosses the company boundary |
@@ -178,50 +178,50 @@ protections.
   else:** each rung adoption is its own milestone with its own test
   procedure and signed evidence.
 
-## 7. V1 lessons pre-applied in the V2 build
+## 7. Lessons pre-applied in the build
 
-The V2 build follows the V1 build process (M0-style stages, gated
-milestones, signed evidence) with every V1 lesson structurally present
+The build follows the staged build process (M0-style stages, gated
+milestones, signed evidence) with every lesson structurally present
 from the start. Each lesson maps to the concrete V2 build step that
 embodies it; during the build we verify the lesson is structurally
 present, not remembered:
 
-1. **Nothing load-bearing lives only on a VM** (V1: the `/tmp` llm-proxy
+1. **Nothing load-bearing lives only on a VM** (the `/tmp` llm-proxy
    loss costing a full re-run) → every runtime artifact, mount source,
-   and config is canonical in the repo before the build starts; the V2
+   and config is canonical in the repo before the build starts; the
    llm-proxy mounts from a durable host path staged from the repo.
-2. **Contract tests before gates, not during them** (V1: each boundary
+2. **Contract tests before gates, not during them** (each boundary
    bug cost a full ~10-minute install re-run) → the reusable contract
    test suite (spawn-env, message-v1, catalog shapes) is built with or
-   ahead of M1, replacing V1's per-milestone scripts.
-3. **Gate assertions name the artifact they prove** (V1: the run-16
-   "artifact chain verified" paper-over) → every V2 gate assertion
+   ahead of M1, replacing per-milestone scripts.
+3. **Gate assertions name the artifact they prove** (the run-16
+   "artifact chain verified" paper-over) → every gate assertion
    states the artifact or state that evidences the claim; §4-style gates
    fail unless report status is success.
-4. **Harness-verified ≠ integration-verified** (V1: M4's direct-spawn
-   gates masked a lifecycle-path bug) → V2 gates run through the real
+4. **Harness-verified ≠ integration-verified** (M4's direct-spawn
+   gates masked a lifecycle-path bug) → gates run through the real
    gateway → manager → queue → spawn path.
-5. **Reboot survival is baked, not documented** (V1: host-reboot
+5. **Reboot survival is baked, not documented** (the host-reboot
    incident, worker crash-loop on Temporal DNS) → dependency-ordered
    restart (`restart: unless-stopped` / umbrella compose) is part of the
-   V2 build artifacts, not a manual §14.8-style procedure. (Queue item 7.)
-6. **Registry-pinned, no-pull image sourcing** (V1: the rmi-first proof)
-   → carried forward unchanged, now under `ea/` image names from the V2
+   build artifacts, not a manual §14.8-style procedure. (Queue item 7.)
+6. **Registry-pinned, no-pull image sourcing** (the rmi-first proof)
+   → carried forward unchanged, now under `ea/` image names from the
    registry.
-7. **Secret-scan and zero-survivors stay hard gates** (V1: both caught
-   real issues) → unchanged in every V2 gate.
-8. **Pin + track upstream releases with exception expiry** (V1: §6
+7. **Secret-scan and zero-survivors stay hard gates** (both caught
+   real issues) → unchanged in every gate.
+8. **Pin + track upstream releases with exception expiry** (the §6
    trivy/bundled-dep story) → the dependency-refresh policy (queue
-   item 6) applies from the first V2 image build, not retroactively —
+   item 6) applies from the first image build, not retroactively —
    and under digest-pinned sourcing, a CVE refresh is an explicit
    **digest bump + re-sign**, recorded so it isn't misread as breakage
    (second-pass review).
-9. **The envelope is self-sufficient + entrypoint guards** (V1: truncated
-   prompt bug; `$TASK_PROMPT` under `set -u`) → V2 executor entrypoints
+9. **The envelope is self-sufficient + entrypoint guards** (the truncated
+   prompt bug; `$TASK_PROMPT` under `set -u`) → executor entrypoints
    guard every env reference and hydrate the full contract (persona,
    wiki, memory) before work begins.
-10. **Inventory-first for the estate** (V1: the "moving floor" lesson —
-    pin VMIDs/IPs in one committed inventory from minute one) → the V2
+10. **Inventory-first for the estate** (the "moving floor" lesson —
+    pin VMIDs/IPs in one committed inventory from minute one) → the
     build's chassis stage re-runs its gate against the committed
     inventory; a fresh build catches inventory-vs-reality mismatch at
     minute five, not three stages deep.
@@ -315,7 +315,7 @@ alone does not pass. This supersedes the single-piece description in §6.
 
 **Memory hydration under A+ (decided, second-pass review):** the §9.2
 allow-list ("registry, llm-proxy, github.com only") conflicts with the
-V1 hydration contract (executors read Hindsight `:8081` at boot). The
+hydration contract (executors read Hindsight `:8081` at boot). The
 decision: **hydration moves spawn-side at A+** — the lifecycle
 pre-fetches the memory bundle (with the executor-class read-only token)
 and mounts it into the executor. The executor never needs memory-VM
@@ -348,7 +348,7 @@ monitor it and document the degraded-mode behavior in the A+ runbook.
   enforcement trail** (what was actually submitted and validated — the
   only source that isn't self-attested by the CoS). Every
   proposal/submit/hold/escalation event as a structured line in a
-  persistent VM-Xa log; whether the unchanged V1 gateway already emits
+  persistent VM-Xa log; whether the unchanged gateway already emits
   sufficient submit-side logs is a **build-time verification item**
   (cited if yes, enumerated as a change if no). A daily/on-demand CoS
   status rollup (open proposals, backlog depth, in-flight, last submit)
@@ -397,22 +397,22 @@ milestone/gate exercises it. This inventory is the artifact the rename
 micro-gate and every subsequent gate assert against — gate assertions
 name the artifact they prove (platform lesson §7.3), starting here.
 
-### 9.6 The V2 build process (V1 process, V2 record)
+### 9.6 The build process (staged process, this build's record)
 
-V2 reproduces the V1 process end-to-end, with V2's own record:
+The build reproduces the staged process end-to-end, with its own record:
 
 - **Staged build (M0-style):** estate chassis → broker/engine →
   services → executors → memory/wiki → front-of-house → smoke, each
   stage with a passing check before the next; `--check-only` dry-run
   against the committed inventory before provisioning.
 - **Milestones with their own test procedures and gates:** nothing lands
-  ungated (V1 gate rule carried forward); the M1 design doc's TP-V2-M1
+  ungated (the gate rule); the M1 design doc's TP-V2-M1
   (with review additions) is the first.
 - **V2 issue ledger:** every issue found during the V2 build is recorded
-  in V2's documentation in the V1 format — *symptom → wrong assumption →
+  in V2's documentation in the standard format — *symptom → wrong assumption →
   root cause → the rule we now follow* — via the decision log and/or the
-  closing report, so V2's corrective actions are part of the V2 record
-  (not folded silently into borrowed V1 lessons).
+  closing report, so the build's corrective actions are part of its own
+  record (not folded silently into the carried lessons).
 - **Signed TP results** per milestone under the same sign-off authority.
 - **Closing findings report** for the V2 build, plus per-milestone
   evidence under the V2 deploy tree (gitignored per convention).
@@ -433,11 +433,11 @@ V2 reproduces the V1 process end-to-end, with V2's own record:
    under the final `ea-*` name).
 2. The rename is its own **micro-gate**: `grep -ri poc` over services/ +
    compose returns only provenance citations — the grep is scoped to the
-   V2-owned trees, with a stated whitelist for the committed V1→V2 mapping
-   table (which itself contains `poc` strings by design); the V1
-   baseline test path re-runs green under `ea` names; registry re-tag
-   verified by **digest equality** with the V1 images (rename without
-   rebuild); one committed V1-name → V2-name mapping table for evidence
-   cross-referencing.
+   V2-owned trees, with a stated whitelist for the committed estate→ea
+   mapping table (which itself contains `poc` strings by design); the
+   estate's baseline test path re-runs green under `ea` names; registry
+   re-tag verified by **digest equality** with the pre-rename images
+   (rename without rebuild); one committed estate-name → ea-name mapping
+   table for evidence cross-referencing.
 3. Post-rename, the affected structural assertions re-run under `ea`
    names before any new feature lands.

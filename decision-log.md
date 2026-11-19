@@ -1,8 +1,9 @@
 # V2 decision log — append-only
 
 Every decision that shapes Version 2 is recorded here with its date,
-rationale, and rejected alternatives. The V1 decisions are inherited from
-the Version 1 (POC) build record; this log starts at the V2 kickoff.
+rationale, and rejected alternatives. This log is the complete decision
+record for the Second Edition; earlier decisions are carried forward as
+this build's own stated facts.
 
 ## 2026-11-08 · V2 kickoff — two-repo split
 
@@ -627,3 +628,43 @@ unnecessary. Decisions recorded in the rewritten
   test semantics, the three failure modes, and the reconnect-after-reboot
   property (TP-V2-M1 assertion 12). Book README Part III updated.
   Commit c6f0842.
+
+## 2026-11-18 — Second-Edition reorganization: repo-wide V1-reference sweep (ADR-0002 follow-on)
+
+- **Decision (owner):** the Second-Edition rule is formalized — this repo is
+  a standalone Second Edition; version 1 (the POC) will be archived and
+  unavailable, so no references or pointers to it may remain anywhere in the
+  repo. This is a follow-on to ADR-0002 (template onboarding): the
+  coexistence rules stay live on the estate, but the documentation no longer
+  names version 1 — live coexistence identifiers (the first organization's
+  `poc-*` containers, `poc-net`, `POC_*` env vars, `/opt/poc` paths, the
+  shared `agent.tasks` exchange) keep their real names and are attributed to
+  the first organization / the neighboring stack on the estate.
+- **Passes 1–3 executed:**
+  - Pass 1 (book): `version 2/book/` made fully self-contained; root `book/`
+    removed; V1 references rewritten as V2 fact.
+  - Pass 2 (deploy): deploy layer consolidated into `deploy-v2/`; the
+    V1-baseline `deploy/` tree deleted; all path references fixed.
+  - Pass 3 (sweep, this entry): repo-wide grep for `V1|version 1|first
+    edition|version 1/|book/ch|poc/|/opt/poc` across md/sh/py/go/yaml/json;
+    every hit categorized and resolved — (a) contract identifiers kept
+    (`message-v1` schema name; M2 gate test-case names V1–V5; "DRAFT v1"
+    document-revision labels); (b) live coexistence identifiers kept and
+    re-attributed to the first organization; (c) dated history left as dated
+    history (this log's dated entries, WORKING-STATE.md dated updates,
+    deploy-v2/m*/decision-log.md, evidence dirs); (d) everything else
+    rewritten as V2 fact — design docs, runbooks, install scripts, compose
+    comments, Go comments, README.
+- **Standing rule superseded:** the rule that the version-1 record is always
+  cited by pinned commit hash is retired. Version 1 references are being
+  eliminated from the repo entirely; the repo's own record (design docs,
+  book, deploy layer, this log) is the provenance.
+- **Rationale (archive-impending):** version 1 will be archived and
+  unavailable. Any reference to it — hash citations, `version 1/` path
+  pointers, "carried from V1" phrasing — would become a dangling pointer the
+  moment the archive lands. Every V1-derived rule/lesson is restated as this
+  build's own statement of fact so the record is self-contained.
+- **Verification:** final grep clean except the categorized exceptions above;
+  README rewritten as the standalone project's front door (no V1 references,
+  no "successor to" framing); WORKING-STATE.md carries a matching dated
+  update. No commit made (owner commits).

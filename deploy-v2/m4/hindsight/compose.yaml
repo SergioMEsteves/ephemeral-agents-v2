@@ -1,9 +1,9 @@
 # M4 — Hindsight (Postgres+pgvector + Go API) on vm-hindsight — V2 ea- stack
-# Source: version 1/installation-deployment/M4-Memory-Knowledge-Installation-and-Deployment.md §1a
-# Coexistence: V1 runs project "hindsight" (poc/hindsight-api:1.0.0, host port 8081,
+# Implements the M4 memory §1a topology (see deploy-v2/RUNBOOK-V2-BUILD.md).
+# Coexistence: the first organization runs project "hindsight" (poc/hindsight-api:1.0.0, host port 8081,
 # volume hindsight_hindsight-pg-data) — V2 must NOT collide with it:
 #   project ea-hindsight · container names ea-hindsight-* · its own volume
-#   ea-hindsight-pg-data (V2 memory starts clean) · host port 8082 (V1 keeps 8081).
+#   ea-hindsight-pg-data (this build's memory starts clean) · host port 8082 (the first organization keeps 8081).
 name: ea-hindsight
 services:
   hindsight-pg:
@@ -32,6 +32,6 @@ services:
         condition: service_healthy
     restart: unless-stopped
     ports:
-      - "8082:8081"   # LAN-reachable API (HINDSIGHT_URL=http://vm-hindsight:8082; UFW 8082 open to the deployment network). V1 keeps 8081.
+      - "8082:8081"   # LAN-reachable API (HINDSIGHT_URL=http://vm-hindsight:8082; UFW 8082 open to the deployment network). The first organization keeps 8081.
 volumes:
   ea-hindsight-pg-data: {}

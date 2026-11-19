@@ -1,5 +1,5 @@
 # M0 — RabbitMQ (Topic) on vm-xb
-# Source: version 1/installation-deployment/M0-Chassis-Installation-and-Deployment.md §3
+# Implements the M0 chassis §3 broker topology (see deploy-v2/RUNBOOK-V2-BUILD.md).
 # Secrets come from .env (gitignored, generated: openssl rand -hex 16) — never committed.
 # ea-named compose project (`m0` — a distinct project name keeps the V2
 # containers from colliding with any other project on the host).

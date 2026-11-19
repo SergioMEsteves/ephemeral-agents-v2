@@ -2,17 +2,16 @@
 # =============================================================================
 # M2 — CONTAINER LIFECYCLE MANAGER: complete installation script
 # =============================================================================
-# Implements §1–§4 of:
-#   version 1/installation-deployment/M2-Lifecycle-Installation-and-Deployment.md
+# Implements §1–§4 of the M2 lifecycle installation procedure
+#   (deploy-v2/RUNBOOK-V2-BUILD.md).
 # Gate afterwards:
-#   version 1/test procedures/M2-Lifecycle-Test-Procedure.md  (TP-M2 must PASS
-#   before the M3 installation may begin)
+#   TP-M2 must PASS before the M3 installation may begin.
 #
 # Steps:
 #   §1  Build + load: ea/lifecycle:1.0.0, ea/worker:1.0.0, ea/executor-stub:1.0.0
 #   §2  Deploy lifecycle + worker on vm-xb + no-pull deploy gate + /health
 #   §3  Verification suite V1..V5 (the M2 gate tests; V4 = crash recovery,
-#       the load-bearing test — failure carries the POC abort condition)
+#       the load-bearing test — failure carries the abort condition)
 #   §4  Observability spot-checks (M2.5)
 #
 # Usage:  bash deploy-v2/m2/install.sh [--check-only] [--no-gate]
@@ -31,7 +30,7 @@
 #   deploy-v2/m2/tests/run-task.sh   deploy-v2/m2/tests/mixed-runs.sh
 #
 # Abort condition (M2 exit gate): if V4 crash-recovery cannot be made to pass
-# after remediation, STOP the POC sequence — R1 is load-bearing.
+# after remediation, STOP the build sequence — R1 is load-bearing.
 # Rollback (doc §5): docker compose down + manual reap of stray containers.
 #
 # FOR THE OPERATOR (junior dev) — read this before running:
@@ -39,9 +38,9 @@
 #      when you know they're green.
 #   2. `bash deploy-v2/m2/install.sh --check-only`   # preview: no changes
 #   3. `bash deploy-v2/m2/install.sh`                # build 3 images -> deploy ->
-#      gate tests V1..V5. V4 (crash recovery) is the POC's load-bearing test.
+#      gate tests V1..V5. V4 (crash recovery) is the load-bearing test.
 #   4. If V4 FAILs: fix per M2 install doc §6, re-run V4 then V5. If it
-#      still cannot pass: STOP — that is the POC abort condition (owner
+#      still cannot pass: STOP — that is the abort condition (owner
 #      decision). Do not paper over it.
 #   5. All V PASS -> run TP-M2 before starting M3.
 #
@@ -241,14 +240,14 @@ gate_tests() {
   } | tee "$out"
   if grep -q "FAIL" "$out"; then
     if grep -q "^V4 crash : FAIL" "$out"; then
-      warn "V4 crash-recovery FAILED — ABORT CONDITION: remediate per M2 §6 (reaper query filter, TTL labels, chrony clock), re-run V4 then V5. If it still cannot pass: STOP the POC sequence (R1 is load-bearing) — owner decision."
+      warn "V4 crash-recovery FAILED — ABORT CONDITION: remediate per M2 §6 (reaper query filter, TTL labels, chrony clock), re-run V4 then V5. If it still cannot pass: STOP the build sequence (R1 is load-bearing) — owner decision."
     else
       warn "M2 gate tests: FAILURES above — remediate per M2 §6, re-run from the failed test."
     fi
     if [ "$NO_GATE" != "1" ]; then exit 1; fi
   else
     ok "M2 gate tests: V1..V5 PASS"
-    log "Next: run TP-M2 — version 1/test procedures/M2-Lifecycle-Test-Procedure.md (file evidence in $EVIDENCE)."
+    log "Next: run TP-M2 (file evidence in $EVIDENCE)."
   fi
 }
 

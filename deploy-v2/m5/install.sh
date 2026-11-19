@@ -2,12 +2,11 @@
 # =============================================================================
 # M5 — END-TO-END + HARDENING: complete installation script (final gate)
 # =============================================================================
-# Implements §1–§7 of:
-#   version 1/installation-deployment/M5-End-to-End-Installation-and-Deployment.md
+# Implements §1–§7 of the M5 end-to-end installation procedure
+#   (deploy-v2/RUNBOOK-V2-BUILD.md).
 # Gate afterwards:
-#   version 1/test procedures/M5-End-to-End-Test-Procedure.md  (TP-M5 = POC
-#   complete: the verdict in Technical-Feasibility-Analysis.md confirmed by
-#   evidence, not by analysis)
+#   TP-M5 = build complete: the feasibility verdict confirmed by
+#   evidence, not by analysis
 #
 # M5 adds NO new infrastructure — it composes what M0–M4 installed and locks
 # the last open items. M5 adds no new Temporal code (all Temporal components
@@ -27,7 +26,7 @@
 # Configuration (env, or deploy-v2/m0/hosts.env — auto-loaded; deploy-v2/m5/.env optional):
 #   VM_XA / VM_XB / VM_3 — ssh aliases (defaults vm-xa/vm-xb/vm-hindsight)
 #   GATEWAY_URL — default "http://<vm-xa-ip-or-name>:8083" (set to the reachable form)
-#   E2E_BRIEF — the task_brief for the acceptance request (default: "add a health endpoint to the POC project")
+#   E2E_BRIEF — the task_brief for the acceptance request (default: "add a health endpoint to the demo project")
 #   E2E_TIMEOUT_S — default 600
 #   M0..M4_DONE=1 — skip the all-gates prereq probe
 #   AGENT_LIST_READ_TOKEN — read token for the agent-roster repo (manager env)
@@ -49,7 +48,7 @@
 #      e2e-deploy S1-S7 -> E2E run -> F1-F4 injections -> hardening scans.
 #   4. A failing E2E stage names its owning milestone: re-run THAT milestone's
 #      gate test (M1 §4 / M2 §3 / M3 §4 / M4 §4), not the whole chain.
-#   5. Final step: run TP-M5. All five done-when conditions hold = POC done.
+#   5. Final step: run TP-M5. All five done-when conditions hold = build done.
 #
 # =============================================================================
 set -euo pipefail
@@ -460,27 +459,28 @@ lock_open_items() {
 - [ ] ephemeral isolation level — co-located containers on vm-xb (POC) vs. per-task VMs (defer)
 - [x] llm-wiki repo curation owner + cadence (from M4) — D-curation (2026-11-04): owner = the Human-In-The-Loop (HITL); append-only, need-driven; record in the llm-wiki repo's CHANGELOG.md
 
-After locking: update version 1/ARCHITECTURE.md + Initial-Foundation-Design-Document.md
+After locking: update the estate's architecture record (ARCHITECTURE.md +
+Initial-Foundation-Design-Document.md)
 (move resolved items out of "open") and add the Version 2 open items list
 (llm-wiki repo curation ownership, long-term queue shape,
 multi-flow concurrency).
 DEC
   fi
-  log "§7   template at $M5/decision-log.md — the operator locks each box, then updates the version 1/ docs"
+  log "§7   template at $M5/decision-log.md — the operator locks each box, then updates the estate's architecture record"
   ok "§7 docs-closeout prepared"
 }
 
 # ---------------------------------------------------------------- POC complete
 ea_complete_summary() {
-  log "POC COMPLETE CHECK (M5 §9 done-when — all five):"
+  log "BUILD COMPLETE CHECK (M5 §9 done-when — all five):"
   local s
   s="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
-  log " 1. E2E run passed, zero surviving POC containers : survivors=$s $([ "$s" = "0" ] && echo '(PASS)' || echo '(CHECK)')"
+  log " 1. E2E run passed, zero surviving executor containers : survivors=$s $([ "$s" = "0" ] && echo '(PASS)' || echo '(CHECK)')"
   log " 2. F1–F4 clean + reported : see $EVIDENCE/failure-injections.txt"
   log " 3. §6 scans pass : see $LOG"
   log " 4. §7 open items locked : see $M5/decision-log.md"
   log " 5. Engineer sees the outcome : report JSON with artifact pointer (GET $GATEWAY_URL/gateway/reports/<task_id>)"
-  log "When 1–5 hold: run TP-M5 (version 1/test procedures/M5-End-to-End-Test-Procedure.md) to sign the POC gate."
+  log "When 1–5 hold: run TP-M5 to sign the final gate."
   ok "M5 install complete"
 }
 
@@ -496,7 +496,7 @@ open_firewall() {
   if ssh "$VM_XA" "sudo -n ufw status 2>/dev/null | grep -q 'Status: active'"; then
     ssh "$VM_XA" "sudo -n ufw allow from $cidr to any port 8083 proto tcp" \
       || die "fw   ufw rule failed on $VM_XA"
-    ok "fw   UFW: 8083 (gateway, V2 — V1 keeps 8080) open on $VM_XA from $cidr"
+    ok "fw   UFW: 8083 (gateway, this build — the first organization keeps 8080) open on $VM_XA from $cidr"
   else
     log "fw   UFW not active on $VM_XA — skipped"
   fi

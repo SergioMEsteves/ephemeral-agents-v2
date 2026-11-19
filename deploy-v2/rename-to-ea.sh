@@ -7,14 +7,14 @@
 # it touches the live estate.
 #
 # What it does (three gated steps, each verified before the next):
-#   1. Registry re-tag: all 9 V1 images re-tagged ea/… on the private
-#      registry — verified by DIGEST EQUALITY with the V1 images
+#   1. Registry re-tag: all 9 estate images re-tagged ea/… on the private
+#      registry — verified by DIGEST EQUALITY with the pre-rename images
 #      (rename without rebuild; a digest mismatch is a hard failure).
 #   2. Queue re-creation: the agent.tasks queue is re-declared ONCE under
 #      the ea-* name WITH the x-max-priority declaration (OQ4 — the
 #      priority field's single redeclare point). Messages are drained to
-#      the V1 queue first and republished to the ea-* queue.
-#   3. Baseline test path re-run under ea names (V1 tests, env-pointed at
+#      the first organization's queue first and republished to the ea-* queue.
+#   3. Baseline test path re-run under ea names (the estate's test scripts, env-pointed at
 #      the ea names) — must be green before any V2 feature lands.
 #
 # De-identification: no IPs/hostnames in this file — everything comes from
@@ -26,8 +26,8 @@ set -euo pipefail
 : "${EXECUTION_HOST:?set EXECUTION_HOST (from the gitignored env inventory)}"
 ASSUME_YES="${ASSUME_YES:-0}"
 
-# Registry-resident truth (verified 2026-11-13): only these 3 V1 images were
-# ever pushed to the private registry (V1 built the other services at install
+# Registry-resident truth (verified 2026-11-13): only these 3 images were
+# ever pushed to the private registry (the other services were built at install
 # time and loaded them directly on the execution VM, no registry). The
 # original 9-image list here was aspirational — the missing 6 abort step 1
 # with "MISSING source". The V2 install layer builds ea-named at build time.
@@ -63,7 +63,7 @@ step1() {
 # --- step 2: queue re-creation under ea-* with x-max-priority ---------------
 step2() {
   echo "== step 2: queue re-creation (agent.tasks -> ea-tasks, x-max-priority) =="
-  confirm "This re-declares the task queue under the ea-* name with x-max-priority. Drain the V1 queue first (it must be empty or its messages republished). Continue?" || return 1
+  confirm "This re-declares the task queue under the ea-* name with x-max-priority. Drain the first organization's queue first (it must be empty or its messages republished). Continue?" || return 1
   ssh "$EXECUTION_HOST" 'docker exec $(docker ps -qf name=rabbitmq) rabbitmqctl list_queues name messages' || true
   # The ea-* queue is declared by the V2 compose/bridge on first connect with
   # x-max-priority=3 — re-created here only if the stack is not yet running:
@@ -86,11 +86,11 @@ PY'
 
 # --- step 3: baseline test path under ea names ------------------------------
 step3() {
-  echo "== step 3: V1 baseline test path re-run under ea names =="
+  echo "== step 3: estate baseline test path re-run under ea names =="
   # The V2 deploy layer (born ea-named) is the run target; until it is
   # installed on the estate this step cannot run — the staged build's
   # chassis/install stages bring it up. This step asserts the precondition
-  # and runs the contract suite + the V1 test scripts pointed at ea names.
+  # and runs the contract suite + the estate's test scripts pointed at ea names.
   if ! ssh "$EXECUTION_HOST" 'docker network inspect ea-net >/dev/null 2>&1'; then
     echo "  precondition not met: ea-net absent — install the V2 deploy layer first (staged build stages 1-2)"; exit 1
   fi

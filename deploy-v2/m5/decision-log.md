@@ -39,8 +39,9 @@
   `skill-and-tools.md`, `behavioral-spec.md`). Rationale: one source of
   truth serves both the human staff directory (the roster documents) and
   the machine catalog — no "documentation copy" that can drift.
-- The version-1 contract doc (`version 1/Available-Agent-List-Repository.md`)
-  remains the baselined design record; this entry is the realizing decision
+- The roster repository's layout contract (`agent-roster` /
+  `available-agent-list` repos; example seed in `deploy-v2/m5/agent-list-example/`)
+  is the baselined design record; this entry is the realizing decision
   per the version-closure rule (nothing is edited inside a baselined doc set).
 - **Estate applied:** m5-manager `AGENT_LIST_REPO` switched to
   `agent-roster.git` and the container recreated; live smoke verified —

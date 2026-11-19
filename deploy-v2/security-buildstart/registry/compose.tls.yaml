@@ -21,7 +21,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./data:/data:rw        # matches the live registry's bind path (2.2G of V1/V2 images)
+      - ./data:/data:rw        # matches the live registry's bind path (2.2G of estate images)
       - ./certs:/certs:ro      # internal-CA leaf (0600 on host)
       - ./auth:/auth:ro        # htpasswd (bcrypt; from .env.registry staging)
 volumes:

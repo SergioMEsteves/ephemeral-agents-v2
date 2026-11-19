@@ -1,105 +1,108 @@
 # ephemeral-agents-v2
 
-**Author:** Ronald A Steinhauer — A&R Visual Development Inc (arvisdev) ·
-**Authorship & provenance:** see [AUTHORSHIP.md](AUTHORSHIP.md) — the
-concept, designs, and specifications are the author's original work
-(conceived May 13, 2026); AI served as directed research assistant, document
-creator, and rules-bound implementer.
+An organization of AI agents that runs real work on real hardware: durable
+orchestration, a role roster, ephemeral single-task workers, scoped
+credentials, and institutional memory. A human talks to the system in
+conversation; the system turns that conversation into approved work
+packages, executes each one in an ephemeral container that gets a real
+token, does the work against a real repo, writes a report, and disappears —
+leaving zero survivors. The manager (deterministic Go, never an agent) is the
+contract-enforcer; the agent proposes, the code disposes.
 
-**Version 2 — the live iteration** of the ephemeral-agents system
-(an organization of AI agents: durable orchestration, a role roster,
-ephemeral single-task workers, scoped credentials, institutional memory).
-
-## The version boundary
-
-| Repo | Visibility | Role |
-|---|---|---|
-| [`ephemeral-agents`](https://github.com/arvisdev/ephemeral-agents) | public | **frozen V1 record** — the POC (M0–M5), its signed gates and evidence trail, the findings report, the retrospective, and the book |
-| **`ephemeral-agents-v2`** (this repo) | private | **the live iteration** — V2 design, executable layer, and evidence |
-
-**Reference rule:** the V1 record is cited by commit hash, never by
-"latest." The V1 baseline this iteration starts from:
+## Architecture
 
 ```
-V1 record: arvisdev/ephemeral-agents @ 4de7a06e69f2dd8163b7b9621950147b438425f3
+desktop (conversation)
+   │
+   ▼
+Chief-of-Staff (resident Hermes agent, VM-Xa)
+   │  proposes work packages
+   ▼
+gateway (ea/gateway, VM-Xa :8083)
+   │
+   ▼
+manager (ea/manager — deterministic Go: validates every proposal
+   │      against the roster index, schema, and manifest)
+   ▼
+queue (RabbitMQ on VM-Xb: ea-tasks → topic-bridge → Temporal workflows)
+   │
+   ▼
+executors (ephemeral containers on VM-Xb: ea/hermes-ephemeral,
+   │        ea/claude-coder — hydrate persona/wiki/memory, scoped
+   │        per-task GitHub token, revoked at reap)
+   ▼
+reports (/reports/<task_id>.json — outcome + artifact pointer)
 ```
 
-The V1 design record is closed to new content (its own baseline rule);
-V2 design docs live in `version 2/` here, never in the V1 repo.
+Supporting services: lifecycle + worker (spawn/reap, response publishing),
+hindsight memory (pgvector store on the memory VM, pointer-store convention),
+llm-proxy (model calls with per-class tokens and spend caps), private
+registry (digest-pinned image sourcing). Isolation ladder: co-located
+containers now (zero-survivors enforced), rootless + egress allow-list as a
+gated follow-up, sandbox rungs trigger-gated.
 
-## Inheritance from V1
+## Getting started
 
-Carried forward unchanged (proven in V1, see the V1 book):
+- **Read the book:** `version 2/book/` — the system in plain language: the
+  architecture, the work order, the executors, the front door, two
+  organizations on one estate, building from scratch, and the Evaluator's
+  Guide.
+- **Deploy:** `deploy-v2/RUNBOOK-V2-BUILD.md` — the staged build from a bare
+  PVE host: chassis (m0) → adapter (m1) → lifecycle (m2) → executors (m3) →
+  memory (m4) → front-of-house + CoS (m5), each stage gated before the next.
+- **Onboard a project:** `deploy-v2/RUNBOOK-V2-NEW-PROJECT.md` — the
+  template-onboarding flow (ADR-0002).
 
-- **Contract:** `schemas/message-v1.json` — the task envelope (seeded here;
-  evolves in this repo from now on).
-- **Shared infrastructure:** `agent-roster` (the role catalog + human staff
-  directory) and the llm-wiki repository serve both versions unchanged.
-- **Credential mechanism:** organization app identity → per-task scoped
-  tokens, verified revocation.
-- **Operational rules:** zero-survivors cleanup, work-order
-  self-sufficiency, gates assert outcomes, nothing load-bearing off
-  source control (V1 book, Chapter 12).
-
-## Known V2 starting priorities (from the V1 retrospective)
-
-1. Boundary contract tests at every seam
-2. Canonical-asset enforcement
-3. The coordinator agent (Chief of Staff) in front of the registrar
-4. N-parallel concurrency with worktree isolation
-5. Per-task isolation upgrade
-6. Embedding provider decision (semantic memory)
-7. Dependency refresh pipeline; transport hardening
-
-## Layout
+## Repo layout
 
 ```
-├── version 2/          V2 design docs (this iteration's doc set: M1 CoS design, platform design, feature list, design-review report)
-├── version 2/book/     The Second Edition book (15 chapters incl. the Evaluator's Guide)
-├── deploy-v2/          The V2 deploy layer (ea-named; milestones m0-m5 + m1-cos, runbooks, contract tests, rename script, security staging)
-├── schemas/            contracts (evolve here)
-├── services/           Go services
-├── decision-log.md     V2 decision log (append-only)
+version 2/            design record + book (M1 CoS design, platform design,
+  book/               impact inventory, issue ledger, ADRs under version 2/)
+deploy-v2/            the deploy layer: m0–m5 installs + gates, runbooks,
+                      contract tests, rename script, security staging
+services/             Go modules (manager, topic-bridge, lifecycle, worker,
+                      hindsight-api, gateway source)
+schemas/              message contract (schemas/message-v1.json — the task
+                      envelope; evolves additively, field+consumer same change)
+WORKING-STATE.md      living continuity (current state, decisions, next actions)
+decision-log.md       append-only decisions (date, rationale, rejected alternatives)
 ```
 
-The V1 POC documents — the signed findings report and the retrospective —
-are **not duplicated here**: they live in the frozen V1 record
-([`ephemeral-agents`](https://github.com/arvisdev/ephemeral-agents)), cited
-by commit `2c97797…` per the reference rule. V2's own findings report and
-issue ledger are closing deliverables of the V2 build (platform design
-§9.6).
+## Honest status
 
+**Proven (gated, signed evidence in `deploy-v2/m*/evidence/`):**
 
-## First milestone — the Chief-of-Staff agent (the agent-judgment layer)
+- The full pipeline end to end: conversation → work package → ephemeral
+  executor → report, zero survivors (M0–M5 gates all PASS).
+- Ephemeral execution with real work: clone → edit → commit → push on a
+  live repo; scoped per-task token issued and revoked (verified dead).
+- Coexistence on one estate: the neighboring first-organization stack and
+  this build run side by side with distinct compose namespaces, queues,
+  volumes, and ports; the queue-direct publish fix removes the first-start
+  race between the two bridges.
+- Memory: fresh pgvector store, hydration contract, pointer-store
+  convention; isolation between the two organizations' stores verified.
+- Failure paths: crash recovery with an independent reaper (the
+  load-bearing test), timeout TTL clamp, restart-durable stack, token
+  revocation race closed.
 
-**The Hermes Chief-of-Staff agent does not exist in V1 and was never claimed
-to.** V1's public record states this explicitly: its front-of-house is
-deterministic Go only (gateway + manager with keyword matching), and the
-agent-judgment layer is *designed* (V1 book, Chapter 10) but unbuilt.
+**Designed but not yet built (tracked in `version 2/V2-gap-analysis.md`):**
 
-**V2's opening work item** is to design, build, gate, and deploy that layer
-here:
+- The CoS itself is the current milestone: its design is complete and
+  reviewed, its runtime is not yet deployed.
+- Rootless execution + egress allow-list (isolation rung A+), digest-pinned
+  spawn path re-verification, capacity model + soak test, key vault,
+  embeddings provider decision, dependency refresh pipeline, multi-project
+  template onboarding (ADR-0002 shape decided, not built).
 
-- **What:** a persistent resident Hermes agent on the front-of-house VM,
-  loaded with the bus-org Chief-of-Staff persona — always-on, stateful
-  across requests, with session continuity (not the ephemeral
-  `eph-chief-of-staff` worker, whose one-package-then-exit contract is wrong
-  for an intake coordinator; that roster entry remains for principals
-  needing coordination artifacts).
-- **Where it sits:** between the unchanged V1-proven gateway and manager:
-  `desktop conversation → gateway → Chief-of-Staff → manager (validates
-  every proposal against the roster index) → queue → ephemeral executor →
-  report`. The principle is unchanged: **the agent proposes, the code
-  disposes.**
-- **What it needs:** no new VM and no new credentials class — the CoS
-  submits through the existing gateway API and is bound by the same
-  validation the manager applies to every package. The first design task is
-  the desktop ↔ CoS connection procedure (network path, authentication, the
-  handoff and the results flowing back).
-- **Gate rule carried forward:** nothing lands here ungated. The CoS gets
-  its own milestone, test procedure, and signed evidence before it is
-  considered real.
+## Authorship
 
-## Deliberately not in git
+Concept, designs, and specifications: Ronald A Steinhauer — A&R Visual
+Development Inc (conceived May 13, 2026); AI served as research assistant
+and rules-bound implementer. See [AUTHORSHIP.md](AUTHORSHIP.md).
 
-Secrets (`*.env`, app keys, tokens), evidence runs (`deploy-v2/m*/evidence/`).
+## License & notices
+
+- [LICENSE](LICENSE)
+- [NOTICE](NOTICE)
+- [THIRDPARTY-NOTICES.md](THIRDPARTY-NOTICES.md)

@@ -2,11 +2,10 @@
 # =============================================================================
 # M4 — MEMORY (Hindsight) + LLM-Wiki git repo: complete installation script
 # =============================================================================
-# Implements §1–§4 of:
-#   version 1/installation-deployment/M4-Memory-Knowledge-Installation-and-Deployment.md
+# Implements §1–§4 of the M4 memory installation procedure
+#   (deploy-v2/RUNBOOK-V2-BUILD.md).
 # Gate afterwards:
-#   version 1/test procedures/M4-Memory-Knowledge-Test-Procedure.md  (TP-M4
-#   must PASS before the M5 installation may begin)
+#   TP-M4 must PASS before the M5 installation may begin.
 #
 # Steps:
 #   §1  Hindsight on vm-hindsight (pgvector + Go API) — NEVER shares a Postgres instance
@@ -72,7 +71,7 @@ done
 VM_3="${VM_3:-vm-hindsight}"; VM_XB="${VM_XB:-vm-xb}"; VM_XA="${VM_XA:-vm-xa}"
 IMAGE_TAG="${IMAGE_TAG:-1.0.0}"
 EMBEDDING_PROVIDER="${EMBEDDING_PROVIDER:-}"
-# Coexistence: V1 hindsight-api owns host port 8081 on vm-hindsight; V2 publishes 8082 (compose 8082:8081).
+# Coexistence: the first organization's hindsight-api owns host port 8081 on vm-hindsight; this build publishes 8082 (compose 8082:8081).
 HINDSIGHT_PORT="${HINDSIGHT_PORT:-8082}"
 HINDSIGHT_URL="http://$VM_3:$HINDSIGHT_PORT"
 
@@ -191,7 +190,7 @@ wire_hydration() {
   # This is a CONFIG change (the M2 Go services are untouched — no new Temporal
   # code): the operator adds the env line to the lifecycle + worker
   # services in /opt/ea/deploy-v2/m2/compose.yaml, then re-up.
-  # V2 wiring mechanism: HINDSIGHT_URL rides the env_file (m3.env), same as V1's
+  # Wiring mechanism: HINDSIGHT_URL rides the env_file (m3.env), same as the estate's
   # operator-added line — executors inherit it from the lifecycle spawn env.
   if ssh "$VM_XB" "grep -q '^HINDSIGHT_URL=' /opt/ea/secrets/m3.env"; then
     log "§2   m3.env carries HINDSIGHT_URL (env_file wiring, idempotent)"
@@ -285,7 +284,7 @@ gate_tests() {
     if [ "$NO_GATE" != "1" ]; then exit 1; fi
   else
     ok "M4 gate tests recorded"
-    log "Next: run TP-M4 — version 1/test procedures/M4-Memory-Knowledge-Test-Procedure.md (file evidence in $EVIDENCE)."
+    log "Next: run TP-M4 (file evidence in $EVIDENCE)."
   fi
 }
 

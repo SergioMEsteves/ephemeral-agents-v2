@@ -59,8 +59,8 @@ are structural, not cosmetic:
 The repo half of the gate (grep audit over V2-owned trees, mapping table)
 landed first; the estate half — re-tag 3/3 digest-identical, stale
 `agent.tasks.dlq` drained, `ea-tasks` declared — followed. Every V2-owned
-component must be `ea-`-named before its first install; the V1 evidence
-baseline is preserved in the frozen V1 record, not in this repo; the V2 layer
+component must be `ea-`-named before its first install; the pre-rename evidence
+baseline is preserved in the owner's archive, not in this repo; the V2 layer
 is `ea-`-named from birth.
 
 ## 14.3 The stage order (the runbook's spine)

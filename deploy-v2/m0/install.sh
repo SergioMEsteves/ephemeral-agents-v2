@@ -2,11 +2,11 @@
 # =============================================================================
 # M0 — CHASSIS: complete installation script
 # =============================================================================
-# Implements §1–§7 of:
-#   version 1/installation-deployment/M0-Chassis-Installation-and-Deployment.md
+# Implements §1–§7 of the M0 chassis installation procedure
+#   (deploy-v2/RUNBOOK-V2-BUILD.md; the book's operator chapter describes
+#   the same procedure in plain language).
 # Gate afterwards:
-#   version 1/test procedures/M0-Chassis-Test-Procedure.md  (TP-M0 must PASS
-#   before the M1 installation may begin)
+#   TP-M0 must PASS before the M1 installation may begin.
 #
 # What this script does (idempotent — safe to re-run; re-run = rebuild):
 #   §1  Provision 3 VMs on the PVE host (vm-xa, vm-xb, vm-hindsight) + base OS
@@ -230,7 +230,7 @@ declare_topology() {
   local m
   # V2 queue family: ea-tasks (durable, x-max-priority 3 — declared exactly once,
   # OQ4 single declaration point), ea-tasks.dlq, ea-tasks.response. The topic
-  # exchange agent.tasks keeps its V1 name (the manager publishes agent.tasks.<capability>).
+  # exchange agent.tasks keeps its shared-estate name (the manager publishes agent.tasks.<capability>).
   m="$(printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" "curl -s -o /dev/null -w '%{http_code}' -K - $base/api/queues/%2F/ea-tasks || true")"
   if [ "$m" = "404" ]; then
     confirm "declare topic exchange agent.tasks + ea-tasks queue + binding + DLQ on $VM_XB"
@@ -287,15 +287,15 @@ PY"; then
     log "§3   queue messages=$n via AMQP 5672 from vm-xa (rabbitmqctl)"
     # Fetch+ack the V2 copy from ea-tasks (mgmt API GET on vm-xb loopback — no
     # consumer on ea-tasks, so nothing else can take it). Note: the exchange
-    # fans out to BOTH queues independently — the V1 bridge's copy (agent.tasks
-    # durable) is a separate delivery; the V1 bridge rejects this non-JSON
-    # payload to agent.tasks.dlq (drained below, V1 cleanup).
+    # fans out to BOTH queues independently — the first organization's bridge's copy (agent.tasks
+    # durable) is a separate delivery; the first organization's bridge rejects this non-JSON
+    # payload to agent.tasks.dlq (drained below, neighboring-stack cleanup).
     printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" 'umask 077; cat > /tmp/rmq-cfg && chmod 600 /tmp/rmq-cfg'
     ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/ea-tasks/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" | grep -q "m0-cross-test" && echo "fetch-ack-ok"; rm -f /tmp/rmq-cfg'
     printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" 'umask 077; cat > /tmp/rmq-cfg && chmod 600 /tmp/rmq-cfg'
     ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/agent.tasks.dlq/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" >/dev/null; rm -f /tmp/rmq-cfg'
     post="$(ssh "$VM_XB" "docker exec rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^(ea-tasks|agent.tasks.dlq)[[:space:]]' | awk '{print \$1, \$2}'" || true)"
-    log "§3   post-test: $post (ea-tasks drained; V1 DLQ drained — V1 cleanup)"
+    log "§3   post-test: $post (ea-tasks drained; the first organization's DLQ drained — its cleanup)"
     return 0
   fi
   log "§3   cross-VM publish: ea-tasks messages=${n:-0} (want >=1) — rabbitmqctl"
@@ -314,11 +314,11 @@ deploy_rabbitmq() {
   fi
   RABBITMQ_PASS="$(grep '^RABBITMQ_PASS=' "$envf" | cut -d= -f2)"
   [ -n "$RABBITMQ_PASS" ] || die "RABBITMQ_PASS missing (generate: openssl rand -hex 16)"
-  # COEXISTENCE MODE (V1 stack running): reuse the live broker — the V1 compose
+  # COEXISTENCE MODE (the first organization's stack running): reuse the live broker — its compose
   # project owns ports 5672/15672 and the container name; a second compose up
-  # would conflict. The V1 container is connected to ea-net with alias rabbitmq
+  # would conflict. The first organization's container is connected to ea-net with alias rabbitmq
   # (the documented coexistence exception to the compose-declared rule — after
-  # the estate switch-over, the V2 compose is the sole source and the V1 tree is
+  # the estate switch-over, the V2 compose is the sole source and the first organization's tree is
   # retired). Post-switch-over: the V2 compose up path is the normal path.
   local rmq_container
   rmq_container="$(ssh "$VM_XB" "docker ps -qf name=rabbitmq" 2>/dev/null || true)"
@@ -377,7 +377,7 @@ PINS
     local tmp_container
     tmp_container="$(ssh "$VM_XB" "docker ps -qf name=temporal-temporal" 2>/dev/null || true)"
     if [ -n "$tmp_container" ]; then
-      # COEXISTENCE MODE: reuse the live temporal stack (V1 compose project) —
+      # COEXISTENCE MODE: reuse the live temporal stack (the first organization's compose project) —
       # the V2 compose up would conflict on the container name/port. The V2
       # compose is staged for the post-switch-over path (not applied).
       log "§4   live temporal stack detected — COEXISTENCE MODE: reuse it"
@@ -501,7 +501,7 @@ gate_summary() {
 
   if [ "$fails" = "0" ]; then
     ok "M0 gate: all 5 acceptance checks PASS"
-    log "Next: run TP-M0 — version 1/test procedures/M0-Chassis-Test-Procedure.md (file evidence in $EVIDENCE)."
+    log "Next: run TP-M0 (file evidence in $EVIDENCE)."
   else
     warn "M0 gate: FAILURES above — remediate per M0 §8, re-run this script (idempotent), then TP-M0."
     if [ "$NO_GATE" != "1" ]; then exit 1; fi

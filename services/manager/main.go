@@ -23,11 +23,13 @@
 //     the ONLY writer of ttl_s: max(3 × B1 boot-time p50, brief estimate) —
 //     and publish it directly to the ea-tasks queue (default exchange,
 //     routing key = queue name). Coexistence fix (2026-11-14): the old path
-//     published to the shared agent.tasks exchange, where BOTH the V1 bridge
-//     (agent.tasks.durable) and the V2 bridge (ea-tasks) are bound — first
-//     WorkflowId start wins, so V1 could execute V2 tasks. Direct-to-queue
-//     publishing removes V1 from the V2 task path entirely; the capability
-//     rides inside the message payload (D-routing key shape preserved for V1).
+//     published to the shared agent.tasks exchange, where BOTH the first organization's bridge
+//     (agent.tasks.durable) and this build's bridge (ea-tasks) are bound —
+//     first WorkflowId start wins, so the first organization could execute
+//     this build's tasks. Direct-to-queue publishing removes the
+//     neighboring stack from the task path entirely; the capability rides
+//     inside the message payload (D-routing key shape preserved for the
+//     shared topic exchange).
 //  5. Consume ea-tasks.response filtered by task_id → write the human
 //     report (outcome + artifact pointer) to /reports/<task_id>.json.
 //
@@ -341,9 +343,9 @@ func (s *server) publish(body []byte, routingKey string) error {
 	defer ch.Close()
 	if s.cfg.tasksExchange == "" {
 		// queue-direct mode: default exchange, routing key = queue name.
-		// Bypasses the shared agent.tasks exchange so V1's bridge (which
-		// binds agent.tasks.# and derives the same WorkflowId) cannot
-		// race V2 tasks to first-start.
+		// Bypasses the shared agent.tasks exchange so the first organization's
+		// bridge (which binds agent.tasks.# and derives the same WorkflowId)
+		// cannot race this build's tasks to first-start.
 		routingKey = s.cfg.tasksQueue
 	} else {
 		if err := ch.ExchangeDeclarePassive(s.cfg.tasksExchange, "topic", true, false, false, false, nil); err != nil {

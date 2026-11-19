@@ -1,7 +1,7 @@
 # M5 — front-of-house on vm-xa: Gateway + Manager Agent — V2 ea- stack
-# Source: version 1/installation-deployment/M5-End-to-End-Installation-and-Deployment.md §1
-# Coexistence: V1 runs project "m5" (poc/gateway, host 8080) on vm-xa — V2 must not
-# collide: project ea-m5 · container names ea-m5-* · gateway publishes 8083:8080 (V1 keeps 8080).
+# Implements the M5 front-of-house §1 topology (see deploy-v2/RUNBOOK-V2-BUILD.md).
+# Coexistence: the first organization runs project "m5" (poc/gateway, host 8080) on vm-xa — this build must not
+# collide: project ea-m5 · container names ea-m5-* · gateway publishes 8083:8080 (the first organization keeps 8080).
 name: ea-m5
 services:
   gateway:
@@ -24,7 +24,7 @@ services:
       RABBITMQ_URL: "amqp://ea:${RABBITMQ_PASS:?set RABBITMQ_PASS in .env}@${BROKER_HOST:?set BROKER_HOST in .env}:5672"
       AGENT_LIST_REPO: "${AGENT_LIST_REPO:?set AGENT_LIST_REPO=https://github.com/arvisdev/agent-roster.git in .env}"  # owner catalog repo (manager embeds GITHUB_READ_TOKEN as x-access-token)
       GITHUB_READ_TOKEN: ${AGENT_LIST_READ_TOKEN}
-      EA_TASKS_QUEUE: "ea-tasks"          # queue-direct publish (default exchange) — V2 coexistence: bypasses the shared agent.tasks exchange so V1's bridge cannot race first-start
+      EA_TASKS_QUEUE: "ea-tasks"          # queue-direct publish (default exchange) — coexistence: bypasses the shared agent.tasks exchange so the first organization's bridge cannot race first-start
       RESPONSE_QUEUE: "ea-tasks.response"
       REPO_TARGET: "repos/ea-demo-repo"   # project repo the manager's tasks write to (manager env contract)
       REPORTS_DIR: "/reports"

@@ -25,11 +25,11 @@
 |---|---|---|
 | Bring-up: `bash deploy-v2/restart-stack.sh <execution-host>` (order: engine+store → broker+bridge → worker+lifecycle → dashboards) | orphaned containers from 2026-11-10 cleanup | estate note |
 | Registry re-tag step 1 of `deploy-v2/rename-to-ea.sh` run (9 images ea/… digest-verified) | micro-gate | §9.7 |
-| Queue re-creation step 2 of `deploy-v2/rename-to-ea.sh`: `ea-tasks` declared **once** with `x-max-priority`; V1 queue drained | micro-gate + OQ4 | §9.7, OQ1/OQ4 |
+| Queue re-creation step 2 of `deploy-v2/rename-to-ea.sh`: `ea-tasks` declared **once** with `x-max-priority`; the first organization's queue drained | micro-gate + OQ4 | §9.7, OQ1/OQ4 |
 | Baseline test path step 3 of `deploy-v2/rename-to-ea.sh` re-run green under ea names | micro-gate | §9.7 |
 | Registry TLS + basic auth applied (`deploy-v2/security-buildstart/registry/compose.tls.yaml` staged from repo); digest-pinned pull path verified by the lifecycle | build-start security | §9.1.1 |
 | Registry GC policy (keep-last-3, 80% disk alert) | unbounded-growth lesson | §9.1.1 |
-| llm-proxy v3 verified mounted from durable `/opt/ea/llm-proxy/` (NOT `/tmp` — the V1 lesson); executor + CoS class tokens wired; bind/allow-list admits VM-Xa | lesson 1 + security | §7.1, §9.1.2 |
+| llm-proxy v3 verified mounted from durable `/opt/ea/llm-proxy/` (NOT `/tmp` — the /tmp lesson); executor + CoS class tokens wired; bind/allow-list admits VM-Xa | lesson 1 + security | §7.1, §9.1.2 |
 | Lifecycle spawn path: digest re-verification + task_id attribution header + tmpfs 0600 GitHub App token | build-start security | §9.1.2, §9.1.5 |
 | Worker publisher-identity control per owner's build-start choice (HMAC field vs interface binding; default B) | dashboard control | §9.1.4 |
 | `restart: unless-stopped` on every service of the Xb stacks | reboot survival baked | §7.5 |

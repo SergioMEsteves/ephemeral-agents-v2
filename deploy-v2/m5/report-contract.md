@@ -1,5 +1,5 @@
 # M5 Report Contract — the human-report endpoint (engineer's desktop ↔ gateway)
-<!-- Source: version 1/installation-deployment/M5-End-to-End-Installation-and-Deployment.md section 2/section 4 -->
+<!-- Implements the M5 §2/§4 endpoint contract (see deploy-v2/RUNBOOK-V2-BUILD.md). -->
 
 The engineer's desktop talks **only to the gateway** (`http://vm-xa:8080`, LAN) —
 the diagram's human-initiated, human-reported scope. This file pins the exact
@@ -26,7 +26,7 @@ agent_ref, behavioral_spec, repo_target, requester, ttl_s}` → topic
 ## Report (desktop → gateway → manager → `/reports/`)
 
 `GET /gateway/reports/<task_id>` — the gateway proxies the manager's
-`/reports/<task_id>.json` (manager volume `/opt/poc/reports:/reports`).
+`/reports/<task_id>.json` (manager volume `/opt/ea/reports:/reports`).
 
 ```json
 {

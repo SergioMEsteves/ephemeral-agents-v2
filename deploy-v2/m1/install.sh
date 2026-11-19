@@ -2,11 +2,10 @@
 # =============================================================================
 # M1 — RABBITMQ → TEMPORAL ADAPTER: complete installation script
 # =============================================================================
-# Implements §0–§4 of:
-#   version 1/installation-deployment/M1-Adapter-Installation-and-Deployment.md
+# Implements §0–§4 of the M1 adapter installation procedure
+#   (deploy-v2/RUNBOOK-V2-BUILD.md).
 # Gate afterwards:
-#   version 1/test procedures/M1-Adapter-Test-Procedure.md  (TP-M1 must PASS
-#   before the M2 installation may begin)
+#   TP-M1 must PASS before the M2 installation may begin.
 #
 # Steps:
 #   §0  Prereq checks (M0: queue exists, Temporal healthy)
@@ -247,7 +246,7 @@ gate_tests() {
     if [ "$NO_GATE" != "1" ]; then exit 1; fi
   else
     ok "M1 gate tests: T1..T5 PASS"
-    log "Next: run TP-M1 — version 1/test procedures/M1-Adapter-Test-Procedure.md (file evidence in $EVIDENCE)."
+    log "Next: run TP-M1 (file evidence in $EVIDENCE)."
   fi
 }
 

@@ -46,5 +46,5 @@ networks:
     external: true
     name: ea-net
 # M3 §2a: llm-proxy twin for the ea estate (claude-code gateway traffic →
-# openrouter). The V1 llm-proxy (poc-net) is left untouched; ea executors
+# openrouter). The first organization's llm-proxy (poc-net) is left untouched; ea executors
 # resolve 'llm-proxy' via the network alias on ea-net.

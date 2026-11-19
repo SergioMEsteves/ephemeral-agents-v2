@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """V2 contract test suite — the reusable suite (platform §9.6 lesson 2:
-"contract tests before gates, not during them"). Replaces V1's
+"contract tests before gates, not during them"). This suite replaces
 per-milestone scripts for the contract boundaries; the milestone-specific
 integration tests (deploy-v2/m*/tests) stay where they are.
 
@@ -31,7 +31,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SCHEMA = os.path.join(REPO, "schemas", "message-v1.json")
 ROSTER = os.environ.get("EA_ROSTER_INDEX",
                         os.path.expanduser("~/Projects/AI/Agents/index.json"))
-DEPLOY = os.path.join(REPO, "deploy")
+DEPLOY = os.path.join(REPO, "deploy-v2")
 
 results = []
 
@@ -104,7 +104,7 @@ UNGUARDED = re.compile(r"\$\{[A-Za-z_][A-Za-z0-9_]*\}")  # ${VAR} without :- def
 
 
 def test_spawn_env():
-    scripts = sorted(glob.glob(os.path.join(DEPLOY, "m*", "executor*", "entrypoint*.sh")))
+    scripts = sorted(glob.glob(os.path.join(DEPLOY, "m*", "*", "entrypoint*.sh")))
     if not scripts:
         check("spawn-env", "entrypoints-found", False, "no entrypoint scripts found")
         return
@@ -116,7 +116,7 @@ def test_spawn_env():
             check("spawn-env", f"{name}: set -u", False, "entrypoint lacks set -u")
             continue
         # under set -u every ${VAR} must carry a default (:- or :=) — the
-        # V1 lesson: an unguarded $TASK_PROMPT crashes the entrypoint.
+        # Lesson: an unguarded $TASK_PROMPT crashes the entrypoint.
         # ${VAR%s}/${VAR#pat} are operator expansions on already-set vars —
         # not unguarded references. $VAR and $(cmd) forms are out of scope
         # (set -u catches bare $VAR; $(cmd) is command substitution).
