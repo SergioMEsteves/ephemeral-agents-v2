@@ -1,8 +1,8 @@
 # M0 — RabbitMQ (Topic) on vm-xb
 # Source: version 1/installation-deployment/M0-Chassis-Installation-and-Deployment.md §3
 # Secrets come from .env (gitignored, generated: openssl rand -hex 16) — never committed.
-# ea-named compose project (V1's /opt/poc/deploy/m0 project is `m0` — a distinct
-# project name keeps the V2 containers from colliding with the live V1 stack).
+# ea-named compose project (`m0` — a distinct project name keeps the V2
+# containers from colliding with any other project on the host).
 name: ea-m0-rabbitmq
 services:
   rabbitmq:

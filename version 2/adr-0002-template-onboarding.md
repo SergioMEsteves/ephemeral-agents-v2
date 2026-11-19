@@ -2,7 +2,7 @@
 
 *Status: Accepted (owner, 2026-11-17). Companion to `V2-M1-cos-design.md`
 §10 (project manifest), `V2-platform-design.md` §6 (isolation ladder), and
-`deploy/RUNBOOK-V2-NEW-PROJECT.md` (the per-project recipe). Written for
+`deploy-v2/RUNBOOK-V2-NEW-PROJECT.md` (the per-project recipe). Written for
 senior technical staff; the plain-language treatment belongs to the V2
 book's multi-project chapter when that edition is written.*
 

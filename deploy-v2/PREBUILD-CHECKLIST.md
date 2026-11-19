@@ -23,11 +23,11 @@
 
 | Item | Why | Source |
 |---|---|---|
-| Bring-up: `bash deploy/restart-stack.sh <execution-host>` (order: engine+store → broker+bridge → worker+lifecycle → dashboards) | orphaned containers from 2026-11-10 cleanup | estate note |
-| Registry re-tag step 1 of `deploy/rename-to-ea.sh` run (9 images ea/… digest-verified) | micro-gate | §9.7 |
-| Queue re-creation step 2 of `deploy/rename-to-ea.sh`: `ea-tasks` declared **once** with `x-max-priority`; V1 queue drained | micro-gate + OQ4 | §9.7, OQ1/OQ4 |
-| Baseline test path step 3 of `deploy/rename-to-ea.sh` re-run green under ea names | micro-gate | §9.7 |
-| Registry TLS + basic auth applied (`deploy/security-buildstart/registry/compose.tls.yaml` staged from repo); digest-pinned pull path verified by the lifecycle | build-start security | §9.1.1 |
+| Bring-up: `bash deploy-v2/restart-stack.sh <execution-host>` (order: engine+store → broker+bridge → worker+lifecycle → dashboards) | orphaned containers from 2026-11-10 cleanup | estate note |
+| Registry re-tag step 1 of `deploy-v2/rename-to-ea.sh` run (9 images ea/… digest-verified) | micro-gate | §9.7 |
+| Queue re-creation step 2 of `deploy-v2/rename-to-ea.sh`: `ea-tasks` declared **once** with `x-max-priority`; V1 queue drained | micro-gate + OQ4 | §9.7, OQ1/OQ4 |
+| Baseline test path step 3 of `deploy-v2/rename-to-ea.sh` re-run green under ea names | micro-gate | §9.7 |
+| Registry TLS + basic auth applied (`deploy-v2/security-buildstart/registry/compose.tls.yaml` staged from repo); digest-pinned pull path verified by the lifecycle | build-start security | §9.1.1 |
 | Registry GC policy (keep-last-3, 80% disk alert) | unbounded-growth lesson | §9.1.1 |
 | llm-proxy v3 verified mounted from durable `/opt/ea/llm-proxy/` (NOT `/tmp` — the V1 lesson); executor + CoS class tokens wired; bind/allow-list admits VM-Xa | lesson 1 + security | §7.1, §9.1.2 |
 | Lifecycle spawn path: digest re-verification + task_id attribution header + tmpfs 0600 GitHub App token | build-start security | §9.1.2, §9.1.5 |
@@ -67,17 +67,17 @@
 - [x] M1 manager changes written + tested (priority enum, approval_hash)
 - [x] message-v1 schema: `priority` + `approval_hash` added (field+consumer same change)
 - [x] Contract test suite green (14/14 checks)
-- [x] `deploy/rename-to-ea.sh` staged (syntax-checked; NOT run)
+- [x] `deploy-v2/rename-to-ea.sh` staged (syntax-checked; NOT run)
 - [x] Security staging templates + secret inventory (placeholders only)
 - [ ] Owner declares the build start
 
 ## Build-phase deliverable added 2026-11-11 (owner question: "complete enough for a clean build by someone new?")
 
 - **V2 clean-build runbook — DELIVERED (drafted) 2026-11-11 (`165a239`):**
-  `deploy/RUNBOOK-V2-BUILD.md` (owner inputs, S0–S7 stages with gates and
+  `deploy-v2/RUNBOOK-V2-BUILD.md` (owner inputs, S0–S7 stages with gates and
   secret staging; steps marked ⟂FINALIZE get their exact values pinned by
   the build stage that first exercises them — the build edits the runbook
-  in the same turn) and `deploy/RUNBOOK-V2-NEW-PROJECT.md` (the
+  in the same turn) and `deploy-v2/RUNBOOK-V2-NEW-PROJECT.md` (the
   per-project/dev-team replication recipe: shared spine, per-project
   VM-Xa + manifest + CoS profile + desktop entry). Done-criterion remains:
   a stranger can rebuild from a bare PVE host using only committed files —

@@ -117,7 +117,7 @@ Two things changed around the shape, though:
    either), because a registrar that refuses to be the reason work stops
    remains a property worth keeping.
 2. **The index is now a standing test target.** The V2 contract test suite
-   (`deploy/contract-tests/run.py`) validates the roster itself as a
+   (`deploy-v2/contract-tests/run.py`) validates the roster itself as a
    prerequisite artifact: the index is present and non-empty, every entry
    is shape-complete and unique, and every `spec_ref` resolves to a real
    file — with schema-negative message cases beside it (out-of-range

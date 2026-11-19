@@ -2,7 +2,7 @@
 """V2 contract test suite — the reusable suite (platform §9.6 lesson 2:
 "contract tests before gates, not during them"). Replaces V1's
 per-milestone scripts for the contract boundaries; the milestone-specific
-integration tests (deploy/m*/tests) stay where they are.
+integration tests (deploy-v2/m*/tests) stay where they are.
 
 Contracts covered (each names the artifact it proves — lesson 3):
   1. message-v1   — schemas/message-v1.json: required fields, enums,

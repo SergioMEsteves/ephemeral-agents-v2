@@ -49,7 +49,7 @@ func main() {
 }
 
 // Config is the service configuration, sourced from the environment per the
-// compose block in deploy/m4/hindsight/compose.yaml.
+// compose block in deploy-v2/m4/hindsight/compose.yaml.
 type Config struct {
 	Listen            string // LISTEN, default 0.0.0.0:8081
 	DBDSN             string // DB_DSN

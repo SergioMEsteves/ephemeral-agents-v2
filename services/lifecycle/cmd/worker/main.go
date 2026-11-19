@@ -19,7 +19,7 @@
 // executor via the lifecycle API, polls until complete/failed/TTL, reaps,
 // publishes {task_id, status, artifact} to ea-tasks.response, and returns.
 //
-// Config (env, per deploy/m2/compose.yaml):
+// Config (env, per deploy-v2/m2/compose.yaml):
 //
 //	TEMPORAL_ADDR=temporal:7233
 //	LIFECYCLE_API=http://lifecycle:8090

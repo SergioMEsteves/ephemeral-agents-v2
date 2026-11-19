@@ -10,7 +10,7 @@
 # Env: VM_XB (default vm-xb), RUN_TASK (default deploy-v2/m2/tests/run-task.sh)
 #
 # Output: a markdown table (per-run seconds + p50) on stdout — install.sh tees
-# it to deploy/m3/evidence/boot-time-table.txt.
+# it to deploy-v2/m3/evidence/boot-time-table.txt.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

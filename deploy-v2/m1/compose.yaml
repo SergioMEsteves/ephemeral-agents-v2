@@ -1,7 +1,7 @@
 # M1 — topic-bridge deployment on vm-xb
 # Source: version 1/installation-deployment/M1-Adapter-Installation-and-Deployment.md §3
-# ea-named compose project (V1's /opt/poc/deploy/m1 project is `m1` — a distinct
-# project name keeps the V2 containers from colliding with the live V1 stack).
+# ea-named compose project (`m1` — a distinct project name keeps the V2
+# containers from colliding with any other project on the host).
 name: ea-m1
 services:
   topic-bridge:

@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# check-workstation.sh — verify the build workstation is ready for the POC.
+# check-workstation.sh — verify the build workstation is ready for the V2 build.
 #
-# Run this BEFORE deploy/m0/install.sh. It checks every prerequisite the
-# install scripts assume (see deploy/README.md, "First time on this POC?"):
+# Run this BEFORE deploy-v2/m0/install.sh. It checks every prerequisite the
+# install scripts assume (see deploy-v2/README.md):
 #   - local tools: docker (+ buildx), go, temporal CLI, gh, rsync
-#   - SSH key auth as user 'poc' to PVE_HOST and the four POC VMs
-#   - passwordless sudo on those hosts (ssh poc@host 'sudo -n true')
+#   - SSH key auth to PVE_HOST and the four VMs
+#   - passwordless sudo on those hosts (ssh <user>@host 'sudo -n true')
 # Exits non-zero on the first hard failure; exits 0 when everything checked.
 #
 # Usage:
-#   bash deploy/check-workstation.sh            # full check
-#   bash deploy/check-workstation.sh --help     # this text
+#   bash deploy-v2/check-workstation.sh            # full check
+#   bash deploy-v2/check-workstation.sh --help     # this text
 set -euo pipefail
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -19,13 +19,13 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-HOSTS_ENV="$REPO_ROOT/deploy/m0/hosts.env"
+HOSTS_ENV="$REPO_ROOT/deploy-v2/m0/hosts.env"
 
 fail() { echo "FAIL: $*" >&2; exit 1; }
 ok()   { echo "PASS: $*"; }
 
 # --- local tools -------------------------------------------------------------
-command -v docker >/dev/null 2>&1 || fail "docker not found on PATH — install Docker (see deploy/README.md)"
+command -v docker >/dev/null 2>&1 || fail "docker not found on PATH — install Docker (see deploy-v2/README.md)"
 docker buildx version >/dev/null 2>&1 || fail "docker buildx not available — install the buildx plugin"
 ok "docker + buildx present"
 
@@ -38,13 +38,13 @@ ok "temporal CLI present"
 command -v gh >/dev/null 2>&1 || fail "gh not found on PATH — install the GitHub CLI and log in (gh auth login)"
 ok "gh present"
 
-command -v rsync >/dev/null 2>&1 || fail "rsync not found on PATH — the install scripts use rsync to stage deploy/"
+command -v rsync >/dev/null 2>&1 || fail "rsync not found on PATH — the install scripts use rsync to stage deploy-v2/"
 ok "rsync present"
 
 # --- hosts.env ---------------------------------------------------------------
 if [[ ! -f "$HOSTS_ENV" ]]; then
-  echo "SKIP: $HOSTS_ENV not found — copy deploy/m0/hosts.env.example to"
-  echo "      deploy/m0/hosts.env and fill it in, then re-run this script."
+  echo "SKIP: $HOSTS_ENV not found — copy deploy-v2/m0/hosts.env.example to"
+  echo "      deploy-v2/m0/hosts.env and fill it in, then re-run this script."
   echo "      (Tool checks above still ran; SSH/sudo checks need hosts.env.)"
   exit 0
 fi
@@ -62,7 +62,7 @@ for host in "${ALL_HOSTS[@]}"; do
     target="poc@$host"
   fi
   ssh -o BatchMode=yes -o ConnectTimeout=10 "$target" true 2>/dev/null \
-    || fail "ssh key auth to '$target' failed — authorize your public key for that host (deploy/README.md)"
+    || fail "ssh key auth to '$target' failed — authorize your public key for that host (deploy-v2/README.md)"
   ok "ssh key auth to $target"
   # --- passwordless sudo (the VMs need it: netplan in m0, /etc/hosts in m4) ---
   if [[ "$host" != "$PVE_HOST" ]]; then

@@ -2,8 +2,8 @@
 # Source: version 1/installation-deployment/M0-Chassis-Installation-and-Deployment.md §4
 # This Postgres belongs to Temporal only — vm-hindsight gets its own in M4.
 # Do not share instances.
-# ea-named compose project (V1's /opt/poc/deploy/m0 project is `m0` — a distinct
-# project name keeps the V2 containers from colliding with the live V1 stack).
+# ea-named compose project (`m0` — a distinct project name keeps the V2
+# containers from colliding with any other project on the host).
 name: ea-m0-temporal
 services:
   temporal:

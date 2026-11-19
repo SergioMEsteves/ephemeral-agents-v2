@@ -1,7 +1,7 @@
 # M2 — lifecycle + worker deployment on vm-xb
 # Source: version 1/installation-deployment/M2-Lifecycle-Installation-and-Deployment.md §2
-# ea-named compose project (V1's /opt/poc/deploy/m2 project is `m2` — a distinct
-# project name keeps the V2 containers from colliding with the live V1 stack).
+# ea-named compose project (`m2` — a distinct project name keeps the V2
+# containers from colliding with any other project on the host).
 # M2-era compose state: the stub pin ONLY (the M2 gate proves lifecycle mechanics
 # with zero agent logic — the M2 doc's compose has no executor default). The M3-era
 # executor config (EA_IMAGE_HERMES/CODER switch, EA_EXECUTOR_DEFAULT, m3.env

@@ -25,7 +25,7 @@ import (
 )
 
 // Store is the Postgres+pgvector memory store (table memory_entries per
-// deploy/m4/hindsight/initdb.sql).
+// deploy-v2/m4/hindsight/initdb.sql).
 type Store struct {
 	db  *sql.DB
 	dim int

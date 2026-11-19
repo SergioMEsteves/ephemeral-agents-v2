@@ -26,10 +26,9 @@ Rules:
   gated change to `services/` (env wiring) and the V2 compose/deploy layer,
   plus registry re-tag/re-push of the executor images. It is the *opening
   action of the V2 build phase*, not a retroactive edit.
-- **The baseline-synced `deploy/` tree keeps V1 names until that build
-  action lands** — it is verbatim V1 evidence (the signed M0–M5 gate runs
-  reference those exact names), and renaming it silently would break
-  traceability to the V1 record.
+- **The V1 evidence baseline is preserved in the frozen V1 record, not in
+  this repo** — the signed M0–M5 gate runs reference those exact V1 names,
+  and the V2 repo carries the V2 deploy layer only.
 - **From the build action onward, V2 design docs reference only V2
   names.** V1 components carried forward unchanged (e.g. VM-Xb's stack)
   are stated once, as provenance ("carried forward from the V1 baseline @
@@ -434,8 +433,7 @@ V2 reproduces the V1 process end-to-end, with V2's own record:
    under the final `ea-*` name).
 2. The rename is its own **micro-gate**: `grep -ri poc` over services/ +
    compose returns only provenance citations — the grep is scoped to the
-   V2-owned trees, **excluding** the baseline-synced `deploy/` evidence
-   tree and with a stated whitelist for the committed V1→V2 mapping
+   V2-owned trees, with a stated whitelist for the committed V1→V2 mapping
    table (which itself contains `poc` strings by design); the V1
    baseline test path re-runs green under `ea` names; registry re-tag
    verified by **digest equality** with the V1 images (rename without

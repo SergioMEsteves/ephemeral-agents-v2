@@ -54,11 +54,10 @@ Carried forward unchanged (proven in V1, see the V1 book):
 ## Layout
 
 ```
-├── book/               The V1 record's book, synced at the baseline hash (15 chapters incl. the Evaluator's Guide) - V2 extends or supersedes, never silently rewrites
-├── deploy/             The V1-proven executable layer, synced at the baseline hash (idempotent install scripts, compose files, restart-stack.sh) - V2's live deploy layer evolves from here; V1 names retained until the ea- rename lands (platform design §1)
 ├── version 2/          V2 design docs (this iteration's doc set: M1 CoS design, platform design, feature list, design-review report)
-├── schemas/            contracts (seeded from V1; evolves here)
-├── deploy/             the live executable layer (built up as milestones land)
+├── version 2/book/     The Second Edition book (15 chapters incl. the Evaluator's Guide)
+├── deploy-v2/          The V2 deploy layer (ea-named; milestones m0-m5 + m1-cos, runbooks, contract tests, rename script, security staging)
+├── schemas/            contracts (evolve here)
 ├── services/           Go services
 ├── decision-log.md     V2 decision log (append-only)
 ```
@@ -103,4 +102,4 @@ here:
 
 ## Deliberately not in git
 
-Secrets (`*.env`, app keys, tokens), evidence runs (`deploy/*/evidence/`).
+Secrets (`*.env`, app keys, tokens), evidence runs (`deploy-v2/m*/evidence/`).

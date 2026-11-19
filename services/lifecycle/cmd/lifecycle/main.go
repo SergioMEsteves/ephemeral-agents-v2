@@ -15,7 +15,7 @@
 // Command lifecycle is the M2 lifecycle service: the compose-network HTTP API
 // (spawn/status/reap/health/report) plus the label-based reaper backstop loop.
 //
-// Config (env, per deploy/m2/compose.yaml):
+// Config (env, per deploy-v2/m2/compose.yaml):
 //
 //	DOCKER_HOST=unix:///var/run/docker.sock
 //	LISTEN=0.0.0.0:8090

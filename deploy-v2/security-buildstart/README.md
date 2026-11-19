@@ -10,13 +10,13 @@
 
 | Secret | Class | Staged in (gitignored) | Rotation expectation |
 |---|---|---|---|
-| Registry basic-auth (user/pass) | estate-wide | `deploy/.env.registry` (0600) | rotate at each milestone gate |
-| Registry internal-CA cert + key | estate-wide | `deploy/.env.registry` / cert dir on registry VM (0600) | long-lived internal CA; leaf per year |
-| llm-proxy executor-class token | per executor class | `deploy/m3/.env` (0600) | rotate at each milestone gate |
+| Registry basic-auth (user/pass) | estate-wide | `deploy-v2/.env.registry` (0600) | rotate at each milestone gate |
+| Registry internal-CA cert + key | estate-wide | `deploy-v2/.env.registry` / cert dir on registry VM (0600) | long-lived internal CA; leaf per year |
+| llm-proxy executor-class token | per executor class | `deploy-v2/m3/.env` (0600) | rotate at each milestone gate |
 | llm-proxy CoS-class token | CoS only | front-of-house VM `cos.env` (0600, tmpfs-mounted into the profile) | rotate at each milestone gate |
 | Hindsight write token (CoS) | CoS only | front-of-house VM `cos.env` (0600) | rotate at each milestone gate |
-| Hindsight read token (executors) | executor class | `deploy/m4/.env` (0600) | rotate at each milestone gate |
-| Dashboard publisher HMAC key | owner-decided control | `deploy/m2/.env` (0600) | rotate at each milestone gate |
+| Hindsight read token (executors) | executor class | `deploy-v2/m4/.env` (0600) | rotate at each milestone gate |
+| Dashboard publisher HMAC key | owner-decided control | `deploy-v2/m2/.env` (0600) | rotate at each milestone gate |
 
 `deploy/.env.*` patterns are already gitignored (verify with
 `git check-ignore` before staging anything real).
@@ -29,7 +29,7 @@ Target state on the registry VM (`:5000`):
   digest re-verification in the lifecycle spawn path.
 - Retention/GC: keep-last-3 per tag, disk alert at 80%.
 - Credential distribution: registry basic-auth is held by the install
-  scripts' env only (`deploy/.env.registry`), never in compose files.
+  scripts' env only (`deploy-v2/.env.registry`), never in compose files.
 
 Template: `registry/compose.tls.yaml` (below) is applied at the
 build-start security stage, not now.

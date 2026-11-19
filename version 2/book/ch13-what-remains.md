@@ -145,7 +145,7 @@ first solution, and written down both times.**
 
 - **If you are the decision-maker:** the new fact since the first book is
   §13.1's last row — the platform claim (many teams, one estate) has its
-  first evidence, and the onboarding recipe exists (`deploy/RUNBOOK-V2-NEW-PROJECT.md`).
+  first evidence, and the onboarding recipe exists (`deploy-v2/RUNBOOK-V2-NEW-PROJECT.md`).
   The question is no longer "does this work?" but "which team goes
   second?"
 - **If you are the architect:** Part II as rebuilt is the diff you would

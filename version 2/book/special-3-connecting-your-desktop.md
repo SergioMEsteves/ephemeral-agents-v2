@@ -7,7 +7,7 @@
 > Desktop ever holds), how to test the link, and what each failure means
 > when the test does not pass. It is written so a non-technical reader can
 > follow it end to end; the operator's gate version of the same procedure
-> is stage S7 of `deploy/RUNBOOK-V2-BUILD.md`.
+> is stage S7 of `deploy-v2/RUNBOOK-V2-BUILD.md`.
 
 ## What you are connecting to
 

@@ -6,7 +6,7 @@
 > already running — from committed files, in three days, without stopping
 > the first one?"* The answer is yes, and this is the chapter a new operator
 > reads first. Its spine is the committed runbook
-> (`deploy/RUNBOOK-V2-BUILD.md`); this chapter tells the story and the
+> (`deploy-v2/RUNBOOK-V2-BUILD.md`); this chapter tells the story and the
 > lessons, the runbook carries the exact commands.
 
 ## 14.1 What you supply (the complete list)
@@ -59,8 +59,9 @@ are structural, not cosmetic:
 The repo half of the gate (grep audit over V2-owned trees, mapping table)
 landed first; the estate half — re-tag 3/3 digest-identical, stale
 `agent.tasks.dlq` drained, `ea-tasks` declared — followed. Every V2-owned
-component must be `ea-`-named before its first install; the baseline
-`deploy/` layer keeps the first build's names deliberately, as the frozen evidence path.
+component must be `ea-`-named before its first install; the V1 evidence
+baseline is preserved in the frozen V1 record, not in this repo; the V2 layer
+is `ea-`-named from birth.
 
 ## 14.3 The stage order (the runbook's spine)
 

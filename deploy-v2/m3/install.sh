@@ -219,7 +219,7 @@ stage_m3_secrets() {
   # env keys m3FromEnv() expects (GITHUB_APP_ID/INSTALLATION_ID, MODEL_DEFAULT,
   # ANTHROPIC_API_KEY base, etc.). The token script runs on the VM; repo copy is
   # the source of truth.
-  ssh "$VM_XB" "sudo mkdir -p /opt/ea/secrets /opt/ea/deploy/m3 && sudo chown -R \"\$(id -un):\$(id -gn)\" /opt/ea/secrets /opt/ea/deploy/m3"
+  ssh "$VM_XB" "sudo mkdir -p /opt/ea/secrets /opt/ea/deploy-v2/m3 && sudo chown -R \"\$(id -un):\$(id -gn)\" /opt/ea/secrets /opt/ea/deploy-v2/m3"
   # NOTE: no `die` inside remote commands — it's a local function. Also no
   # `sudo test` — sudo can't run shell builtins; use `sudo bash -c`.
   ssh "$VM_XB" "sudo bash -c 'test -r /opt/poc/secrets/app-key.pem'" \
@@ -227,9 +227,9 @@ stage_m3_secrets() {
   ssh "$VM_XB" "sudo cp /opt/poc/secrets/app-key.pem /opt/ea/secrets/app-key.pem" \
     || die "app-key copy from V1 failed"
   ssh "$VM_XB" "sudo bash -c 'test -r /opt/poc/secrets/m3.env && cp /opt/poc/secrets/m3.env /opt/ea/secrets/m3.env || true'"
-  ssh "$VM_XB" "sudo chmod 600 /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chown arvisdev:arvisdev /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chmod 700 /opt/ea/deploy/m3"
-  rsync -az "$M3/issue-token.sh" "$VM_XB:/opt/ea/deploy/m3/issue-token.sh" \
-    && ssh "$VM_XB" "chmod 700 /opt/ea/deploy/m3/issue-token.sh" \
+  ssh "$VM_XB" "sudo chmod 600 /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chown arvisdev:arvisdev /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chmod 700 /opt/ea/deploy-v2/m3"
+  rsync -az "$M3/issue-token.sh" "$VM_XB:/opt/ea/deploy-v2/m3/issue-token.sh" \
+    && ssh "$VM_XB" "chmod 700 /opt/ea/deploy-v2/m3/issue-token.sh" \
     || die "issue-token.sh rsync failed"
   # verify the staged m3.env carries the keys m3FromEnv() needs (names only)
   local missing_keys
@@ -265,7 +265,7 @@ services:
       - /opt/ea/secrets/m3.env                # M3 §2 per-run secrets (never in git/images)
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "/opt/ea/deploy/m3:/opt/ea/deploy/m3:ro"   # M3 §1c: token-issuance script
+      - "/opt/ea/deploy-v2/m3:/opt/ea/deploy-v2/m3:ro"   # M3 §1c: token-issuance script
       - "/opt/ea/secrets:/opt/ea/secrets:ro"       # M3 §1c: app-key.pem (read-only)
       - "/var/ea/tasks:/var/ea/tasks"
     restart: unless-stopped

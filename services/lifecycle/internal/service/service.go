@@ -362,7 +362,7 @@ func (s *Service) issueToken() (string, error) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	out, err := exec.CommandContext(ctx, "/opt/ea/deploy/m3/issue-token.sh").Output()
+	out, err := exec.CommandContext(ctx, "/opt/ea/deploy-v2/m3/issue-token.sh").Output()
 	if err != nil {
 		return "", fmt.Errorf("issue-token.sh: %w", err)
 	}

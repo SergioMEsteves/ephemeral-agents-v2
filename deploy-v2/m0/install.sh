@@ -220,7 +220,7 @@ open_firewall() {
     return 0
   fi
   ssh "$VM_XB" "sudo -n ufw allow from $cidr to any port 5672 proto tcp && sudo -n ufw allow from $cidr to any port 7233 proto tcp" \
-    || die "§2a   ufw rules failed on $VM_XB (passwordless sudo required — deploy/README)"
+    || die "§2a   ufw rules failed on $VM_XB (passwordless sudo required — deploy-v2/README)"
   ok "§2a   UFW: 5672 (AMQP) + 7233 (Temporal) open on $VM_XB from $cidr"
 }
 

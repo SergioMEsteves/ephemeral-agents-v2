@@ -2,9 +2,8 @@
 
 > Recorded at the opening of the V2 build phase per
 > `V2-platform-design.md` §1 and the rename micro-gate (§9.7).
-> Scope note: the baseline-synced `deploy/` tree keeps its V1 names — it is
-> verbatim V1 evidence and renaming it silently would break traceability to
-> the signed M0–M5 gate runs. Every V2-owned component created from here on
+> Scope note: the V1 evidence baseline is preserved in the frozen V1 record,
+> not in this repo; the V2 repo carries the `ea-`-named V2 deploy layer only. Every V2-owned component created from here on
 > uses the `ea-` family from birth; nothing in V2-owned code re-defines
 > these mappings.
 

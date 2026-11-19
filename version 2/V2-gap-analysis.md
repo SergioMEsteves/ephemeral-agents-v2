@@ -22,7 +22,7 @@
 | G-3 | Desktop↔gateway registry connection (session-token auth, reconnection) — specified (M1 §3), not implemented on the workstation side. | **[B]** | M1 build; TP assertion 12 |
 | G-4 | Go services ported ea-named and unit-tested locally, but **not built as images, not deployed, not integration-tested on the estate**. Harness-verified ≠ integration-verified (lesson 4). | **[B]** | staged build (chassis → smoke) |
 | G-5 | The M1 manager changes (priority validation, approval-hash ledger) are unit-tested pure logic; the wiring into the manager's publish path (where retries actually happen) is minimal — the retry path integration test does not exist yet. | **[G]** | contract suite extension + TP assertions 2/10 |
-| G-6 | `deploy/rename-to-ea.sh` staged, never run: registry re-tag by digest, `ea-tasks` queue with `x-max-priority`, baseline re-run. Estate untouched. | **[B]** | declare-start, first estate session |
+| G-6 | `deploy-v2/rename-to-ea.sh` staged, never run: registry re-tag by digest, `ea-tasks` queue with `x-max-priority`, baseline re-run. Estate untouched. | **[B]** | declare-start, first estate session |
 | G-7 | Executor images still carry V1 registry names; digest-pinned pulls (`ea/…@sha256:…`) with lifecycle re-verification are designed, not implemented in the spawn path. | **[G]** | build-start security stage |
 
 ## 3. Estate-readiness gaps (per PREBUILD-CHECKLIST.md, all owner-executed at declare-start)

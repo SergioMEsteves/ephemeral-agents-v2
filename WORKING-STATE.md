@@ -76,7 +76,7 @@ record now complete; the declare-start gate stands.*
     (:15672, LAN-open by owner decision 2026-11-08), worker, bridge,
     lifecycle, llm-proxy (v3, mounts from /opt/poc/llm-proxy/)
   - memory VM: hindsight API :8081; registry VM: private registry :5000
-  - post-reboot bring-up: `bash deploy/restart-stack.sh <execution-host>`
+  - post-reboot bring-up: `bash deploy-v2/restart-stack.sh <execution-host>`
   - **2026-11-13 (second) — S0 CHASSIS EXECUTED + fixed.** Owner §9.1
   decisions at build start: dashboard control = interface binding
   (no schema touch); registry transport = TLS + basic-auth primary;
@@ -372,8 +372,8 @@ proposes, the code disposes** — the manager validates every proposal.
 ```
 WORKING-STATE.md      this file — read first every session
 version 2/            V2 design docs (V2-M1 design lands here)
-book/                 V1 record's book, synced @ baseline (15 chapters)
-deploy/               V1-proven executable layer, synced @ baseline
+version 2/book/       Second Edition book (15 chapters)
+deploy-v2/            V2 deploy layer (ea-named; m0-m5 + m1-cos)
 schemas/              message-v1 contract (seeded from V1)
 decision-log.md       V2 decision log (append-only)
 services/             Go services (evolve here as milestones require)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# M3 token issuance (R4) — deploy/m3/issue-token.sh  (runs on vm-xb)
+# M3 token issuance (R4) — deploy-v2/m3/issue-token.sh  (runs on vm-xb)
 # =============================================================================
 # M3 install doc §1c: JWT-signed, curl + openssl, ~20 lines:
 #   1) JWT: RS256, aud=https://api.github.com/app, iat/exp (15 min)
