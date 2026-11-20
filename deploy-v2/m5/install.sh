@@ -171,7 +171,7 @@ build_and_deploy_front_of_house() {
   docker build -f "$M5/Dockerfile" "$REPO_ROOT/services/gateway" -t "ea/gateway:$IMAGE_TAG"
   docker build -f "$M5/Dockerfile" "$REPO_ROOT/services/manager"  -t "ea/manager:$IMAGE_TAG"
   docker save "ea/gateway:$IMAGE_TAG" "ea/manager:$IMAGE_TAG" | ssh "$VM_XA" "docker load"
-  ssh "$VM_XA" "sudo mkdir -p /opt/ea/deploy-v2/m5 /opt/ea/reports && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
+  ssh "$VM_XA" "sudo mkdir -p /opt/ea/deploy-v2/m5 /opt/ea/reports && sudo chown -R poc:poc /opt/ea"
   rsync -az "$M5/compose.yaml" "$VM_XA:/opt/ea/deploy-v2/m5/compose.yaml"
   # .env: RABBITMQ_PASS always (compose interpolation); AGENT_LIST_READ_TOKEN when provided.
   local rmp; rmp="$(grep '^RABBITMQ_PASS=' "$REPO_ROOT/deploy-v2/m0/rabbitmq/.env" | cut -d= -f2)"
@@ -180,6 +180,8 @@ build_and_deploy_front_of_house() {
     printf '%s\n' "RABBITMQ_PASS=$rmp"
     printf '%s\n' "AGENT_LIST_REPO=${AGENT_LIST_REPO:-https://github.com/arvisdev/agent-roster.git}"
     printf '%s\n' "BROKER_HOST=${BROKER_HOST:-192.0.2.11}"
+    printf '%s\n' "HINDSIGHT_HOST=${HINDSIGHT_HOST:-${VM_HINDSIGHT:-192.0.2.12}}"
+    [ -n "${OPENROUTER_API_KEY:-}" ] && printf '%s\n' "OPENROUTER_API_KEY=$OPENROUTER_API_KEY"
     if [ -n "${AGENT_LIST_READ_TOKEN:-}" ]; then
       printf '%s\n' "AGENT_LIST_READ_TOKEN=$AGENT_LIST_READ_TOKEN"
     fi
@@ -517,7 +519,7 @@ ea_complete_summary() {
 # POC LAN, so its source is GATEWAY_ALLOW_CIDR (defaults to the POC LAN).
 open_firewall() {
   local cidr="${GATEWAY_ALLOW_CIDR:-${UFW_POC_CIDR:-}}"
-  [ -n "$cidr" ] || cidr="${NETPLAN_IP_XA%.*}.0/24"
+  [ -n "$cidr" ] || cidr="${NETPLAN_IP_XA:-${VM_XA%.*}}.0/24"
   [ -n "$cidr" ] && [ "$cidr" != ".0/24" ] || { log "fw   no NETPLAN_IP_XA/GATEWAY_ALLOW_CIDR — skipping UFW setup"; return 0; }
   if [ "$CHECK_ONLY" = "1" ]; then log "check-only: would open UFW 8083 on $VM_XA from $cidr"; return 0; fi
   if ssh "$VM_XA" "sudo -n ufw status 2>/dev/null | grep -q 'Status: active'"; then

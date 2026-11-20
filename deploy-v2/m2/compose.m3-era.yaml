@@ -17,7 +17,7 @@ services:
     env_file:
       - /opt/ea/secrets/m3.env                # M3 §2 per-run secrets (never in git/images)
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/var/run/docker.sock:/var/run/docker.sock"      # docker.sock; podman mode: the poc user's podman.sock (docker-compatible API)
       - "/opt/ea/deploy-v2/m3:/opt/ea/deploy-v2/m3:ro"   # M3 §1c: token-issuance script
       - "/opt/ea/secrets:/opt/ea/secrets:ro"       # M3 §1c: app-key.pem (read-only)
       - "/var/ea/tasks:/var/ea/tasks"
@@ -34,17 +34,7 @@ services:
       RABBITMQ_URL: "amqp://ea:${RABBITMQ_PASS:?set RABBITMQ_PASS in .env}@rabbitmq:5672/"
     depends_on: [lifecycle]
     restart: unless-stopped
-  llm-proxy:
-    image: "node:20-slim"
-    container_name: ea-llm-proxy
-    command: ["node", "/proxy.js"]
-    volumes:
-      - "/opt/ea/llm-proxy/proxy.js:/proxy.js:ro"
-    restart: unless-stopped
 networks:
   default:
     external: true
     name: ea-net
-# M3 §2a: llm-proxy twin for the ea estate (claude-code gateway traffic →
-# openrouter). The first organization's llm-proxy (poc-net) is left untouched; ea executors
-# resolve 'llm-proxy' via the network alias on ea-net.

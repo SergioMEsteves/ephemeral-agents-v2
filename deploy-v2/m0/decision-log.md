@@ -180,3 +180,28 @@ Rationale column.
 - VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
 - Language decision: Go for ALL Temporal code (owner instruction: speed + size)
 - Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-20
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-20
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-20
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-20
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-20
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)

@@ -86,8 +86,20 @@ build must pass assertion 6):
    calls route through the llm-proxy, which holds the provider key on the
    CoS's behalf; the CoS holds no provider key itself. This places the
    highest-spend actor inside the proxy's spend-cap and logging
-   perimeter (platform §9.1.2).
+   perimeter (platform §9.1.2). The token additionally appears under its
+   Anthropic-compat names `ANTHROPIC_BASE_URL`/`ANTHROPIC_API_KEY` (same
+   value as `MODEL_API_TOKEN` — item 1's implementation detail). **Owner
+   amendment (issue ledger 15, 2026-11-15):** the CoS env also carries
+   `OPENROUTER_API_KEY` (the owner's OpenRouter key, staged from the single
+   m3.env source, value never displayed) + `MODEL_DEFAULT:
+   z-ai/glm-5.3-flash`; the proxy-perimeter property is suspended for the
+   CoS until re-centralized, tracked for the A+/hardening pass.
 2. **Gateway session token** (inbound, for the desktop connection) — D3/§3.
+   Its value is staged twice in the CoS env: `GATEWAY_SESSION_TOKEN` and
+   `HERMES_DASHBOARD_SESSION_TOKEN` (the bundled session-token provider that
+   `hermes serve --host 0.0.0.0` requires before it will bind publicly —
+   cos-entrypoint.sh §2). Same value, same class: item 2's implementation
+   detail, not a fifth credential.
 3. **Gateway API credential** — to submit approved tasks; ordinary gateway
    client scope.
 4. **Hindsight write token** — the CoS is the memory system's writer (the

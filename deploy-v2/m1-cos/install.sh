@@ -79,15 +79,15 @@ ok "assets present"
 # ---------------------------------------------------------------- §2 deploy
 log "§2 — CoS profile service on vm-xa (ea-m5 compose)"
 confirm "add the cos service to the ea-m5 compose and deploy"
-scp -q "$COS/AGENTS.md" "$COS/cos-entrypoint.sh" vm-xa:/tmp/
-ssh vm-xa "sudo mkdir -p /opt/ea/cos/profile /opt/ea/cos/state /opt/ea/cos/roster /opt/ea/repos \
+scp -q "$COS/AGENTS.md" "$COS/cos-entrypoint.sh" "${VM_XA:-192.0.2.10}:/tmp/"
+ssh "${VM_XA:-192.0.2.10}" "sudo mkdir -p /opt/ea/cos/profile /opt/ea/cos/state /opt/ea/cos/roster /opt/ea/repos \
            && sudo cp /tmp/AGENTS.md /opt/ea/cos/profile/AGENTS.md \
            && sudo cp /tmp/cos-entrypoint.sh /opt/ea/cos/profile/cos-entrypoint.sh \
            && sudo chmod 755 /opt/ea/cos/profile/cos-entrypoint.sh \
-           && sudo chown -R $(id -un):$(id -gn) /opt/ea/cos /opt/ea/repos"
+           && sudo chown -R poc:poc /opt/ea/cos /opt/ea/repos"
 # roster checkout for persona + index (read-only to the CoS)
-ssh vm-xa "test -d /opt/ea/cos/roster/.git || git clone --depth 1 https://github.com/arvisdev/agent-roster.git /opt/ea/cos/roster"
-ssh vm-xa "cd /opt/ea/deploy-v2/m5 && grep -q 'ea-m5-cos' compose.yaml || cat >> compose.yaml <<'YML'
+ssh "${VM_XA:-192.0.2.10}" "test -d /opt/ea/cos/roster/.git || git clone --depth 1 https://github.com/arvisdev/agent-roster.git /opt/ea/cos/roster"
+ssh "${VM_XA:-192.0.2.10}" "cd /opt/ea/deploy-v2/m5 && grep -q 'ea-m5-cos' compose.yaml || cat >> compose.yaml <<'YML'
   cos:
     container_name: ea-m5-cos
     image: \"ea/hermes-ephemeral:1.0.0\"
@@ -112,15 +112,24 @@ YML
 "
 # §2 — credential staging: exactly the four allow-list items in the m5 .env
 log "§2b — credential staging (M1 §5 allow-list)"
-ssh vm-xa "grep -q LLM_PROXY_COS_TOKEN /opt/ea/deploy-v2/m5/.env || die-from-ssh 2>/dev/null || true"
+ssh "${VM_XA:-192.0.2.10}" "grep -q LLM_PROXY_COS_TOKEN /opt/ea/deploy-v2/m5/.env || die-from-ssh 2>/dev/null || true"
 log "  (staging values: LLM_PROXY_COS_TOKEN, COS_SESSION_TOKEN, COS_API_TOKEN, HINDSIGHT_WRITE_TOKEN — add to /opt/ea/deploy-v2/m5/.env, 0600; values never printed)"
-ssh vm-xa "cd /opt/ea/deploy-v2/m5 && sudo docker compose up -d cos"
-ssh vm-xa "sudo docker inspect ea-m5-cos --format '{{range .Config.Env}}{{println .}}{{end}}'" > /tmp/cos-env.txt
+ssh "${VM_XA:-192.0.2.10}" "cd /opt/ea/deploy-v2/m5 && sudo docker compose up -d cos"
+ssh "${VM_XA:-192.0.2.10}" "sudo docker inspect ea-m5-cos --format '{{range .Config.Env}}{{println .}}{{end}}'" > /tmp/cos-env.txt
 # assertion 6 (env allow-list, both ways)
-allowed='MODEL_API_BASE MODEL_API_TOKEN GATEWAY_SESSION_TOKEN GATEWAY_API_TOKEN GATEWAY_URL HINDSIGHT_URL HINDSIGHT_WRITE_TOKEN AGENTS_MD'
+# HERMES_DASHBOARD_SESSION_TOKEN = the same value as GATEWAY_SESSION_TOKEN
+# (the bundled session-token provider hermes serve requires for public binds
+# — cos-entrypoint.sh §2; design doc §5 item 2's implementation detail).
+# OPENROUTER_API_KEY + MODEL_DEFAULT: owner amendment (issue ledger 15, 2026-11-15).
+# ANTHROPIC_BASE_URL/ANTHROPIC_API_KEY: the llm-proxy CoS-class token under its
+# Anthropic-compat names (design item 1's implementation detail, same value as
+# MODEL_API_TOKEN). HERMES_DASHBOARD_SESSION_TOKEN: design item 2's implementation
+# detail (cos-entrypoint.sh §2).
+allowed='MODEL_API_BASE MODEL_API_TOKEN GATEWAY_SESSION_TOKEN GATEWAY_API_TOKEN GATEWAY_URL HINDSIGHT_URL HINDSIGHT_WRITE_TOKEN AGENTS_MD HERMES_DASHBOARD_SESSION_TOKEN OPENROUTER_API_KEY MODEL_DEFAULT ANTHROPIC_BASE_URL ANTHROPIC_API_KEY'
 while read -r kv; do
-  [ -z "$kv" ] && continue
+  [ -n "$kv" ] || continue
   k="${kv%%=*}"
+  case " PATH HOME HOSTNAME TERM LANG LC_ALL LD_LIBRARY_PATH " in *" $k "*) continue;; esac  # base-image inherent
   case " $allowed " in *" $k "*) ;; *) die "assertion 6 FAIL: unexpected env key $k in the CoS profile";; esac
 done < /tmp/cos-env.txt
 for k in $allowed; do grep -q "^$k=" /tmp/cos-env.txt || die "assertion 6 FAIL: missing $k"; done

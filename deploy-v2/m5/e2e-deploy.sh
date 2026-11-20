@@ -50,7 +50,7 @@ stage "S1 chassis (owning gate: TP-M0)" \
 stage "S2 adapter (owning gate: M1 §4 / TP-M1)" \
   ssh "$VM_XB" "cd /opt/ea/deploy-v2/m1 && $(xb_engine) compose up -d topic-bridge"
 stage "S2 adapter consumer healthy" \
-  ssh "$VM_XB" "$(xb_engine) logs m1-topic-bridge-1 2>&1 | grep -qiE 'consumer|consuming'"
+  ssh "$VM_XB" "PW=\$(grep '^RABBITMQ_PASS=' /opt/ea/deploy-v2/m0/rabbitmq/.env | cut -d= -f2); curl -s -u ea:\$PW http://127.0.0.1:15672/api/queues/%2F/ea-tasks | python3 -c 'import json,sys; q=json.load(sys.stdin); exit(0 if q.get(\"consumers\",0) >= 1 else 1)'"
 
 # S3 lifecycle: M2 compose up + deploy gate (pinned images present) + worker registered
 stage "S3 lifecycle deploy gate (pinned image exists — no-pull rule)" \
@@ -58,9 +58,9 @@ stage "S3 lifecycle deploy gate (pinned image exists — no-pull rule)" \
 stage "S3 lifecycle compose up" \
   ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && $(xb_engine) compose up -d"
 stage "S3 lifecycle healthy" \
-  ssh "$VM_XB" "$(xb_engine) exec m2-lifecycle-1 curl -sf http://127.0.0.1:8090/health"
+  ssh "$VM_XB" "$(xb_engine) exec ea-m2-lifecycle-1 curl -sf http://127.0.0.1:8090/health"
 stage "S3 worker registered (polling temporal)" \
-  ssh "$VM_XB" "$(xb_engine) logs m2-worker-1 2>&1 | grep -qiE 'WorkflowType TaskWorkflow|worker started|registered'"
+  ssh "$VM_XB" "$(xb_engine) logs ea-m2-worker-1 2>&1 | grep -qiE 'WorkflowType TaskWorkflow|worker started|registered'"
 
 # S4 executors: M3 images load-verified on vm-xb; token issuance dry-run
 stage "S4 executor images present on vm-xb" \
@@ -73,7 +73,7 @@ stage "S4 token issuance dry-run (issue + verify + revoke)" \
 stage "S5 hindsight compose up (vm-hindsight)" \
   ssh "$VM_HINDSIGHT" "cd /opt/ea/deploy-v2/m4/hindsight && docker compose up -d"
 stage "S5 hindsight /healthz" \
-  ssh "$VM_HINDSIGHT" "curl -sf http://127.0.0.1:8081/healthz"
+  ssh "$VM_HINDSIGHT" "curl -sf http://127.0.0.1:8082/healthz"
 
 # S6 front-house: M5 compose up on vm-xa + gateway /healthz
 stage "S6 front-house compose up (vm-xa)" \

@@ -332,6 +332,12 @@ cross_vm_publish_test() {
   # removed after — never in argv or logs (the display-mask rule).
   ssh "$VM_XA" "python3 -c 'import pika' 2>/dev/null || { command -v apt-get >/dev/null && sudo apt-get install -y python3-pika >/dev/null 2>&1 || true; }"
   printf '%s' "$RABBITMQ_PASS" | ssh "$VM_XA" 'umask 077; cat > /tmp/rmq-pw && chmod 600 /tmp/rmq-pw'
+  # Assert via the mgmt API's cumulative deliver counter (rabbitmqctl races the
+  # live topic-bridge consumer, which drains the probe instantly once M1 is up).
+  # qstat = deliver_counter + current_messages; PASS = after > before.
+  qstat() { ssh "$VM_XB" "PW=\$(grep '^RABBITMQ_PASS=' /opt/ea/deploy-v2/m0/rabbitmq/.env | cut -d= -f2); curl -s -u ea:\$PW http://127.0.0.1:15672/api/queues/%2F/ea-tasks | python3 -c 'import json,sys; q=json.load(sys.stdin); print(q.get(\"message_stats\",{}).get(\"deliver\",0)+q.get(\"messages\",0))' 2>/dev/null" || echo 0; }
+  local before after
+  before="$(qstat)"
   if ! ssh "$VM_XA" "RMQ_HOST=${NETPLAN_IP_XB:-$VM_XB} python3 - <<'PY'
 import pika, os
 pw = open('/tmp/rmq-pw').read().strip()
@@ -349,24 +355,14 @@ PY"; then
     return 1
   fi
   ssh "$VM_XA" 'rm -f /tmp/rmq-pw'
-  # Assert via rabbitmqctl (authoritative — the mgmt-API stats lag after a publish)
-  n="$(ssh "$VM_XB" "$(xb_engine) exec ea-m0-rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^ea-tasks[[:space:]]' | head -1 | awk '{print \$2}'" || true)"
-  if [ "${n:-0}" -ge 1 ]; then
-    log "§3   queue messages=$n via AMQP 5672 from vm-xa (rabbitmqctl)"
-    # Fetch+ack the V2 copy from ea-tasks (mgmt API GET on vm-xb loopback — no
-    # consumer on ea-tasks, so nothing else can take it). Note: the exchange
-    # fans out to BOTH queues independently — the first organization's bridge's copy (agent.tasks
-    # durable) is a separate delivery; the first organization's bridge rejects this non-JSON
-    # payload to agent.tasks.dlq (drained below, neighboring-stack cleanup).
-    printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" 'umask 077; cat > /tmp/rmq-cfg && chmod 600 /tmp/rmq-cfg'
-    ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/ea-tasks/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" | grep -q "m0-cross-test" && echo "fetch-ack-ok"; rm -f /tmp/rmq-cfg'
-    printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" 'umask 077; cat > /tmp/rmq-cfg && chmod 600 /tmp/rmq-cfg'
-    ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/agent.tasks.dlq/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" >/dev/null; rm -f /tmp/rmq-cfg'
-    post="$(ssh "$VM_XB" "$(xb_engine) exec ea-m0-rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^(ea-tasks|agent.tasks.dlq)[[:space:]]' | awk '{print \$1, \$2}'" || true)"
-    log "§3   post-test: $post (ea-tasks drained; the first organization's DLQ drained — its cleanup)"
+  after="$(qstat)"
+  sleep 2; after="$(qstat)"
+  n=$(( after - before ))
+  if [ "$n" -ge 1 ]; then
+    log "§3   queue delta=+$n via AMQP 5672 from vm-xa (mgmt deliver counter)"
     return 0
   fi
-  log "§3   cross-VM publish: ea-tasks messages=${n:-0} (want >=1) — rabbitmqctl"
+  log "§3   cross-VM publish: ea-tasks delta=${n} (want >=1) — mgmt API"
   return 1
 }
 
