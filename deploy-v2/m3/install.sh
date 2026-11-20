@@ -250,9 +250,7 @@ stage_m3_secrets() {
   # `sudo test` — sudo can't run shell builtins; use `sudo bash -c`.
   ssh "$VM_XB" "sudo bash -c 'test -r /opt/ea/secrets/app-key.pem'" \
     || die "app key missing at /opt/ea/secrets/app-key.pem on $VM_XB"
-  ssh "$VM_XB" "sudo cp /opt/ea/secrets/app-key.pem /opt/ea/secrets/app-key.pem" \
-    || die "app-key copy from the estate's secrets failed"
-  ssh "$VM_XB" "sudo bash -c 'test -r /opt/ea/secrets/m3.env && cp /opt/ea/secrets/m3.env /opt/ea/secrets/m3.env || true'"
+  # key + m3.env are already staged at /opt/ea/secrets (verified above) — no copy needed
   ssh "$VM_XB" "sudo chmod 600 /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chown poc:poc /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chmod 700 /opt/ea/deploy-v2/m3"
   rsync -az "$M3/issue-token.sh" "$VM_XB:/opt/ea/deploy-v2/m3/issue-token.sh" \
     && ssh "$VM_XB" "chmod 700 /opt/ea/deploy-v2/m3/issue-token.sh" \
