@@ -205,3 +205,24 @@ Rationale column.
 - VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
 - Language decision: Go for ALL Temporal code (owner instruction: speed + size)
 - Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-20
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-20
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 install run — 2026-11-20
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+
+## M0 test-estate build — 2026-11-20 (first fresh-clone exercise)
+- Test build context: 4 clones of golden template `ubuntu-24-ea-base` (VMIDs 901–904) at .200–.203 per `inputs-test.yaml`; live estate untouched. Router ARP wedged mid-build (MAC-level; resolved by full router power-cycle by owner).
+- Ledger 16 — gate 2 FAIL #1 (probe race): `declare_topology`'s mgmt-API probe treated any non-404 (incl. empty reply while the API was still starting) as "already declared" → queue family never declared on a fresh first boot → publish unrouted. Fix: only a definitive 200 counts as declared; declare on anything else (PUT fails loudly on real auth errors). Wrong assumption: a failed probe is evidence of existence.
+- Ledger 17 — gate 2 FAIL #2 (stats lag): fixed `sleep 2` raced RabbitMQ's ~5s mgmt stats collect cycle, reading after==before despite the publish landing at the AMQP layer (queue provably held the messages). Fix: poll up to ~15s before concluding failure. Wrong assumption: mgmt-API counters are realtime.
+- Both failures are fresh-estate-only: the live estate never hit them (queues pre-declared, mgmt API long up).

@@ -300,7 +300,11 @@ declare_topology() {
   # OQ4 single declaration point), ea-tasks.dlq, ea-tasks.response. The topic
   # exchange agent.tasks keeps its shared-estate name (the manager publishes agent.tasks.<capability>).
   m="$(printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" "curl -s -o /dev/null -w '%{http_code}' -K - $base/api/queues/%2F/ea-tasks || true")"
-  if [ "$m" = "404" ]; then
+  # Only a definitive 200 means declared. 404 = declare; empty (API not up yet
+  # on a fresh first boot) or 401 must also declare — the PUT fails loudly if
+  # auth is genuinely broken. Empty-probe-misread-as-declared bit the first
+  # fresh-estate build (gate 2 publish unrouted, queue never declared).
+  if [ "$m" != "200" ]; then
     confirm "declare topic exchange agent.tasks + ea-tasks queue + binding + DLQ on $VM_XB"
     if [ "$CHECK_ONLY" != "1" ]; then
       # corrected mgmt-API paths (POST the named resource; binding = /q/<queue>);
@@ -356,7 +360,17 @@ PY"; then
   fi
   ssh "$VM_XA" 'rm -f /tmp/rmq-pw'
   after="$(qstat)"
-  sleep 2; after="$(qstat)"
+  # The mgmt API refreshes queue stats on a ~5s collect cycle; a fixed sleep 2
+  # races it and reads stale counts (after == before) even though the publish
+  # landed. Poll up to ~15s for the stats to move before concluding failure.
+  local tries=0
+  while [ $tries -lt 3 ]; do
+    sleep 5
+    after="$(qstat)"
+    n=$(( after - before ))
+    [ "$n" -ge 1 ] && break
+    tries=$((tries+1))
+  done
   n=$(( after - before ))
   if [ "$n" -ge 1 ]; then
     log "§3   queue delta=+$n via AMQP 5672 from vm-xa (mgmt deliver counter)"
