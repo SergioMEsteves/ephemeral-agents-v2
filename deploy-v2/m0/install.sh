@@ -9,7 +9,8 @@
 #   TP-M0 must PASS before the M1 installation may begin.
 #
 # What this script does (idempotent — safe to re-run; re-run = rebuild):
-#   §1  Provision 3 VMs on the PVE host (vm-xa, vm-xb, vm-hindsight) + base OS
+#   §1  Provision 4 VMs on the PVE host (vm-xa, vm-xb, vm-hindsight,
+#       vm-docker-registry) + base OS
 #   §2  Container engine on every VM: Docker by default; engine=podman puts
 #       ROOTLESS Podman on the EXECUTION VM (vm-xb) only — every other VM
 #       stays Docker (see decision-log.md "Container engine choice").
@@ -25,8 +26,9 @@
 #
 # Configuration (env, or deploy-v2/m0/hosts.env in the repo — auto-loaded):
 #   PVE_HOST   ssh alias for the Proxmox host        (required)
-#   VM_XA VM_XB VM_3   ssh aliases for the 3 VMs (required)
-#   VMID_XA=900 VMID_XB=901 VMID_3=903    (defaults; check qm list first)
+#   VM_XA VM_XB VM_HINDSIGHT VM_REGISTRY   ssh aliases for the 4 VMs (required)
+#   VMID_XA VMID_XB VMID_HINDSIGHT VMID_REGISTRY — defaults from hosts.env
+#       (render-inputs.py emits VM_XA_VMID etc.); fallback 900/901/903/904.
 #   NETPLAN_IP_XA=... NETPLAN_IP_XB=... NETPLAN_IP_3=...
 #       if set AND --apply-netplan: writes /etc/netplan/01-netcfg.yaml
 #       (backing up any existing file) and applies; default is record-only.
@@ -78,9 +80,10 @@ done
 if [ -f "$M0/hosts.env" ]; then set -a; . "$M0/hosts.env"; set +a; fi
 
 PVE_HOST="${PVE_HOST:-}"; VM_XA="${VM_XA:-}"; VM_XB="${VM_XB:-}"
-VM_3="${VM_3:-}"
-VMID_XA="${VMID_XA:-900}"; VMID_XB="${VMID_XB:-901}"
-VMID_3="${VMID_3:-903}"
+VM_HINDSIGHT="${VM_HINDSIGHT:-}"; VM_REGISTRY="${VM_REGISTRY:-}"
+VMID_XA="${VMID_XA:-${VM_XA_VMID:-900}}"; VMID_XB="${VMID_XB:-${VM_XB_VMID:-901}}"
+VMID_HINDSIGHT="${VMID_HINDSIGHT:-${VM_HINDSIGHT_VMID:-903}}"
+VMID_REGISTRY="${VMID_REGISTRY:-${VM_REGISTRY_VMID:-904}}"
 TEMPORAL_ADDR="${TEMPORAL_ADDR:-$VM_XB:7233}"
 
 log()  { printf '[m0 %s] %s\n' "$(date -u +%H:%M:%S)" "$*" | tee -a "$LOG"; }
@@ -88,7 +91,7 @@ ok()   { log "OK   - $*"; }
 warn() { log "WARN - $*"; }
 die()  { log "FAIL: $*"; exit 1; }
 
-PVMXS=("$VM_XA" "$VM_XB" "$VM_3")
+PVMXS=("$VM_XA" "$VM_XB" "$VM_HINDSIGHT" "$VM_REGISTRY")
 
 # ---------------------------------------------------------------- engine choice
 # ENGINE (docker | podman) — podman = ROOTLESS Podman on the EXECUTION VM
@@ -158,19 +161,20 @@ confirm() {
 # ---------------------------------------------------------------- §1 provision
 vm_display_name() {
   case "$1" in
-    "$VM_XA") echo vm-xa ;;
-    "$VM_XB") echo vm-xb ;;
-    "$VM_3")  echo vm-hindsight ;;
-    *)        echo "$1" ;;
+    "$VM_XA")        echo vm-xa ;;
+    "$VM_XB")        echo vm-xb ;;
+    "$VM_HINDSIGHT") echo vm-hindsight ;;
+    "$VM_REGISTRY")  echo vm-docker-registry ;;
+    *)               echo "$1" ;;
   esac
 }
 
 provision_vms() {
-  log "§1 — PVE: check VM block $VMID_XA-$VMID_3 (qm list first; pick a free block)"
-  local specs=("vm-xa:$VMID_XA" "vm-xb:$VMID_XB" "vm-hindsight:$VMID_3")
-  local mem=(4096 8192 4096) cores=(2 4 2) disk=(20 40 20)
+  log "§1 — PVE: check VM block $VMID_XA-$VMID_REGISTRY (qm list first; pick a free block)"
+  local specs=("vm-xa:$VMID_XA" "vm-xb:$VMID_XB" "vm-hindsight:$VMID_HINDSIGHT" "vm-docker-registry:$VMID_REGISTRY")
+  local mem=(5120 32768 8192 8192) cores=(2 4 4 2) disk=(100 100 50 50)
   local i name id
-  for i in 0 1 2; do
+  for i in 0 1 2 3; do
     name="${specs[i]%%:*}"; id="${specs[i]##*:}"
     if ssh "$PVE_HOST" "qm status $id 2>/dev/null | grep -Eq '^(status|Status).*(stopped|running|paused)'"; then
       log "§1   $id ($name) exists — ensuring started"
@@ -201,10 +205,11 @@ provision_vms() {
     ssh "$h" "command -v chronyd >/dev/null || { sudo apt-get update && sudo apt-get install -y chrony; }; sudo systemctl enable --now chrony"
     ssh "$h" "id poc >/dev/null 2>&1 || sudo useradd -m -s /bin/bash poc; sudo usermod -aG sudo poc"
     case "$h" in
-      "$VM_XA") ipkey=XA ;;
-      "$VM_XB") ipkey=XB ;;
-      "$VM_3")  ipkey=3 ;;
-      *)        ipkey="$(printf '%s' "$hn" | sed 's/^vm-//; s/-/_/g')" ;;
+      "$VM_XA")        ipkey=XA ;;
+      "$VM_XB")        ipkey=XB ;;
+      "$VM_HINDSIGHT") ipkey=HINDSIGHT ;;
+      "$VM_REGISTRY")  ipkey=REGISTRY ;;
+      *)               ipkey="$(printf '%s' "$hn" | sed 's/^vm-//; s/-/_/g')" ;;
     esac
     nip=""
     if declare -n _netplan_ref="NETPLAN_IP_${ipkey}" 2>/dev/null; then nip="${_netplan_ref:-}"; fi
@@ -225,16 +230,23 @@ provision_vms() {
 # ---------------------------------------------------------------- §2 engine
 install_docker() {
   for h in "${PVMXS[@]}"; do
+    if [ "$CHECK_ONLY" = "1" ]; then
+      log "check-only: would install $ENGINE on $(vm_display_name "$h")"
+      continue
+    fi
     if [ "$h" = "$VM_XB" ] && [ "$ENGINE" = "podman" ]; then
       install_podman_rootless
       continue
     fi
     log "§2 — Docker on $(vm_display_name "$h")"
-    ssh "$h" "command -v docker >/dev/null || { sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2; }; sudo usermod -aG docker poc"
+    # docker.io only by default; docker-compose-v2 only when the compose CLI
+    # plugin is absent (the estate VMs ship docker-compose-plugin, which
+    # conflicts with the distro package — dpkg error on coinstall).
+    ssh "$h" "command -v docker >/dev/null || { sudo apt-get update && sudo apt-get install -y docker.io; }; docker compose version >/dev/null 2>&1 || sudo apt-get install -y docker-compose-v2; sudo usermod -aG docker poc"
     ssh "$h" "docker run --rm alpine echo ok >/dev/null && docker compose version >/dev/null" \
       || die "docker not usable on $(vm_display_name "$h")"
   done
-  ok "§2 container engine on all 3 VMs (engine=$ENGINE: vm-xb $([ "$ENGINE" = podman ] && echo rootless-podman || echo docker), others docker)"
+  ok "§2 container engine on all 4 VMs (engine=$ENGINE: vm-xb $([ "$ENGINE" = podman ] && echo rootless-podman || echo docker), others docker)"
 }
 
 # §2 (engine=podman): ROOTLESS Podman on the EXECUTION VM only. Installs
@@ -268,8 +280,8 @@ install_podman_rootless() {
 # set); the RabbitMQ mgmt UI stays loopback-only — never opened here.
 open_firewall() {
   local cidr="${UFW_EA_CIDR:-}"
-  [ -n "$cidr" ] || cidr="${NETPLAN_IP_XB%.*}.0/24"
-  [ -n "$cidr" ] && [ "$cidr" != ".0/24" ] || { log "§2a   no NETPLAN_IP_XB/UFW_EA_CIDR — skipping UFW setup"; return 0; }
+  [ -n "$cidr" ] || cidr="${NETPLAN_IP_XB:-${VM_XB%.*}}.0/24"
+  [ -n "$cidr" ] && [ "$cidr" != ".0/24" ] || { log "§2a   no NETPLAN_IP_XB/UFW_EA_CIDR/VM_XB — skipping UFW setup"; return 0; }
   if [ "$CHECK_ONLY" = "1" ]; then log "check-only: would open UFW ports on $VM_XB: 5672,7233 from $cidr"; return 0; fi
   if ! ssh "$VM_XB" "sudo -n ufw status 2>/dev/null | grep -q 'Status: active'"; then
     log "§2a   UFW not active on $VM_XB — nothing to open"
@@ -298,11 +310,11 @@ declare_topology() {
     ssh "$VM_XB" "B=$base bash -s" <<'RABBIT_API'
 set -e
 cfg=$(cat /tmp/rmq-cfg)
-printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/exchanges/%2F/agent.tasks" -d '{"type":"topic","durable":true}'
-printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/queues/%2F/ea-tasks" -d '{"durable":true,"arguments":{"x-max-priority":3}}'
-printf '%s\n' "$cfg" | curl -s -K - -XPOST "$B/api/bindings/%2F/e/agent.tasks/q/ea-tasks" -d '{"routing_key":"ea.tasks.#","properties_key":""}'
-printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/queues/%2F/ea-tasks.dlq" -d '{"durable":true}'
-printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/queues/%2F/ea-tasks.response" -d '{"durable":true}'
+printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/exchanges/%2F/agent.tasks" -d '{"type":"topic","durable":true}' -H 'content-type: application/json'
+printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/queues/%2F/ea-tasks" -d '{"durable":true,"arguments":{"x-max-priority":3}}' -H 'content-type: application/json'
+printf '%s\n' "$cfg" | curl -s -K - -XPOST "$B/api/bindings/%2F/e/agent.tasks/q/ea-tasks" -d '{"routing_key":"ea.tasks.#","properties_key":""}' -H 'content-type: application/json'
+printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/queues/%2F/ea-tasks.dlq" -d '{"durable":true}' -H 'content-type: application/json'
+printf '%s\n' "$cfg" | curl -s -K - -XPUT "$B/api/queues/%2F/ea-tasks.response" -d '{"durable":true}' -H 'content-type: application/json'
 rm -f /tmp/rmq-cfg
 RABBIT_API
     fi
@@ -320,14 +332,14 @@ cross_vm_publish_test() {
   # removed after — never in argv or logs (the display-mask rule).
   ssh "$VM_XA" "python3 -c 'import pika' 2>/dev/null || { command -v apt-get >/dev/null && sudo apt-get install -y python3-pika >/dev/null 2>&1 || true; }"
   printf '%s' "$RABBITMQ_PASS" | ssh "$VM_XA" 'umask 077; cat > /tmp/rmq-pw && chmod 600 /tmp/rmq-pw'
-  if ! ssh "$VM_XA" "RMQ_HOST=${NETPLAN_IP_XB:?NETPLAN_IP_XB needed} python3 - <<'PY'
+  if ! ssh "$VM_XA" "RMQ_HOST=${NETPLAN_IP_XB:-$VM_XB} python3 - <<'PY'
 import pika, os
 pw = open('/tmp/rmq-pw').read().strip()
 c = pika.BlockingConnection(pika.ConnectionParameters(
     host=os.environ['RMQ_HOST'],
     credentials=pika.PlainCredentials('ea', pw)))
 ch = c.channel()
-ch.basic_publish(exchange='agent.tasks', routing_key='agent.tasks',
+ch.basic_publish(exchange='agent.tasks', routing_key='ea.tasks.m0-cross-test',
                  body='m0-cross-test', properties=pika.BasicProperties(delivery_mode=2))
 c.close()
 print('published')
@@ -338,7 +350,7 @@ PY"; then
   fi
   ssh "$VM_XA" 'rm -f /tmp/rmq-pw'
   # Assert via rabbitmqctl (authoritative — the mgmt-API stats lag after a publish)
-  n="$(ssh "$VM_XB" "$(xb_engine) exec rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^ea-tasks[[:space:]]' | head -1 | awk '{print \$2}'" || true)"
+  n="$(ssh "$VM_XB" "$(xb_engine) exec ea-m0-rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^ea-tasks[[:space:]]' | head -1 | awk '{print \$2}'" || true)"
   if [ "${n:-0}" -ge 1 ]; then
     log "§3   queue messages=$n via AMQP 5672 from vm-xa (rabbitmqctl)"
     # Fetch+ack the V2 copy from ea-tasks (mgmt API GET on vm-xb loopback — no
@@ -350,7 +362,7 @@ PY"; then
     ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/ea-tasks/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" | grep -q "m0-cross-test" && echo "fetch-ack-ok"; rm -f /tmp/rmq-cfg'
     printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" 'umask 077; cat > /tmp/rmq-cfg && chmod 600 /tmp/rmq-cfg'
     ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/agent.tasks.dlq/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" >/dev/null; rm -f /tmp/rmq-cfg'
-    post="$(ssh "$VM_XB" "$(xb_engine) exec rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^(ea-tasks|agent.tasks.dlq)[[:space:]]' | awk '{print \$1, \$2}'" || true)"
+    post="$(ssh "$VM_XB" "$(xb_engine) exec ea-m0-rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^(ea-tasks|agent.tasks.dlq)[[:space:]]' | awk '{print \$1, \$2}'" || true)"
     log "§3   post-test: $post (ea-tasks drained; the first organization's DLQ drained — its cleanup)"
     return 0
   fi
@@ -380,17 +392,18 @@ deploy_rabbitmq() {
   rmq_container="$(ssh "$VM_XB" "$(xb_engine) ps -qf name=rabbitmq" 2>/dev/null || true)"
   if [ -n "$rmq_container" ] && [ "$CHECK_ONLY" != "1" ]; then
     log "§3   live rabbitmq container detected — COEXISTENCE MODE: reuse it"
-    ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/rabbitmq && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
+    ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/rabbitmq && sudo chown -R poc:poc /opt/ea"
     rsync -az "$M0/rabbitmq/compose.yaml" "$VM_XB:/opt/ea/deploy-v2/m0/rabbitmq/"  # V2 compose staged for the post-switch-over path (not applied)
     xb_own_staged /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml
     ssh "$VM_XB" "$(xb_engine) network inspect ea-net >/dev/null 2>&1 || $(xb_engine) network create ea-net"
-    ssh "$VM_XB" "$(xb_engine) network connect --alias rabbitmq ea-net rabbitmq-rabbitmq-1 2>/dev/null || true"
+    ssh "$VM_XB" "$(xb_engine) network connect --alias rabbitmq ea-net ea-m0-rabbitmq-rabbitmq-1 2>/dev/null || true"
     ssh "$VM_XB" "$(xb_engine) compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
-      || ssh "$VM_XB" "$(xb_engine) exec rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
+      || ssh "$VM_XB" "$(xb_engine) exec ea-m0-rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
       || die "live rabbitmq not serving"
   else
   if [ "$CHECK_ONLY" != "1" ]; then
-    ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/rabbitmq && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
+    ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/rabbitmq && sudo chown -R poc:poc /opt/ea"
+    ssh "$VM_XB" "$(xb_engine) network inspect ea-net >/dev/null 2>&1 || $(xb_engine) network create ea-net"
     rsync -az "$M0/rabbitmq/compose.yaml" "$envf" "$VM_XB:/opt/ea/deploy-v2/m0/rabbitmq/"
     xb_own_staged /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml /opt/ea/deploy-v2/m0/rabbitmq/.env
     ssh "$VM_XB" "cd /opt/ea/deploy-v2/m0/rabbitmq && $(xb_engine) compose up -d"
@@ -399,7 +412,7 @@ deploy_rabbitmq() {
   local i
   for i in $(seq 1 40); do
     if ssh "$VM_XB" "$(xb_engine) compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
-      || ssh "$VM_XB" "$(xb_engine) exec rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1; then
+      || ssh "$VM_XB" "$(xb_engine) exec ea-m0-rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1; then
       break
     fi
     sleep 3
@@ -433,19 +446,19 @@ PINS
   fi
   if [ "$CHECK_ONLY" != "1" ]; then
     local tmp_container
-    tmp_container="$(ssh "$VM_XB" "$(xb_engine) ps -qf name=temporal-temporal" 2>/dev/null || true)"
+    tmp_container="$(ssh "$VM_XB" "$(xb_engine) ps -qf name=ea-m0-temporal-temporal" 2>/dev/null || true)"
     if [ -n "$tmp_container" ]; then
       # COEXISTENCE MODE: reuse the live temporal stack (the first organization's compose project) —
       # the V2 compose up would conflict on the container name/port. The V2
       # compose is staged for the post-switch-over path (not applied).
       log "§4   live temporal stack detected — COEXISTENCE MODE: reuse it"
-      ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/temporal && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
+      ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/temporal && sudo chown -R poc:poc /opt/ea"
       rsync -az "$M0/temporal/compose.yaml" "$envf" "$VM_XB:/opt/ea/deploy-v2/m0/temporal/"
       xb_own_staged /opt/ea/deploy-v2/m0/temporal/compose.yaml /opt/ea/deploy-v2/m0/temporal/.env
       ssh "$VM_XB" "$(xb_engine) network inspect ea-net >/dev/null 2>&1 || $(xb_engine) network create ea-net"
-      ssh "$VM_XB" "$(xb_engine) network connect --alias temporal ea-net temporal-temporal-1 2>/dev/null || true"
+      ssh "$VM_XB" "$(xb_engine) network connect --alias temporal ea-net ea-m0-temporal-temporal-1 2>/dev/null || true"
     else
-      ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/temporal && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
+      ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/temporal && sudo chown -R poc:poc /opt/ea"
       rsync -az "$M0/temporal/compose.yaml" "$envf" "$VM_XB:/opt/ea/deploy-v2/m0/temporal/"
       ssh "$VM_XB" "cd /opt/ea/deploy-v2/m0/temporal && $(xb_engine) compose up -d"
     fi
@@ -501,7 +514,7 @@ network_matrix() {
         fi
       done
     done
-    for to in "$VM_XA" "$VM_XB"; do
+    for to in "${PVMXS[@]}"; do
       echo "OUT $to -> github.com : $(ssh "$to" "curl -sI https://github.com | head -1" || echo FAIL)"
     done
     echo "PORT $VM_XB : $(ssh "$VM_XB" "nc -vz 127.0.0.1 5672 >/dev/null 2>&1 && echo amqp-open; nc -vz 127.0.0.1 7233 >/dev/null 2>&1 && echo temporal-open" 2>/dev/null | tr '\n' ' ')"
@@ -522,7 +535,7 @@ write_decision_log() {
   {
     echo ""
     echo "## M0 install run — $(date +%F)"
-    echo "- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3"
+    echo "- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)"
     echo "- Language decision: Go for ALL Temporal code (owner instruction: speed + size)"
     echo "- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)"
   } >> "$M0/decision-log.md"
@@ -537,7 +550,7 @@ gate_summary() {
     log "check-only: gate checks skipped"
     return 0
   fi
-  # 1: 3 VMs, the chosen engine runs on each (docker; rootless podman as poc on vm-xb)
+  # 1: 4 VMs, the chosen engine runs on each (docker; rootless podman as poc on vm-xb)
   for h in "${PVMXS[@]}"; do
     if [ "$h" = "$VM_XB" ] && [ "$ENGINE" = "podman" ]; then
       g1="sudo -u poc env XDG_RUNTIME_DIR=/run/user/\$(id -u poc) podman run --rm alpine echo ok"
@@ -576,7 +589,7 @@ gate_summary() {
 main() {
   log "=== M0 chassis install start (check-only=$CHECK_ONLY no-gate=$NO_GATE) ==="
   check_assets
-  confirm "M0: provision/verify 3 VMs + base OS + container engine (Docker / rootless Podman) + RabbitMQ + Temporal (idempotent)"
+  confirm "M0: provision/verify 4 VMs + base OS + container engine (Docker / rootless Podman) + RabbitMQ + Temporal (idempotent)"
   provision_vms
   install_docker
   open_firewall
