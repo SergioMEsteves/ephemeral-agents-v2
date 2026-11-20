@@ -128,6 +128,11 @@ def render_hosts_env(doc) -> str:
         lines.append(f"{var}_NAME={m['name']}")
         lines.append(f"{var}_VMID={m['vmid']}")
         lines.append("")
+    # Container engine: podman = ROOTLESS Podman on the EXECUTION VM only;
+    # every other VM is Docker (see decision-log.md). The install scripts
+    # read ENGINE from hosts.env and branch on it for vm-xb commands.
+    lines.append(f"ENGINE={doc['config']['engine']}")
+    lines.append("")
     lines.append("# Ports (host-published)")
     for name, val in doc["ports"].items():
         lines.append(f"PORT_{name.upper()}={val}")
@@ -151,9 +156,17 @@ def render_hosts_env(doc) -> str:
 
 def staging_plan(doc) -> list[str]:
     g, m = doc["github"], doc["model"]
-    return [
+    # engine choice (config.engine): podman = rootless Podman on the EXECUTION
+    # VM only; every other VM stays Docker (see decision-log.md).
+    engine = doc["config"]["engine"]
+    eng = {"front_of_house": "docker", "execution": engine,
+           "memory": "docker", "registry": "docker"}
+    lines = [
         "STAGING PLAN (runbook stage order; secrets staged 0600, gitignored):",
         f"  S0   hosts.env written — {g['org']} estate, 4 machines",
+        "  S0   container engine per VM: "
+        + ", ".join(f"{mm['name']}={eng[mm['role']]}" for mm in doc["machines"])
+        + ("  (rootless podman on the execution VM only)" if engine == "podman" else ""),
         f"  S1   registry basic-auth + CA minted on the registry VM -> deploy-v2/.env.registry",
         f"  S3   broker password minted -> deploy-v2/m0 (rabbitmq compose env)",
         f"  S6   model key {m['provider_key_path']} -> llm-proxy (executor class) + VM-Xa cos.env (CoS class);",
@@ -162,6 +175,7 @@ def staging_plan(doc) -> list[str]:
         f"  exec App key {g['app_key_path']} -> execution VM /opt/ea/secrets/app-key.pem (tmpfs 0600)",
         f"  demo repo {g['repos']['demo']} must have the GitHub App installed",
     ]
+    return lines
 
 
 def main() -> int:

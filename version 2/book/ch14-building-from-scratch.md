@@ -34,6 +34,26 @@ and run every script's check-only mode before its apply. The inventory-first
 rule exists because the first build learned it three stages deep (the first book's ledger chapter, class C5) — and because V2's ledger entry 4 (the registry VM's DHCP
 drift) is what happens to the one machine that was *not* in the matrix.
 
+One input is a genuine choice, not a fact to collect: the **container
+engine**. The default is Docker — the same engine the whole estate runs
+today — and picking it changes nothing. But the install inputs let you
+say `engine: podman`, and that means something precise: the machine that
+*runs the ephemeral agents* (the execution VM) stops using the
+root-owned Docker daemon and uses rootless Podman instead — Podman run
+by an ordinary user account, with no root privileges anywhere. Why
+bother? Because the agents are the one part of the estate that runs
+code nobody wrote or reviewed in advance. If a container ever escaped
+its sandbox, with root Docker the escapee would land next to the one
+process with total power over the machine; with rootless Podman it lands
+next to an ordinary user with nowhere to go. Every other machine — the
+front-of-house, the memory store, the registry — keeps Docker. Only the
+machine that runs untrusted work is hardened this way, and it can be,
+because none of the ports it needs are privileged (all above 1024).
+The one choice is made once in `inputs.yaml`, the installer carries it
+into every stage script, and the book's earlier advice stands unchanged:
+same commands, same order, same gates — only the engine under the
+execution VM is different.
+
 ## 14.2 The rename micro-gate comes first
 
 The single most V2-specific step precedes every install: the estate is

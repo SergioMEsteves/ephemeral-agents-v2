@@ -13,7 +13,21 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# hosts.env is the canonical host map — auto-load it if present (it also
+# carries ENGINE, the container-engine choice: podman = rootless Podman on
+# the execution VM, run as the poc user).
+if [ -f "$REPO_ROOT/deploy-v2/m0/hosts.env" ]; then set -a; . "$REPO_ROOT/deploy-v2/m0/hosts.env"; set +a; fi
 VM_XA="${VM_XA:-vm-xa}"; VM_XB="${VM_XB:-vm-xb}"; VM_3="${VM_3:-vm-hindsight}"
+ENGINE="${ENGINE:-docker}"
+# xb_engine — container-engine command prefix for vm-xb remote commands
+# (rootless podman runs as the poc user; the remote shell resolves $(id -u poc)).
+xb_engine() {
+  if [ "$ENGINE" = "podman" ]; then
+    echo 'sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+  else
+    echo docker
+  fi
+}
 FAILED_STAGE=""
 
 stage() { # stage <name> <cmd...> — run; on failure halt with the stage named
@@ -34,23 +48,23 @@ stage "S1 chassis (owning gate: TP-M0)" \
 
 # S2 adapter: M1 compose up + consumer-healthy check
 stage "S2 adapter (owning gate: M1 §4 / TP-M1)" \
-  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m1 && docker compose up -d topic-bridge"
+  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m1 && $(xb_engine) compose up -d topic-bridge"
 stage "S2 adapter consumer healthy" \
-  ssh "$VM_XB" "docker logs m1-topic-bridge-1 2>&1 | grep -qiE 'consumer|consuming'"
+  ssh "$VM_XB" "$(xb_engine) logs m1-topic-bridge-1 2>&1 | grep -qiE 'consumer|consuming'"
 
 # S3 lifecycle: M2 compose up + deploy gate (pinned images present) + worker registered
 stage "S3 lifecycle deploy gate (pinned image exists — no-pull rule)" \
-  ssh "$VM_XB" "docker image inspect ea/executor-stub:1.0.0 >/dev/null"
+  ssh "$VM_XB" "$(xb_engine) image inspect ea/executor-stub:1.0.0 >/dev/null"
 stage "S3 lifecycle compose up" \
-  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && docker compose up -d"
+  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && $(xb_engine) compose up -d"
 stage "S3 lifecycle healthy" \
-  ssh "$VM_XB" "docker exec m2-lifecycle-1 curl -sf http://127.0.0.1:8090/health"
+  ssh "$VM_XB" "$(xb_engine) exec m2-lifecycle-1 curl -sf http://127.0.0.1:8090/health"
 stage "S3 worker registered (polling temporal)" \
-  ssh "$VM_XB" "docker logs m2-worker-1 2>&1 | grep -qiE 'WorkflowType TaskWorkflow|worker started|registered'"
+  ssh "$VM_XB" "$(xb_engine) logs m2-worker-1 2>&1 | grep -qiE 'WorkflowType TaskWorkflow|worker started|registered'"
 
 # S4 executors: M3 images load-verified on vm-xb; token issuance dry-run
 stage "S4 executor images present on vm-xb" \
-  ssh "$VM_XB" "docker image inspect ea/hermes-ephemeral:1.0.0 >/dev/null && docker image inspect ea/claude-coder:1.0.0 >/dev/null"
+  ssh "$VM_XB" "$(xb_engine) image inspect ea/hermes-ephemeral:1.0.0 >/dev/null && $(xb_engine) image inspect ea/claude-coder:1.0.0 >/dev/null"
 stage "S4 token issuance dry-run (issue + verify + revoke)" \
   ssh "$VM_XB" "set -a; . /opt/ea/secrets/m3.env; set +a; bash /opt/ea/deploy-v2/m3/issue-token.sh --dry-run"
 

@@ -19,6 +19,20 @@
 set -euo pipefail
 
 VM_XB="${1:-${VM_XB:-}}"
+# hosts.env is the canonical host map — auto-load it if present (it also
+# carries ENGINE, the container-engine choice: podman = rootless Podman on
+# the execution host, run as the poc user).
+if [ -f "$(dirname "$0")/m0/hosts.env" ]; then set -a; . "$(dirname "$0")/m0/hosts.env"; set +a; fi
+ENGINE="${ENGINE:-docker}"
+# xb_engine — container-engine command prefix for the execution host
+# (rootless podman runs as the poc user; the remote shell resolves $(id -u poc)).
+xb_engine() {
+  if [ "$ENGINE" = "podman" ]; then
+    echo 'sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+  else
+    echo docker
+  fi
+}
 if [[ -z "$VM_XB" ]]; then
   echo "usage: $0 <execution-host ssh target>   (or export VM_XB)" >&2
   exit 2
@@ -27,34 +41,36 @@ fi
 step() { printf '\n== %s ==\n' "$*"; }
 
 step "1/4 workflow engine + store (deploy-v2/m0/temporal)"
-ssh "$VM_XB" 'cd /opt/ea/deploy-v2/m0/temporal && docker compose up -d'
+ssh "$VM_XB" "cd /opt/ea/deploy-v2/m0/temporal && $(xb_engine) compose up -d"
 
 step "2/4 broker + message bridge (deploy-v2/m1)"
-ssh "$VM_XB" 'cd /opt/ea/deploy-v2/m1 && docker compose up -d'
+ssh "$VM_XB" "cd /opt/ea/deploy-v2/m1 && $(xb_engine) compose up -d"
 
 step "3/4 worker + lifecycle (deploy-v2/m2)"
-ssh "$VM_XB" 'cd /opt/ea/deploy-v2/m2 && docker compose up -d'
+ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && $(xb_engine) compose up -d"
 
 step "4/4 dashboards + proxy"
 # Temporal UI lives in the operator's UI stack on the execution host; the
 # request-translation proxy is a standalone container bind-mounting its source
 # from the repository copy (ledger L3: nothing a container mounts may live
 # outside source control). Start both if present; skip gracefully if absent.
-ssh "$VM_XB" '
+ssh "$VM_XB" "
+  E=\"\$(xb_engine)\"
   if [ -d ~/temporal-agent-stack ]; then
-    (cd ~/temporal-agent-stack && docker compose up -d --no-deps temporal-ui) || true
+    (cd ~/temporal-agent-stack && \$E compose up -d --no-deps temporal-ui) || true
   fi
-  docker start llm-proxy 2>/dev/null || true
-'
+  \$E start llm-proxy 2>/dev/null || true
+"
 
 step "verify"
-ssh "$VM_XB" '
+ssh "$VM_XB" "
   set -e
-  echo "-- containers --"; docker ps --format "{{.Names}}\t{{.Status}}" | sort
-  echo "-- broker health --"; docker ps --filter name=rabbitmq --filter health=healthy --format "{{.Names}}: healthy"
-  echo "-- bridge consuming --"; docker logs --tail 1 ea-m1-topic-bridge-1 2>&1 | grep -q "connected; consuming" \
+  E=\"\$(xb_engine)\"
+  echo "-- containers --"; \$E ps --format \"{{.Names}}\\t{{.Status}}\" | sort
+  echo "-- broker health --"; \$E ps --filter name=rabbitmq --filter health=healthy --format \"{{.Names}}: healthy\"
+  echo "-- bridge consuming --"; \$E logs --tail 1 ea-m1-topic-bridge-1 2>&1 | grep -q \"connected; consuming\" \
     && echo "topic-bridge: consuming ea-tasks.durable" || { echo "topic-bridge: NOT consuming"; exit 1; }
-  echo "-- worker registered --"; docker logs ea-m2-worker-1 2>&1 | grep -q "Started Worker" \
+  echo "-- worker registered --"; \$E logs ea-m2-worker-1 2>&1 | grep -q \"Started Worker\" \
     && echo "worker: registered on task queue" || { echo "worker: NOT registered"; exit 1; }
-'
+"
 step "RESTART_STACK_OK"

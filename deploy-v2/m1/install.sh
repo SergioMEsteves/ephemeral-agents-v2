@@ -40,6 +40,10 @@
 #      test. All T1..T5 PASS -> run TP-M1 before starting M2.
 #
 # =============================================================================
+# Container engine (ENGINE env / hosts.env): docker (default) or podman =
+# ROOTLESS Podman on the execution VM (vm-xb) only — every other VM stays
+# Docker. vm-xb docker/compose commands run through xb_engine() (podman mode
+# runs them as the poc user). See decision-log.md.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -67,6 +71,29 @@ VM_XB="${VM_XB:-vm-xb}"
 TEMPORAL_ADDR="${TEMPORAL_ADDR:-$VM_XB:7233}"
 export TEMPORAL_ADDRESS="$TEMPORAL_ADDR"   # the temporal CLI reads TEMPORAL_ADDRESS
 IMAGE_TAG="${IMAGE_TAG:-1.0.0}"
+# ---------------------------------------------------------------- engine choice
+# ENGINE (docker | podman) — podman = ROOTLESS Podman on the EXECUTION VM
+# (vm-xb) ONLY; every other VM stays Docker. Set in inputs.yaml config.engine,
+# carried by hosts.env (render-inputs.py), overridable via env.
+ENGINE="${ENGINE:-docker}"
+# xb_engine — the container-engine command prefix for vm-xb remote commands.
+# Rootless Podman runs as the poc user (XDG_RUNTIME_DIR is what podman needs
+# to find its per-user socket/runtime; the remote shell resolves $(id -u poc)).
+xb_engine() {
+  if [ "$ENGINE" = "podman" ]; then
+    echo 'sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+  else
+    echo docker
+  fi
+}
+# xb_own_staged — podman compose runs as poc, so staged compose/.env files
+# must be readable by poc (docker mode runs as the ssh user and needs no change).
+xb_own_staged() {
+  if [ "$ENGINE" = "podman" ]; then
+    ssh "$VM_XB" "sudo chown poc:poc $* 2>/dev/null || true"
+  fi
+}
+
 
 log()  { printf '[m1 %s] %s\n' "$(date -u +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 ok()   { log "OK   - $*"; }
@@ -159,7 +186,7 @@ build_and_load() {
   docker run --rm --entrypoint sh "ea/topic-bridge:$IMAGE_TAG" \
     -c 'grep -qa1 "go1\." /usr/local/bin/adapter && echo GO' | grep -q GO \
     || die "adapter binary is not a Go build — language decision violated"
-  docker save "ea/topic-bridge:$IMAGE_TAG" | ssh "$VM_XB" "docker load"
+  docker save "ea/topic-bridge:$IMAGE_TAG" | ssh "$VM_XB" "$(xb_engine) load"
   ok "§2 image built (Go) + loaded"
 }
 
@@ -175,18 +202,19 @@ deploy_adapter() {
   printf '%s\n' "RABBITMQ_PASS=$pass" | ssh "$VM_XB" 'umask 077; cat > /opt/ea/deploy-v2/m1/.env && chmod 600 /opt/ea/deploy-v2/m1/.env'  # stdin + 600: secret not in argv/logs
   # shared external network: one network carries M0 + M1 containers; aliases
   # give M1 compose the service names it expects (rabbitmq / temporal)
-  ssh "$VM_XB" "docker network inspect ea-net >/dev/null 2>&1 || docker network create ea-net"
-  ssh "$VM_XB" "docker network connect --alias rabbitmq ea-net rabbitmq-rabbitmq-1 2>/dev/null || true"
-  ssh "$VM_XB" "docker network connect --alias temporal ea-net temporal-temporal-1 2>/dev/null || true"
-  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m1 && docker compose up -d topic-bridge"
+  ssh "$VM_XB" "$(xb_engine) network inspect ea-net >/dev/null 2>&1 || $(xb_engine) network create ea-net"
+  ssh "$VM_XB" "$(xb_engine) network connect --alias rabbitmq ea-net rabbitmq-rabbitmq-1 2>/dev/null || true"
+  ssh "$VM_XB" "$(xb_engine) network connect --alias temporal ea-net temporal-temporal-1 2>/dev/null || true"
+  xb_own_staged /opt/ea/deploy-v2/m1/compose.yaml /opt/ea/deploy-v2/m1/.env
+  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m1 && $(xb_engine) compose up -d topic-bridge"
   local i st=""
   for i in $(seq 1 30); do
-    st="$(ssh "$VM_XB" "docker ps -f name=topic-bridge --format '{{.Status}}' || true")"
+    st="$(ssh "$VM_XB" "$(xb_engine) ps -f name=topic-bridge --format '{{.Status}}' || true")"
     case "$st" in *"Up"*) break ;; esac
     sleep 2
   done
   case "$st" in *"Up"*) : ;; *) die "topic-bridge not Up after 60s (M1 §6: shared compose network?)" ;; esac
-  log "§3   consumer: $(ssh "$VM_XB" "docker logs topic-bridge 2>&1 | grep -iE 'consumer|consuming' | tail -3" || echo '<no consume line yet>')"
+  log "§3   consumer: $(ssh "$VM_XB" "$(xb_engine) logs topic-bridge 2>&1 | grep -iE 'consumer|consuming' | tail -3" || echo '<no consume line yet>')"
   ok "§3 topic-bridge deployed"
 }
 
@@ -222,7 +250,7 @@ gate_tests() {
     base="$(wf_count)"
     bash "$M1/tests/publish.sh" 20 & ppid=$!
     sleep 1
-    ssh "$VM_XB" "docker kill ea-m1-topic-bridge-1 && docker start ea-m1-topic-bridge-1"
+    ssh "$VM_XB" "$(xb_engine) kill ea-m1-topic-bridge-1 && $(xb_engine) start ea-m1-topic-bridge-1"
     wait "$ppid" || true
     sleep 5
     delta=$(( $(wf_count) - base ))
@@ -233,7 +261,7 @@ gate_tests() {
     dlq="$(printf 'user = "ea:%s"\n' "$RMP" | ssh "$VM_XB" "curl -s -K - 'http://127.0.0.1:15672/api/queues/%2F/ea-tasks.dlq' | grep -o '\"messages\":[0-9]*' | cut -d: -f2 || echo 0")"
     echo "T4 dlq: $dlq (expected 3; consumer still up) : $([ "${dlq:-0}" -ge 3 ] && echo PASS || echo FAIL)"
     # T5: Temporal restart
-    ssh "$VM_XB" "cd /opt/ea/deploy-v2/m0/temporal && docker compose restart temporal"
+    ssh "$VM_XB" "cd /opt/ea/deploy-v2/m0/temporal && $(xb_engine) compose restart temporal"
     sleep 30
     base="$(wf_count)"
     bash "$M1/tests/publish.sh" 5

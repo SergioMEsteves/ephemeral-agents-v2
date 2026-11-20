@@ -44,6 +44,19 @@ Per-project replication is `RUNBOOK-V2-NEW-PROJECT.md`.
 | TTL/cap values | `EA_TTL_DEFAULT`, team cap |
 | Model/provider key for the CoS | staged ONLY as the llm-proxy provider key — the CoS never holds it (M1 §5) |
 
+**Container engine** (the one choice that changes the stage scripts):
+`config.engine` in `inputs.yaml` — `docker` (default) keeps today's estate
+unchanged; `podman` installs ROOTLESS Podman on the EXECUTION VM only
+(vm-xb): podman + podman-compose as the `poc` user (never root), with
+subuid/subgid ranges, unprivileged-userns kernel settings and loginctl
+linger (the poc podman.socket the lifecycle talks to). Every other VM
+(front-of-house, memory, registry) stays Docker. Rationale: rootless
+Podman removes the worst failure mode — a container escape reaching the
+root Docker daemon that owns the execution VM. All vm-xb ports are
+>1024, so rootless works. The choice is carried by `render-inputs.py`
+into `hosts.env` as `ENGINE=`; every stage script branches on it (see
+`decision-log.md`).
+
 **Workstation:** docker + buildx, go ≥1.22, `temporal` CLI, `gh` (logged
 in), rsync, python3 (+`jsonschema`, `pika` optional). Copy
 `deploy-v2/m0/hosts.env.example` → `hosts.env` (gitignored) and fill it —

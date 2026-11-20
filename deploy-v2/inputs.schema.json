@@ -83,8 +83,9 @@
     "config": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["ttl_default", "max_parallel_agents", "registry_gc_keep_last", "registry_disk_alert_pct", "isolation_tier"],
+      "required": ["ttl_default", "max_parallel_agents", "registry_gc_keep_last", "registry_disk_alert_pct", "isolation_tier", "engine"],
       "properties": {
+        "engine": {"enum": ["docker", "podman"], "default": "docker"},
         "ttl_default": {"type": "integer", "minimum": 60},
         "max_parallel_agents": {"type": "integer", "minimum": 1, "maximum": 20},
         "registry_gc_keep_last": {"type": "integer", "minimum": 1},

@@ -78,6 +78,12 @@ For each stage:
    Wait for the owner's go (unless auto-proceed was granted).
 
 Stage-specific notes the agent must honor:
+- **Container engine (S0):** the choice lives in `inputs.yaml`
+  (`config.engine`) and is carried by `render-inputs.py` into
+  `hosts.env` as `ENGINE=`. `docker` (default) = today's estate unchanged.
+  `podman` = rootless Podman on the EXECUTION VM only (run as the `poc`
+  user, never root); every other VM stays Docker. Never override the
+  choice by hand — branch through `xb_engine()`.
 - **S3 queue declaration:** `ea-tasks` is declared ONCE with
   `x-max-priority` — never re-declare with different args (a known ledger
   entry).

@@ -10,7 +10,9 @@
 #
 # What this script does (idempotent — safe to re-run; re-run = rebuild):
 #   §1  Provision 3 VMs on the PVE host (vm-xa, vm-xb, vm-hindsight) + base OS
-#   §2  Docker on every VM
+#   §2  Container engine on every VM: Docker by default; engine=podman puts
+#       ROOTLESS Podman on the EXECUTION VM (vm-xb) only — every other VM
+#       stays Docker (see decision-log.md "Container engine choice").
 #   §3  RabbitMQ (topic) on vm-xb + topic topology + cross-VM publish test
 #   §4  Temporal on vm-xb +  §4b  Go SDK smoke (the language-decision check)
 #   §5  Network verification matrix -> deploy-v2/m0/evidence/network-matrix.txt
@@ -28,6 +30,9 @@
 #   NETPLAN_IP_XA=... NETPLAN_IP_XB=... NETPLAN_IP_3=...
 #       if set AND --apply-netplan: writes /etc/netplan/01-netcfg.yaml
 #       (backing up any existing file) and applies; default is record-only.
+#   ENGINE=docker|podman  — container engine for the EXECUTION VM (vm-xb):
+#       podman = rootless Podman run as the poc user (all other VMs stay
+#       Docker). Read from hosts.env (render-inputs.py emits it) or env.
 #   SMOKE_HOST=local (default: run the Go SDK smoke on the build host)
 #
 # Assets required in the repo (produced by the M0 delivery plan; checked first):
@@ -84,6 +89,29 @@ warn() { log "WARN - $*"; }
 die()  { log "FAIL: $*"; exit 1; }
 
 PVMXS=("$VM_XA" "$VM_XB" "$VM_3")
+
+# ---------------------------------------------------------------- engine choice
+# ENGINE (docker | podman) — podman = ROOTLESS Podman on the EXECUTION VM
+# (vm-xb) ONLY; every other VM stays Docker. Set in inputs.yaml config.engine,
+# carried by hosts.env (render-inputs.py), overridable via env.
+ENGINE="${ENGINE:-docker}"
+# xb_engine — the container-engine command prefix for vm-xb remote commands.
+# Rootless Podman runs as the poc user (XDG_RUNTIME_DIR is what podman needs
+# to find its per-user socket/runtime; the remote shell resolves $(id -u poc)).
+xb_engine() {
+  if [ "$ENGINE" = "podman" ]; then
+    echo 'sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+  else
+    echo docker
+  fi
+}
+# xb_own_staged — podman compose runs as poc, so staged compose/.env files
+# must be readable by poc (docker mode runs as the ssh user and needs no change).
+xb_own_staged() {
+  if [ "$ENGINE" = "podman" ]; then
+    ssh "$VM_XB" "sudo chown poc:poc $* 2>/dev/null || true"
+  fi
+}
 
 # ---------------------------------------------------------------- assets
 check_assets() {
@@ -194,15 +222,43 @@ provision_vms() {
   ok "§1 provisioning + base OS"
 }
 
-# ---------------------------------------------------------------- §2 docker
+# ---------------------------------------------------------------- §2 engine
 install_docker() {
   for h in "${PVMXS[@]}"; do
+    if [ "$h" = "$VM_XB" ] && [ "$ENGINE" = "podman" ]; then
+      install_podman_rootless
+      continue
+    fi
     log "§2 — Docker on $(vm_display_name "$h")"
     ssh "$h" "command -v docker >/dev/null || { sudo apt-get update && sudo apt-get install -y docker.io docker-compose-v2; }; sudo usermod -aG docker poc"
     ssh "$h" "docker run --rm alpine echo ok >/dev/null && docker compose version >/dev/null" \
       || die "docker not usable on $(vm_display_name "$h")"
   done
-  ok "§2 docker on all 3 VMs"
+  ok "§2 container engine on all 3 VMs (engine=$ENGINE: vm-xb $([ "$ENGINE" = podman ] && echo rootless-podman || echo docker), others docker)"
+}
+
+# §2 (engine=podman): ROOTLESS Podman on the EXECUTION VM only. Installs
+# podman + podman-compose, enables the unprivileged-userns kernel settings,
+# subuid/subgid ranges for poc, loginctl linger (user services survive
+# logout — the podman.socket the lifecycle talks to), then verifies podman
+# AS THE POC USER (never root — that is the whole point of rootless).
+install_podman_rootless() {
+  log "§2 — ROOTLESS Podman on $(vm_display_name "$VM_XB") (engine=podman; every other VM stays Docker)"
+  ssh "$VM_XB" "command -v podman >/dev/null || { sudo apt-get update && sudo apt-get install -y podman podman-compose; }"
+  # kernel unprivileged-userns settings (idempotent; also bind at boot)
+  ssh "$VM_XB" "sudo sysctl -w kernel.unprivileged_userns_clone=1 user.max_user_namespaces=28633 >/dev/null \
+    && echo 'kernel.unprivileged_userns_clone=1' | sudo tee /etc/sysctl.d/70-podman-userns.conf >/dev/null \
+    && echo 'user.max_user_namespaces=28633' | sudo tee -a /etc/sysctl.d/70-podman-userns.conf >/dev/null"
+  # subuid/subgid ranges for poc (append once — idempotent)
+  ssh "$VM_XB" "grep -q '^poc:' /etc/subuid || echo 'poc:100000:65536' | sudo tee -a /etc/subuid >/dev/null; \
+    grep -q '^poc:' /etc/subgid || echo 'poc:100000:65536' | sudo tee -a /etc/subgid >/dev/null"
+  # linger: poc's user services (podman.socket) survive logout
+  ssh "$VM_XB" "sudo loginctl enable-linger poc; sudo -u poc env XDG_RUNTIME_DIR=/run/user/\$(id -u poc) systemctl --user enable --now podman.socket"
+  ssh "$VM_XB" "sudo -u poc env XDG_RUNTIME_DIR=/run/user/\$(id -u poc) podman run --rm alpine echo ok >/dev/null" \
+    || die "podman not usable as the poc user on $(vm_display_name "$VM_XB") (rootless rule: podman is NEVER run as root)"
+  ssh "$VM_XB" "sudo -u poc env XDG_RUNTIME_DIR=/run/user/\$(id -u poc) podman compose version >/dev/null" \
+    || die "podman compose missing on $(vm_display_name "$VM_XB") (podman-compose installed?)"
+  ok "§2 rootless podman verified as poc on $(vm_display_name "$VM_XB")"
 }
 
 # ---------------------------------------------------------------- §2a firewall
@@ -282,7 +338,7 @@ PY"; then
   fi
   ssh "$VM_XA" 'rm -f /tmp/rmq-pw'
   # Assert via rabbitmqctl (authoritative — the mgmt-API stats lag after a publish)
-  n="$(ssh "$VM_XB" "docker exec rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^ea-tasks[[:space:]]' | head -1 | awk '{print \$2}'" || true)"
+  n="$(ssh "$VM_XB" "$(xb_engine) exec rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^ea-tasks[[:space:]]' | head -1 | awk '{print \$2}'" || true)"
   if [ "${n:-0}" -ge 1 ]; then
     log "§3   queue messages=$n via AMQP 5672 from vm-xa (rabbitmqctl)"
     # Fetch+ack the V2 copy from ea-tasks (mgmt API GET on vm-xb loopback — no
@@ -294,7 +350,7 @@ PY"; then
     ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/ea-tasks/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" | grep -q "m0-cross-test" && echo "fetch-ack-ok"; rm -f /tmp/rmq-cfg'
     printf 'user = "ea:%s"\n' "$RABBITMQ_PASS" | ssh "$VM_XB" 'umask 077; cat > /tmp/rmq-cfg && chmod 600 /tmp/rmq-cfg'
     ssh "$VM_XB" 'curl -s -K /tmp/rmq-cfg -XPOST "http://127.0.0.1:15672/api/queues/%2F/agent.tasks.dlq/get" -H "content-type: application/json" -d "{\"count\":10,\"ackmode\":\"ack_requeue_false\",\"encoding\":\"auto\"}" >/dev/null; rm -f /tmp/rmq-cfg'
-    post="$(ssh "$VM_XB" "docker exec rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^(ea-tasks|agent.tasks.dlq)[[:space:]]' | awk '{print \$1, \$2}'" || true)"
+    post="$(ssh "$VM_XB" "$(xb_engine) exec rabbitmq-rabbitmq-1 rabbitmqctl list_queues name messages consumers 2>/dev/null | grep -E '^(ea-tasks|agent.tasks.dlq)[[:space:]]' | awk '{print \$1, \$2}'" || true)"
     log "§3   post-test: $post (ea-tasks drained; the first organization's DLQ drained — its cleanup)"
     return 0
   fi
@@ -321,27 +377,29 @@ deploy_rabbitmq() {
   # the estate switch-over, the V2 compose is the sole source and the first organization's tree is
   # retired). Post-switch-over: the V2 compose up path is the normal path.
   local rmq_container
-  rmq_container="$(ssh "$VM_XB" "docker ps -qf name=rabbitmq" 2>/dev/null || true)"
+  rmq_container="$(ssh "$VM_XB" "$(xb_engine) ps -qf name=rabbitmq" 2>/dev/null || true)"
   if [ -n "$rmq_container" ] && [ "$CHECK_ONLY" != "1" ]; then
     log "§3   live rabbitmq container detected — COEXISTENCE MODE: reuse it"
     ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/rabbitmq && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
     rsync -az "$M0/rabbitmq/compose.yaml" "$VM_XB:/opt/ea/deploy-v2/m0/rabbitmq/"  # V2 compose staged for the post-switch-over path (not applied)
-    ssh "$VM_XB" "docker network inspect ea-net >/dev/null 2>&1 || docker network create ea-net"
-    ssh "$VM_XB" "docker network connect --alias rabbitmq ea-net rabbitmq-rabbitmq-1 2>/dev/null || true"
-    ssh "$VM_XB" "docker compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
-      || ssh "$VM_XB" "docker exec rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
+    xb_own_staged /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml
+    ssh "$VM_XB" "$(xb_engine) network inspect ea-net >/dev/null 2>&1 || $(xb_engine) network create ea-net"
+    ssh "$VM_XB" "$(xb_engine) network connect --alias rabbitmq ea-net rabbitmq-rabbitmq-1 2>/dev/null || true"
+    ssh "$VM_XB" "$(xb_engine) compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
+      || ssh "$VM_XB" "$(xb_engine) exec rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
       || die "live rabbitmq not serving"
   else
   if [ "$CHECK_ONLY" != "1" ]; then
     ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/rabbitmq && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
     rsync -az "$M0/rabbitmq/compose.yaml" "$envf" "$VM_XB:/opt/ea/deploy-v2/m0/rabbitmq/"
-    ssh "$VM_XB" "cd /opt/ea/deploy-v2/m0/rabbitmq && docker compose up -d"
+    xb_own_staged /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml /opt/ea/deploy-v2/m0/rabbitmq/.env
+    ssh "$VM_XB" "cd /opt/ea/deploy-v2/m0/rabbitmq && $(xb_engine) compose up -d"
   fi
   fi
   local i
   for i in $(seq 1 40); do
-    if ssh "$VM_XB" "docker compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
-      || ssh "$VM_XB" "docker exec rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1; then
+    if ssh "$VM_XB" "$(xb_engine) compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
+      || ssh "$VM_XB" "$(xb_engine) exec rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1; then
       break
     fi
     sleep 3
@@ -375,7 +433,7 @@ PINS
   fi
   if [ "$CHECK_ONLY" != "1" ]; then
     local tmp_container
-    tmp_container="$(ssh "$VM_XB" "docker ps -qf name=temporal-temporal" 2>/dev/null || true)"
+    tmp_container="$(ssh "$VM_XB" "$(xb_engine) ps -qf name=temporal-temporal" 2>/dev/null || true)"
     if [ -n "$tmp_container" ]; then
       # COEXISTENCE MODE: reuse the live temporal stack (the first organization's compose project) —
       # the V2 compose up would conflict on the container name/port. The V2
@@ -383,12 +441,13 @@ PINS
       log "§4   live temporal stack detected — COEXISTENCE MODE: reuse it"
       ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/temporal && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
       rsync -az "$M0/temporal/compose.yaml" "$envf" "$VM_XB:/opt/ea/deploy-v2/m0/temporal/"
-      ssh "$VM_XB" "docker network inspect ea-net >/dev/null 2>&1 || docker network create ea-net"
-      ssh "$VM_XB" "docker network connect --alias temporal ea-net temporal-temporal-1 2>/dev/null || true"
+      xb_own_staged /opt/ea/deploy-v2/m0/temporal/compose.yaml /opt/ea/deploy-v2/m0/temporal/.env
+      ssh "$VM_XB" "$(xb_engine) network inspect ea-net >/dev/null 2>&1 || $(xb_engine) network create ea-net"
+      ssh "$VM_XB" "$(xb_engine) network connect --alias temporal ea-net temporal-temporal-1 2>/dev/null || true"
     else
       ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m0/temporal && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
       rsync -az "$M0/temporal/compose.yaml" "$envf" "$VM_XB:/opt/ea/deploy-v2/m0/temporal/"
-      ssh "$VM_XB" "cd /opt/ea/deploy-v2/m0/temporal && docker compose up -d"
+      ssh "$VM_XB" "cd /opt/ea/deploy-v2/m0/temporal && $(xb_engine) compose up -d"
     fi
   fi
   # pinned: override TEMPORAL_CLI_VERSION in hosts.env; fetched to a file, not piped to a shell
@@ -478,12 +537,17 @@ gate_summary() {
     log "check-only: gate checks skipped"
     return 0
   fi
-  # 1: 3 VMs, docker runs on each
+  # 1: 3 VMs, the chosen engine runs on each (docker; rootless podman as poc on vm-xb)
   for h in "${PVMXS[@]}"; do
-    if ssh "$h" "docker run --rm alpine echo ok" >/dev/null 2>&1; then
-      log "gate 1 docker on $(vm_display_name "$h") : PASS"
+    if [ "$h" = "$VM_XB" ] && [ "$ENGINE" = "podman" ]; then
+      g1="sudo -u poc env XDG_RUNTIME_DIR=/run/user/\$(id -u poc) podman run --rm alpine echo ok"
     else
-      log "gate 1 docker on $(vm_display_name "$h") : FAIL"; fails=1
+      g1="docker run --rm alpine echo ok"
+    fi
+    if ssh "$h" "$g1" >/dev/null 2>&1; then
+      log "gate 1 engine on $(vm_display_name "$h") : PASS"
+    else
+      log "gate 1 engine on $(vm_display_name "$h") : FAIL"; fails=1
     fi
   done
   # 2: cross-VM topic publish/consume
@@ -512,7 +576,7 @@ gate_summary() {
 main() {
   log "=== M0 chassis install start (check-only=$CHECK_ONLY no-gate=$NO_GATE) ==="
   check_assets
-  confirm "M0: provision/verify 3 VMs + base OS + Docker + RabbitMQ + Temporal (idempotent)"
+  confirm "M0: provision/verify 3 VMs + base OS + container engine (Docker / rootless Podman) + RabbitMQ + Temporal (idempotent)"
   provision_vms
   install_docker
   open_firewall

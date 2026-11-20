@@ -47,6 +47,10 @@
 #      two-week fix. Evidence -> deploy-v2/m3/evidence/, then run TP-M3.
 #
 # =============================================================================
+# Container engine (ENGINE env / hosts.env): docker (default) or podman =
+# ROOTLESS Podman on the execution VM (vm-xb) only — every other VM stays
+# Docker. vm-xb docker/compose commands run through xb_engine() (podman mode
+# runs them as the poc user). See decision-log.md.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -73,6 +77,29 @@ VM_XB="${VM_XB:-vm-xb}"
 IMAGE_TAG="${IMAGE_TAG:-1.0.0}"
 APP_KEY_PATH="${APP_KEY_PATH:-/opt/ea/secrets/app-key.pem}"
 N_PARALLEL="${N_PARALLEL:-0}"
+# ---------------------------------------------------------------- engine choice
+# ENGINE (docker | podman) — podman = ROOTLESS Podman on the EXECUTION VM
+# (vm-xb) ONLY; every other VM stays Docker. Set in inputs.yaml config.engine,
+# carried by hosts.env (render-inputs.py), overridable via env.
+ENGINE="${ENGINE:-docker}"
+# xb_engine — the container-engine command prefix for vm-xb remote commands.
+# Rootless Podman runs as the poc user (XDG_RUNTIME_DIR is what podman needs
+# to find its per-user socket/runtime; the remote shell resolves $(id -u poc)).
+xb_engine() {
+  if [ "$ENGINE" = "podman" ]; then
+    echo 'sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+  else
+    echo docker
+  fi
+}
+# xb_own_staged — podman compose runs as poc, so staged compose/.env files
+# must be readable by poc (docker mode runs as the ssh user and needs no change).
+xb_own_staged() {
+  if [ "$ENGINE" = "podman" ]; then
+    ssh "$VM_XB" "sudo chown poc:poc $* 2>/dev/null || true"
+  fi
+}
+
 
 log()  { printf '[m3 %s] %s\n' "$(date -u +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 ok()   { log "OK   - $*"; }
@@ -92,7 +119,7 @@ confirm() {
 prereqs() {
   log "§0 — prereq checks (M2 gate)"
   [ "${M2_DONE:-0}" = "1" ] || {
-    if ! ssh "$VM_XB" "docker ps --format '{{.Names}}' | grep -Eq '^ea-m2-(lifecycle|worker)-[0-9]+$'"; then
+    if ! ssh "$VM_XB" "$(xb_engine) ps --format '{{.Names}}' | grep -Eq '^ea-m2-(lifecycle|worker)-[0-9]+$'"; then
       die "lifecycle/worker not running on $VM_XB — run M2 install first"
     fi
   }
@@ -202,7 +229,7 @@ build_and_load() {
   docker build -f "$M3/claude-coder/Dockerfile" \
     --build-arg CLAUDE_CODE_VERSION="$CLAUDE_CODE_VERSION" \
     "$M3/claude-coder" -t "ea/claude-coder:$IMAGE_TAG"
-  docker save "ea/hermes-ephemeral:$IMAGE_TAG" "ea/claude-coder:$IMAGE_TAG" | ssh "$VM_XB" "docker load"
+  docker save "ea/hermes-ephemeral:$IMAGE_TAG" "ea/claude-coder:$IMAGE_TAG" | ssh "$VM_XB" "$(xb_engine) load"
   # llm-proxy twin for the ea estate (M3 §2a): executors on ea-net reach
   # 'llm-proxy' via the network alias — the first organization's proxy (poc-net) stays untouched.
   ssh "$VM_XB" "sudo mkdir -p /opt/ea/llm-proxy && sudo cp /opt/poc/llm-proxy/proxy.js /opt/ea/llm-proxy/proxy.js 2>/dev/null || true"
@@ -239,6 +266,14 @@ stage_m3_secrets() {
 
 select_images_in_m2() {
   log "§2' — select executor images in the M2 config (EA_IMAGE switch; writes the M3-era compose)"
+  # engine-aware socket host for the lifecycle volume mount: docker keeps the
+  # root docker.sock; podman mode mounts the poc user's rootless podman.sock
+  # (docker-compatible API — the lifecycle's DOCKER_HOST inside the container
+  # is unchanged, only the host-side socket source differs).
+  local XB_SOCKET_HOST="/var/run/docker.sock"
+  if [ "$ENGINE" = "podman" ]; then
+    XB_SOCKET_HOST="/run/user/$(ssh "$VM_XB" "id -u poc")/podman/podman.sock"
+  fi
   if [ "$CHECK_ONLY" = "1" ]; then return 0; fi
   # The M2-era compose (stub-only) must be replaced by the M3-era state: the
   # executor switch (EA_IMAGE_HERMES/CODER pins, tag pins — images are loaded
@@ -263,7 +298,7 @@ services:
     env_file:
       - /opt/ea/secrets/m3.env                # M3 §2 per-run secrets (never in git/images)
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "${XB_SOCKET_HOST}:/var/run/docker.sock"      # docker.sock; podman mode: the poc user's podman.sock (docker-compatible API)
       - "/opt/ea/deploy-v2/m3:/opt/ea/deploy-v2/m3:ro"   # M3 §1c: token-issuance script
       - "/opt/ea/secrets:/opt/ea/secrets:ro"       # M3 §1c: app-key.pem (read-only)
       - "/var/ea/tasks:/var/ea/tasks"
@@ -289,9 +324,10 @@ YAML
     || die "M3-era compose rsync failed"
   # ensure the m2 .env (RABBITMQ_PASS) still exists — compose interpolation needs it
   ssh "$VM_XB" "test -s /opt/ea/deploy-v2/m2/.env" || die "m2 .env missing — re-run deploy-v2/m2/install.sh §2"
-  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && docker compose up -d --force-recreate lifecycle worker" \
+  xb_own_staged /opt/ea/deploy-v2/m2/compose.yaml /opt/ea/deploy-v2/m2/.env
+  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && $(xb_engine) compose up -d --force-recreate lifecycle worker" \
     || die "M2 recreate with the M3-era compose failed"
-  ssh "$VM_XB" "docker image inspect ea/hermes-ephemeral:$IMAGE_TAG >/dev/null && docker image inspect ea/claude-coder:$IMAGE_TAG >/dev/null" \
+  ssh "$VM_XB" "$(xb_engine) image inspect ea/hermes-ephemeral:$IMAGE_TAG >/dev/null && $(xb_engine) image inspect ea/claude-coder:$IMAGE_TAG >/dev/null" \
     || die "M2 no-pull gate: executor images missing on $VM_XB after reload"
   ok "§2' M2 config switched to the selected images (M3-era compose live)"
 }

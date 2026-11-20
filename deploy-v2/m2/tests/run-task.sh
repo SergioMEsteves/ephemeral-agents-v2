@@ -23,6 +23,13 @@ set -euo pipefail
 VM_XB="${VM_XB:-vm-xb}"
 TEMPORAL="${TEMPORAL:-temporal}"
 TASK_QUEUE="${TASK_QUEUE:-ea-tasks}"
+# Container engine (ENGINE env / hosts.env): podman = rootless Podman on the
+# execution VM, run as the poc user; docker = the estate default.
+ENGINE="${ENGINE:-docker}"
+REAP_ENGINE='docker'
+if [ "$ENGINE" = "podman" ]; then
+  REAP_ENGINE='sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+fi
 
 [ -n "${1:-}" ] || { echo "usage: run-task.sh '<taskJson>'" >&2; exit 64; }
 TASK_JSON="$1"
@@ -61,7 +68,7 @@ case "$res" in
 esac
 
 # teardown assertion: the reaper must have removed the task container
-leftover="$(run_ssh "docker ps -a --filter label=ea.task='$TASK_ID' -q" || true)"
+leftover="$(run_ssh "$REAP_ENGINE ps -a --filter label=ea.task='$TASK_ID' -q" || true)"
 if [ -n "$leftover" ]; then
   echo "{\"task_id\":\"$TASK_ID\",\"reap\":\"FAIL\",\"survivor\":\"$leftover\"}"
   rc=1

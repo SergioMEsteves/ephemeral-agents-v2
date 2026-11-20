@@ -46,6 +46,10 @@
 #   5. All G PASS -> run TP-M4 before starting M5.
 #
 # =============================================================================
+# Container engine (ENGINE env / hosts.env): docker (default) or podman =
+# ROOTLESS Podman on the execution VM (vm-xb) only — every other VM stays
+# Docker. vm-xb docker/compose commands run through xb_engine() (podman mode
+# runs them as the poc user). See decision-log.md.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -74,6 +78,29 @@ EMBEDDING_PROVIDER="${EMBEDDING_PROVIDER:-}"
 # Coexistence: the first organization's hindsight-api owns host port 8081 on vm-hindsight; this build publishes 8082 (compose 8082:8081).
 HINDSIGHT_PORT="${HINDSIGHT_PORT:-8082}"
 HINDSIGHT_URL="http://$VM_3:$HINDSIGHT_PORT"
+# ---------------------------------------------------------------- engine choice
+# ENGINE (docker | podman) — podman = ROOTLESS Podman on the EXECUTION VM
+# (vm-xb) ONLY; every other VM stays Docker. Set in inputs.yaml config.engine,
+# carried by hosts.env (render-inputs.py), overridable via env.
+ENGINE="${ENGINE:-docker}"
+# xb_engine — the container-engine command prefix for vm-xb remote commands.
+# Rootless Podman runs as the poc user (XDG_RUNTIME_DIR is what podman needs
+# to find its per-user socket/runtime; the remote shell resolves $(id -u poc)).
+xb_engine() {
+  if [ "$ENGINE" = "podman" ]; then
+    echo 'sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+  else
+    echo docker
+  fi
+}
+# xb_own_staged — podman compose runs as poc, so staged compose/.env files
+# must be readable by poc (docker mode runs as the ssh user and needs no change).
+xb_own_staged() {
+  if [ "$ENGINE" = "podman" ]; then
+    ssh "$VM_XB" "sudo chown poc:poc $* 2>/dev/null || true"
+  fi
+}
+
 
 log()  { printf '[m4 %s] %s\n' "$(date -u +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 ok()   { log "OK   - $*"; }
@@ -95,7 +122,7 @@ prereqs() {
   [ "${M3_DONE:-0}" = "1" ] || {
     ssh -o BatchMode=yes -o ConnectTimeout=8 "$VM_3" "docker version >/dev/null" \
       || die "$VM_3 not reachable / docker down (M0)"
-    ssh -o BatchMode=yes -o ConnectTimeout=8 "$VM_XB" "docker ps --format '{{.Names}}' | grep -Eq '^ea-m2-lifecycle-[0-9]+$'" \
+    ssh -o BatchMode=yes -o ConnectTimeout=8 "$VM_XB" "$(xb_engine) ps --format '{{.Names}}' | grep -Eq '^ea-m2-lifecycle-[0-9]+$'" \
       || die "lifecycle not running on $VM_XB (M2/M3)"
   }
   ok "prereqs"
@@ -199,7 +226,7 @@ wire_hydration() {
   fi
   cat > "$EVIDENCE/m4-wiring-snippet.env" <<ENVEOF
 # add to the lifecycle + worker service env in /opt/ea/deploy-v2/m2/compose.yaml,
-# then: cd /opt/ea/deploy-v2/m2 && docker compose up -d   (on $VM_XB)
+# then: cd /opt/ea/deploy-v2/m2 && $(xb_engine) compose up -d   (on $VM_XB)
 HINDSIGHT_URL=$HINDSIGHT_URL
 ENVEOF
   if [ -n "${LLM_WIKI_READ_TOKEN:-}" ]; then
@@ -210,16 +237,17 @@ ENVEOF
     log "§2   LLM_WIKI_READ_TOKEN not set — the executor boots without the llm-wiki clone (rollback-degrades-gracefully)"
   fi
   log "§2   env snippet written to $EVIDENCE/m4-wiring-snippet.env"
-  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && docker compose up -d"
+  xb_own_staged /opt/ea/deploy-v2/m2/compose.yaml /opt/ea/deploy-v2/m2/.env
+  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && $(xb_engine) compose up -d"
   local i
   for i in $(seq 1 40); do
-    if ssh "$VM_XB" "docker compose -f /opt/ea/deploy-v2/m2/compose.yaml exec -T lifecycle sh -c 'test -n \"\$(curl -s http://127.0.0.1:8090/health)\"'" >/dev/null 2>&1; then
+    if ssh "$VM_XB" "$(xb_engine) compose -f /opt/ea/deploy-v2/m2/compose.yaml exec -T lifecycle sh -c 'test -n \"\$(curl -s http://127.0.0.1:8090/health)\"'" >/dev/null 2>&1; then
       break
     fi
     sleep 3
     if [ "$i" = "40" ]; then die "M2 redeploy after wiring: lifecycle /health not up (M2 §6)"; fi
   done
-  ssh "$VM_XB" "docker image inspect ea/executor-stub:1.0.0 >/dev/null" || warn "M2 no-pull gate: stub image missing — re-load it"
+  ssh "$VM_XB" "$(xb_engine) image inspect ea/executor-stub:1.0.0 >/dev/null" || warn "M2 no-pull gate: stub image missing — re-load it"
   ok "§2 hydration wired; M2 re-deployed with the new env"
 }
 

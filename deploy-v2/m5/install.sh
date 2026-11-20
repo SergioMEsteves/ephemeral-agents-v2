@@ -51,6 +51,10 @@
 #   5. Final step: run TP-M5. All five done-when conditions hold = build done.
 #
 # =============================================================================
+# Container engine (ENGINE env / hosts.env): docker (default) or podman =
+# ROOTLESS Podman on the execution VM (vm-xb) only — every other VM stays
+# Docker. vm-xb docker/compose commands run through xb_engine() (podman mode
+# runs them as the poc user). See decision-log.md.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -80,6 +84,29 @@ GATEWAY_URL="${GATEWAY_URL:-http://$VM_XA:8083}"
 E2E_BRIEF="${E2E_BRIEF:-add a health endpoint to the POC project}"
 E2E_TIMEOUT_S="${E2E_TIMEOUT_S:-600}"
 ALL_GATES_DONE="${M0_DONE:-0}${M1_DONE:-0}${M2_DONE:-0}${M3_DONE:-0}${M4_DONE:-0}"
+# ---------------------------------------------------------------- engine choice
+# ENGINE (docker | podman) — podman = ROOTLESS Podman on the EXECUTION VM
+# (vm-xb) ONLY; every other VM stays Docker. Set in inputs.yaml config.engine,
+# carried by hosts.env (render-inputs.py), overridable via env.
+ENGINE="${ENGINE:-docker}"
+# xb_engine — the container-engine command prefix for vm-xb remote commands.
+# Rootless Podman runs as the poc user (XDG_RUNTIME_DIR is what podman needs
+# to find its per-user socket/runtime; the remote shell resolves $(id -u poc)).
+xb_engine() {
+  if [ "$ENGINE" = "podman" ]; then
+    echo 'sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+  else
+    echo docker
+  fi
+}
+# xb_own_staged — podman compose runs as poc, so staged compose/.env files
+# must be readable by poc (docker mode runs as the ssh user and needs no change).
+xb_own_staged() {
+  if [ "$ENGINE" = "podman" ]; then
+    ssh "$VM_XB" "sudo chown poc:poc $* 2>/dev/null || true"
+  fi
+}
+
 
 log()  { printf '[m5 %s] %s\n' "$(date -u +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 ok()   { log "OK   - $*"; }
@@ -102,9 +129,9 @@ prereqs() {
     log "§0   ALL_GATES_DONE — skipping live probes"
     return 0
   fi
-  ssh "$VM_XB" "docker ps --format '{{.Names}}' | grep -Eq '^ea-m1-topic-bridge-[0-9]+$'" \
+  ssh "$VM_XB" "$(xb_engine) ps --format '{{.Names}}' | grep -Eq '^ea-m1-topic-bridge-[0-9]+$'" \
     || die "M1: topic-bridge missing on $VM_XB — earlier gate not passed"
-  ssh "$VM_XB" "docker ps --format '{{.Names}}' | grep -Eq '^ea-m2-lifecycle-[0-9]+$'" \
+  ssh "$VM_XB" "$(xb_engine) ps --format '{{.Names}}' | grep -Eq '^ea-m2-lifecycle-[0-9]+$'" \
     || die "M2: lifecycle missing on $VM_XB — earlier gate not passed"
   ssh "$VM_3" "curl -sf http://127.0.0.1:8082/healthz" >/dev/null 2>&1 \
     || die "M4: hindsight not healthy on $VM_3 — earlier gate not passed"
@@ -177,8 +204,8 @@ select_executor_default() {
   if [ "$CHECK_ONLY" = "1" ]; then return 0; fi
   scp -q "$M5/set-executor-default.py" "$VM_XB:/tmp/set-executor-default.py"
   ssh "$VM_XB" "python3 /tmp/set-executor-default.py /opt/ea/deploy-v2/m2/compose.yaml hermes"
-  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && docker compose up -d --force-recreate lifecycle"
-  ssh "$VM_XB" "docker inspect ea-m2-lifecycle-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^EA_EXECUTOR_DEFAULT=hermes$'" \
+  ssh "$VM_XB" "cd /opt/ea/deploy-v2/m2 && $(xb_engine) compose up -d --force-recreate lifecycle"
+  ssh "$VM_XB" "$(xb_engine) inspect ea-m2-lifecycle-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^EA_EXECUTOR_DEFAULT=hermes$'" \
     || die "§2' EA_EXECUTOR_DEFAULT=hermes not applied to ea-m2-lifecycle-1"
   ok "§2' executor default = hermes (stub remains the rollback pin)"
 }
@@ -213,7 +240,7 @@ e2e_acceptance_run() {
   ssh "$VM_XB" "temporal workflow list --type TaskWorkflow --limit 20 | grep -c '$task_id'" \
     | grep -q '[1-9]' || warn "§4   temporal: workflow row for $task_id not yet listed (poll)"
   # agent container alive + labeled while running (snapshot)
-  ssh "$VM_XB" "docker ps --filter label=ea.owner=lifecycle --format '{{.Names}}'" | tee "$EVIDENCE/e2e-containers-alive.txt"
+  ssh "$VM_XB" "$(xb_engine) ps --filter label=ea.owner=lifecycle --format '{{.Names}}'" | tee "$EVIDENCE/e2e-containers-alive.txt"
   # wait for completion
   local i
   for i in $(seq 1 "$((E2E_TIMEOUT_S / 10))"); do
@@ -223,7 +250,7 @@ e2e_acceptance_run() {
   done
   # zero survivors after completion
   local survivors
-  survivors="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
+  survivors="$(ssh "$VM_XB" "$(xb_engine) ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
   log "§4   post-completion POC container count: $survivors (expected 0)"
   # commit exists
   if [ -n "${PROJECT_LOCAL_DIR:-}" ] && [ -d "$PROJECT_LOCAL_DIR" ]; then
@@ -273,12 +300,12 @@ failure_injections() {
     tid="$(task_id_of "$f")"
     [ -n "$tid" ] || log "F3 publish rejected: $f"
     sleep 10
-    cid="$(ssh "$VM_XB" "docker ps --filter label=ea.owner=lifecycle -q | head -1 || true")"
+    cid="$(ssh "$VM_XB" "$(xb_engine) ps --filter label=ea.owner=lifecycle -q | head -1 || true")"
     if [ -n "$cid" ]; then
       # pkill matches process NAMES; the agent is PID 1 — kill it by pid, with a
       # docker-kill fallback if the exec cannot signal it.
-      ssh "$VM_XB" "docker exec $cid sh -c 'kill -9 1' 2>/dev/null" \
-        || ssh "$VM_XB" "docker kill $cid" || true
+      ssh "$VM_XB" "$(xb_engine) exec $cid sh -c 'kill -9 1' 2>/dev/null" \
+        || ssh "$VM_XB" "$(xb_engine) kill $cid" || true
     fi
     verify_task "F3" "$tid"
     # F4: TTL exceeded
@@ -295,7 +322,7 @@ failure_injections() {
     ssh "$VM_XA" "cd /opt/ea/deploy-v2/m5 && sudo docker compose restart manager"
     if wait_report "$tid" "${INJECT_TIMEOUT_S:-900}"; then
       local survivors rstatus
-      survivors="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
+      survivors="$(ssh "$VM_XB" "$(xb_engine) ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
       rstatus="$(report_status "$tid")"
       if [ "$survivors" = "0" ] && [ "$rstatus" = "success" ]; then
         echo "F5 manager-restart: report written after restart (status=$rstatus survivors=$survivors) : PASS"
@@ -343,7 +370,7 @@ verify_task() {  # $1 label, $2 task_id — survivors=0 AND a failure-shaped rep
   local label="$1" tid="$2" survivors st
   if [ -z "$tid" ]; then echo "$label publish rejected (no task_id) : FAIL"; return 0; fi
   if wait_report "$tid" "${INJECT_TIMEOUT_S:-900}"; then
-    survivors="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
+    survivors="$(ssh "$VM_XB" "$(xb_engine) ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
     st="$(report_status "$tid")"
     if [ "$survivors" = "0" ] && [ "$st" != "success" ]; then
       echo "$label report status=$st survivors=$survivors : PASS"
@@ -354,7 +381,7 @@ verify_task() {  # $1 label, $2 task_id — survivors=0 AND a failure-shaped rep
     fi
     echo "$label report JSON: $(ssh "$VM_XA" "cat /opt/ea/reports/$tid.json")"
   else
-    survivors="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
+    survivors="$(ssh "$VM_XB" "$(xb_engine) ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
     echo "$label report never landed within ${INJECT_TIMEOUT_S:-900}s survivors=$survivors : FAIL"
   fi
 }
@@ -421,7 +448,7 @@ credential_hardening() {
   fi
   # env review: no owner long-lived tokens anywhere
   local hits
-  hits="$(ssh "$VM_XB" 'for c in $(docker ps -q); do docker inspect "$c" | grep -Ei "owner_?token|github_pat" || true; done')"
+  hits="$(ssh "$VM_XB" "for c in \$($(xb_engine) ps -q); do $(xb_engine) inspect \"\$c\" | grep -Ei 'owner_?token|github_pat' || true; done")"
   if [ -n "$hits" ]; then
     die "§6   owner long-lived token found in a container env — M5 §6b: remove + re-deploy"
   fi
@@ -474,7 +501,7 @@ DEC
 ea_complete_summary() {
   log "BUILD COMPLETE CHECK (M5 §9 done-when — all five):"
   local s
-  s="$(ssh "$VM_XB" "docker ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
+  s="$(ssh "$VM_XB" "$(xb_engine) ps -a --filter label=ea.owner=lifecycle -q | wc -l")"
   log " 1. E2E run passed, zero surviving executor containers : survivors=$s $([ "$s" = "0" ] && echo '(PASS)' || echo '(CHECK)')"
   log " 2. F1–F4 clean + reported : see $EVIDENCE/failure-injections.txt"
   log " 3. §6 scans pass : see $LOG"

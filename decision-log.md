@@ -739,3 +739,25 @@ unnecessary. Decisions recorded in the rewritten
 - **Boundaries:** the skill executes commands; the owner still supplies
   inputs, approves at every gate, makes the Desktop connection, and
   signs the TPs.
+
+## 2026-11-19 — Container engine choice (docker | podman)
+
+- **Decision:** the estate's install inputs gain `config.engine`
+  (`docker` | `podman`, default `docker`). `docker` keeps today's estate
+  unchanged.
+- **Phase 1 scope:** when `engine=podman`, the EXECUTION VM only (vm-xb,
+  the "execution" role machine) runs ROOTLESS Podman — podman +
+  podman-compose installed and run as the `poc` user (never root), with
+  subuid/subgid ranges, unprivileged-userns kernel settings and loginctl
+  linger. Every other VM (front-of-house, memory, registry) stays Docker.
+- **Rationale:** rootless Podman eliminates the worst failure mode — a
+  container escape reaching the root Docker daemon that owns the
+  execution VM. All vm-xb ports (5672, 7233, 8080, 15672) are >1024, so
+  rootless works without root.
+- **Plumbing:** `render-inputs.py` writes `ENGINE=<docker|podman>` into
+  `hosts.env` (the scripts' single source of truth); every stage script
+  that runs docker/compose on vm-xb branches through `xb_engine()` and
+  the lifecycle's docker.sock mount is rewritten to the poc user's
+  rootless podman.sock (Docker-compatible API) in podman mode.
+- **Book reference:** ch14 (operator chapter) — the container-escape
+  hardening rung.

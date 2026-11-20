@@ -13,6 +13,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 R2="$SCRIPT_DIR/run-task.sh"
 N="${1:-10}"
+# Container engine (ENGINE env / hosts.env): podman = rootless Podman on the
+# execution VM, run as the poc user; docker = the estate default.
+ENGINE="${ENGINE:-docker}"
+REAP_ENGINE='docker'
+if [ "$ENGINE" = "podman" ]; then
+  REAP_ENGINE='sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+fi
 [ "$N" -ge 1 ] 2>/dev/null || { echo "usage: mixed-runs.sh [N]" >&2; exit 64; }
 
 succ=$(( N * 5 / 10 )); [ "$succ" -ge 1 ] || succ=1
@@ -51,7 +58,7 @@ for _ in $(seq 1 "$failn"); do run failure "$(base_payload 2 30 'exit-1')"; done
 for _ in $(seq 1 "$timeo"); do run timeout  "$(base_payload 3 15 'hang')"; done
 
 # zero survivors — the V5 acceptance condition
-leftover="$(ssh "${VM_XB:-vm-xb}" "docker ps -a --filter label=ea.owner=lifecycle -q" 2>/dev/null | grep -c . || true)"
+leftover="$(ssh "${VM_XB:-vm-xb}" "$REAP_ENGINE ps -a --filter label=ea.owner=lifecycle -q" 2>/dev/null | grep -c . || true)"
 echo "survivors after $N mixed runs: $leftover (want 0)"
 [ "${leftover:-0}" -eq 0 ] || rc=1
 exit "$rc"

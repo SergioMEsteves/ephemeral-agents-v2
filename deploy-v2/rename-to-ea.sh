@@ -25,6 +25,16 @@ set -euo pipefail
 : "${REGISTRY_HOST:?set REGISTRY_HOST (from the gitignored env inventory)}"
 : "${EXECUTION_HOST:?set EXECUTION_HOST (from the gitignored env inventory)}"
 ASSUME_YES="${ASSUME_YES:-0}"
+# Container engine (ENGINE env / hosts.env): podman = rootless Podman on the
+# execution VM, run as the poc user; docker = the estate default.
+ENGINE="${ENGINE:-docker}"
+xb_engine() {
+  if [ "$ENGINE" = "podman" ]; then
+    echo 'sudo -u poc env XDG_RUNTIME_DIR=/run/user/$(id -u poc) podman'
+  else
+    echo docker
+  fi
+}
 
 # Registry-resident truth (verified 2026-11-13): only these 3 images were
 # ever pushed to the private registry (the other services were built at install
@@ -64,12 +74,10 @@ step1() {
 step2() {
   echo "== step 2: queue re-creation (agent.tasks -> ea-tasks, x-max-priority) =="
   confirm "This re-declares the task queue under the ea-* name with x-max-priority. Drain the first organization's queue first (it must be empty or its messages republished). Continue?" || return 1
-  ssh "$EXECUTION_HOST" 'docker exec $(docker ps -qf name=rabbitmq) rabbitmqctl list_queues name messages' || true
+  ssh "$EXECUTION_HOST" "$(xb_engine) exec \$($(xb_engine) ps -qf name=rabbitmq) rabbitmqctl list_queues name messages" || true
   # The ea-* queue is declared by the V2 compose/bridge on first connect with
   # x-max-priority=3 — re-created here only if the stack is not yet running:
-  ssh "$EXECUTION_HOST" 'docker exec -i $(docker ps -qf name=rabbitmq) rabbitmqadmin \
-      declare queue name=ea-tasks durable=true \
-      arguments='"'"'{"x-max-priority":3}'"'"'' \
+  ssh "$EXECUTION_HOST" "$(xb_engine) exec -i \$(($(xb_engine) ps -qf name=rabbitmq) rabbitmqadmin declare queue name=ea-tasks durable=true arguments='{\"x-max-priority\":3}'" \
     || ssh "$EXECUTION_HOST" 'python3 - <<PY
 import pika, os, json
 q = os.environ.get("EA_TASKS_QUEUE", "ea-tasks")
@@ -79,7 +87,7 @@ conn.channel().queue_declare(queue=q, durable=True, arguments={"x-max-priority":
 conn.close()
 print("declared", q, "with x-max-priority=3")
 PY'
-  ssh "$EXECUTION_HOST" 'docker exec $(docker ps -qf name=rabbitmq) rabbitmqctl list_queues name arguments' | grep -A1 ea-tasks \
+  ssh "$EXECUTION_HOST" "$(xb_engine) exec \$($(xb_engine) ps -qf name=rabbitmq) rabbitmqctl list_queues name arguments" | grep -A1 ea-tasks \
     && echo "step 2 green: ea-tasks declared with x-max-priority" \
     || { echo "step 2 FAILED — queue not visible with arguments"; exit 1; }
 }
@@ -91,7 +99,7 @@ step3() {
   # installed on the estate this step cannot run — the staged build's
   # chassis/install stages bring it up. This step asserts the precondition
   # and runs the contract suite + the estate's test scripts pointed at ea names.
-  if ! ssh "$EXECUTION_HOST" 'docker network inspect ea-net >/dev/null 2>&1'; then
+  if ! ssh "$EXECUTION_HOST" "$(xb_engine) network inspect ea-net >/dev/null 2>&1"; then
     echo "  precondition not met: ea-net absent — install the V2 deploy layer first (staged build stages 1-2)"; exit 1
   fi
   python3 "$(dirname "$0")/contract-tests/run.py"

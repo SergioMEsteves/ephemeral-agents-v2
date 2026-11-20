@@ -115,6 +115,14 @@ config:
   # EXAMPLE: registry_disk_alert_pct: 80  — warn when the registry VM's
   # disk reaches 80%.
   registry_disk_alert_pct: 80
+  # EXAMPLE: engine: docker  — the container engine for the EXECUTION VM only
+  # ("docker" = the estate default, unchanged). "podman" = ROOTLESS Podman on
+  # the execution VM (vm-xb) instead of Docker — every other VM (front-of-house,
+  # memory, registry) stays Docker. Rationale: rootless Podman removes the
+  # worst failure mode (a container escape reaching the root Docker daemon
+  # that owns the execution VM); all vm-xb ports (5672, 7233, 8080, 15672)
+  # are >1024 so rootless works. See decision-log.md.
+  engine: docker
   # EXAMPLE: isolation_tier: xlg  — "xlg" = every project gets its own VM
   # (strongest isolation); "xsm" = one shared VM hosting several small
   # projects (see ADR-0002; the xsm chassis is a deferred milestone).

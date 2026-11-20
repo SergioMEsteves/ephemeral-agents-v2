@@ -68,6 +68,7 @@
 | F2 | Team concurrency cap | 5 (`max_parallel_agents`, manifest-configurable) | project manifest |
 | F3 | Registry GC policy | keep-last-3 + 80% disk alert | registry VM |
 | F4 | Onboarding template | `xlg` (dedicated VM) or `xsm` (shared small-project VM; chassis deferred — ADR-0002) | `project.yaml` `isolation_tier` |
+| F5 | **Container engine** on the execution VM | `docker` (default) | `docker` = today's estate unchanged; `podman` = rootless Podman on the execution VM only (podman as the `poc` user, never root), every other VM stays Docker. See decision-log.md | `inputs.yaml` `config.engine` -> hosts.env `ENGINE=`; every stage script branches on it |
 
 ## Stop conditions — do not start stage 0 until ALL are true
 
