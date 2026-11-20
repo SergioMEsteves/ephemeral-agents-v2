@@ -1,0 +1,6 @@
+S1 registry TLS gate — test estate, 2026-11-20
+1) push from .203: 192.0.2.20:5000/ea/s1-test:1.0.0 digest sha256:46faa9a1...
+2) pull from .202: OK
+3) auth-negative from .201: 401 Unauthorized (as expected)
+CA distributed to /etc/docker/certs.d/192.0.2.20:5000/ca.crt on .200/.201/.202/.203
+docker login succeeded from .201/.202/.203 as user ea
