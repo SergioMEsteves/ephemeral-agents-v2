@@ -79,5 +79,16 @@
 - [ ] You have read `deploy-v2/RUNBOOK-V2-BUILD.md` once end to end — the stage table tells you what each gate will demand
 - [ ] (Recommended) Proxmox snapshot of the host/VMs immediately before stage 0 — trivial rollback if a stage goes sideways
 
-**Then:** `bash deploy-v2/m0/install.sh --check-only` — the first gate is
-free and tells you what the scripts can already see.
+**Then:** record everything in one file —
+`cp deploy-v2/inputs.yaml.example deploy-v2/inputs.yaml`, fill it in
+(secrets by PATH only — never values), and validate:
+
+```
+python3 deploy-v2/render-inputs.py deploy-v2/inputs.yaml --check    # validate + verify referenced files
+python3 deploy-v2/render-inputs.py deploy-v2/inputs.yaml --render   # writes deploy-v2/m0/hosts.env + staging plan
+```
+
+The renderer refuses to pass a file with an embedded secret, so this is
+also your de-identification check. After a successful `--render`, run
+`bash deploy-v2/m0/install.sh --check-only` — the first gate is free and
+tells you what the scripts can already see.

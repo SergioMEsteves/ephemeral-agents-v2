@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ephemeral-agents/inputs.schema.json",
+  "title": "Estate install inputs",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["estate", "machines", "ssh", "github", "model", "config", "ports"],
+  "properties": {
+    "estate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "name_resolution"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "name_resolution": {"enum": ["pve_dns", "hosts_file"]}
+      }
+    },
+    "machines": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["role", "name", "ip", "vmid"],
+        "properties": {
+          "role": {"enum": ["front_of_house", "execution", "memory", "registry"]},
+          "name": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "ip": {"type": "string", "format": "ipv4"},
+          "vmid": {"type": "integer", "minimum": 100, "maximum": 999999999}
+        }
+      }
+    },
+    "ssh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["user", "key_path", "passwordless_sudo"],
+      "properties": {
+        "user": {"type": "string", "minLength": 1},
+        "key_path": {"type": "string", "minLength": 1},
+        "passwordless_sudo": {"type": "boolean"}
+      }
+    },
+    "github": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["org", "app_id", "app_key_path", "repos"],
+      "properties": {
+        "org": {"type": "string", "minLength": 1},
+        "app_id": {"type": "string", "pattern": "^[0-9]+$"},
+        "app_key_path": {"type": "string", "minLength": 1},
+        "repos": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["roster", "wiki", "demo"],
+          "properties": {
+            "roster": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+            "wiki": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+            "demo": {"type": "string", "pattern": "^[^/]+/[^/]+$"}
+          }
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "default_model", "provider_key_path"],
+      "properties": {
+        "provider": {"type": "string", "minLength": 1},
+        "default_model": {"type": "string", "minLength": 1},
+        "provider_key_path": {"type": "string", "minLength": 1}
+      }
+    },
+    "embedding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "provider_key_path": {"type": "string"}
+      }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ttl_default", "max_parallel_agents", "registry_gc_keep_last", "registry_disk_alert_pct", "isolation_tier"],
+      "properties": {
+        "ttl_default": {"type": "integer", "minimum": 60},
+        "max_parallel_agents": {"type": "integer", "minimum": 1, "maximum": 20},
+        "registry_gc_keep_last": {"type": "integer", "minimum": 1},
+        "registry_disk_alert_pct": {"type": "integer", "minimum": 10, "maximum": 99},
+        "isolation_tier": {"enum": ["xlg", "xsm"]}
+      }
+    },
+    "ports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pipeline_gateway", "cos_backend", "registry", "broker_mgmt"],
+      "properties": {
+        "pipeline_gateway": {"type": "integer", "minimum": 1024, "maximum": 65535},
+        "cos_backend": {"type": "integer", "minimum": 1024, "maximum": 65535},
+        "registry": {"type": "integer", "minimum": 1024, "maximum": 65535},
+        "broker_mgmt": {"type": "integer", "minimum": 1024, "maximum": 65535}
+      }
+    }
+  }
+}

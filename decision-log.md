@@ -684,3 +684,33 @@ unnecessary. Decisions recorded in the rewritten
   GC policy, ADR-0002 template choice), and stop conditions before stage 0.
   Cross-referenced from the README's Getting-started section as the first
   step.
+
+## 2026-11-18 — Machine-readable install inputs (inputs.yaml + renderer)
+
+- **Context:** the owner asked for a single file a newcomer completes and
+  "uploads" so the system configures itself from it, complementing the
+  INSTALL-INPUTS-CHECKLIST.
+- **Decision:** one annotated template `deploy-v2/inputs.yaml.example`
+  (gitignored once copied to `inputs.yaml`) holding every estate input:
+  name-resolution choice, the 4 machines (role/name/IP/VMID), SSH user +
+  key path, GitHub org/App id/repos (roster, wiki, demo), model provider +
+  default + key path, optional embedding block, config values (TTL,
+  concurrency, registry GC, isolation tier per ADR-0002), and host ports.
+  **Secrets are referenced BY PATH only, never by value** — the
+  de-identification rule is enforced by the renderer, which refuses any
+  secret-shaped literal (ghp_/sk-/private-key blocks/Bearer tokens).
+- **Renderer** `deploy-v2/render-inputs.py` (+ `inputs.schema.json`):
+  `--check` validates against the JSON schema (fallback semantic checks),
+  verifies referenced files exist, and runs the secret guard;
+  `--render` writes `deploy-v2/m0/hosts.env` (the install scripts' single
+  source of truth for names/IPs/VMIDs — the inventory-first rule, now
+  generated rather than hand-edited) and prints the per-stage staging plan.
+- **Tested by execution:** example passes --check except the two
+  intentional missing-key paths; happy-path --render produces the hosts.env
+  block; an injected `ghp_` token is correctly rejected (exit 1) — a bug
+  found during testing (de-identification checks were skipped when
+  jsonschema was present) was root-caused and fixed.
+- **Scope note:** this is estate-level *install-time* input, distinct from
+  the per-project `project.yaml` manifest (M1 §10) and from the reset
+  model-specification topic; if the estate-configuration discussion
+  restarts, this file is its natural anchor.

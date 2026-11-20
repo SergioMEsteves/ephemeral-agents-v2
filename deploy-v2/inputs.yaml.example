@@ -1,0 +1,74 @@
+# inputs.yaml — the estate's install inputs, in one file.
+#
+# HOW TO USE
+#   1. Copy this file to deploy-v2/inputs.yaml (gitignored — see .gitignore).
+#   2. Fill in every field. Secrets are referenced BY PATH, never by value:
+#      this file must never contain a token, key, or password.
+#   3. Validate and render:
+#        python3 deploy-v2/render-inputs.py deploy-v2/inputs.yaml --check
+#        python3 deploy-v2/render-inputs.py deploy-v2/inputs.yaml --render
+#      --check validates against the schema and verifies every referenced
+#      file exists; --render writes deploy-v2/m0/hosts.env from the
+#      machines block (the scripts' single source of truth) and prints the
+#      per-stage staging plan.
+#
+# Corresponds 1:1 with deploy-v2/INSTALL-INPUTS-CHECKLIST.md sections
+# A–F. Fields marked REQUIRED must be non-empty for --check to pass.
+
+estate:
+  name: my-estate              # REQUIRED — used in decision-log entries and evidence labels
+  name_resolution: pve_dns     # REQUIRED — pve_dns | hosts_file (pick ONE; mixing is a known failure)
+
+machines:                      # REQUIRED — exactly these four roles
+  - role: front_of_house       # CoS + gateway + manager
+    name: vm-front
+    ip: 192.0.2.2540
+    vmid: 2000
+  - role: execution            # broker, engine, worker, bridge, lifecycle, llm-proxy
+    name: vm-exec
+    ip: 192.0.2.2541
+    vmid: 2001
+  - role: memory               # hindsight-api + pgvector
+    name: vm-memory
+    ip: 192.0.2.2542
+    vmid: 2002
+  - role: registry             # private image registry
+    name: vm-registry
+    ip: 192.0.2.2543
+    vmid: 2003
+
+ssh:
+  user: poc                    # REQUIRED — scripts SSH as this user, BatchMode only
+  key_path: ~/.ssh/id_ed25519  # REQUIRED — path on the workstation
+  passwordless_sudo: true      # REQUIRED — verified before stage 0
+
+github:
+  org: my-org                  # REQUIRED — org you control
+  app_id: "123456"             # REQUIRED — the GitHub App's numeric ID (quote it)
+  app_key_path: ~/secrets/app-key.pem   # REQUIRED — path to the App's private key (.pem)
+  repos:
+    roster: my-org/agent-roster     # REQUIRED — agent catalog (layout contract must hold)
+    wiki: my-org/llm-wiki           # REQUIRED — shared knowledge library
+    demo: my-org/my-demo-repo       # REQUIRED — repo coder-style tasks edit (App must be installed on it)
+
+model:
+  provider: openrouter         # REQUIRED — the llm-proxy's provider
+  default_model: z-ai/glm-5.3-flash  # REQUIRED — the CoS's default model
+  provider_key_path: ~/secrets/openrouter.key  # REQUIRED — llm-proxy holds it; the CoS never does
+
+embedding:                     # OPTIONAL — omit the whole block for zero-vector fallback
+  enabled: false
+  # provider_key_path: ~/secrets/embeddings.key
+
+config:
+  ttl_default: 1800            # seconds; EA_TTL_DEFAULT
+  max_parallel_agents: 5       # per-project default (manifest-configurable)
+  registry_gc_keep_last: 3     # image retention
+  registry_disk_alert_pct: 80
+  isolation_tier: xlg          # xlg = dedicated VM per project | xsm = shared small-project VM (ADR-0002)
+
+ports:                         # host ports for the published services (xlg layout)
+  pipeline_gateway: 8083
+  cos_backend: 8084            # the Desktop connection target (book Special 3)
+  registry: 5000
+  broker_mgmt: 15672
