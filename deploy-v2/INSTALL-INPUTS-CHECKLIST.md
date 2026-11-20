@@ -79,6 +79,13 @@
 - [ ] You have read `deploy-v2/RUNBOOK-V2-BUILD.md` once end to end — the stage table tells you what each gate will demand
 - [ ] (Recommended) Proxmox snapshot of the host/VMs immediately before stage 0 — trivial rollback if a stage goes sideways
 
+**Prefer not to type the build yourself?** Install the `ea-install`
+skill (`deploy-v2/skills/ea-install/` → your workstation agent's
+`~/.hermes/skills/`) and simply ask your Desktop agent to run the
+install — it executes this runbook stage by stage and stops at every
+gate for your approval. See book **Special 4** for the plain-language
+walkthrough.
+
 **Then:** record everything in one file —
 `cp deploy-v2/inputs.yaml.example deploy-v2/inputs.yaml`, fill it in
 (secrets by PATH only — never values), and validate:

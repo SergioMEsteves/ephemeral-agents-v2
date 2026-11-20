@@ -61,6 +61,10 @@ parts:
   the gateway connection is, the seven desktop steps, the session
   token as the Desktop's only credential, and the three failure modes
   when the test fails.
+- **Driving the install from your Desktop** — the agent-executed build:
+  when to use the install skill, where it runs from (never a remote
+  session), the setup, what a build day looks like, and what the agent
+  will never do.
 
 ## Conventions
 

@@ -53,6 +53,8 @@ gated follow-up, sandbox rungs trigger-gated.
 - **Deploy:** `deploy-v2/RUNBOOK-V2-BUILD.md` — the staged build from a bare
   PVE host: chassis (m0) → adapter (m1) → lifecycle (m2) → executors (m3) →
   memory (m4) → front-of-house + CoS (m5), each stage gated before the next.
+  Have your Desktop agent run it for you by installing the
+  `deploy-v2/skills/ea-install/` skill (book Special 4).
 - **Onboard a project:** `deploy-v2/RUNBOOK-V2-NEW-PROJECT.md` — the
   template-onboarding flow (ADR-0002).
 

@@ -714,3 +714,28 @@ unnecessary. Decisions recorded in the rewritten
   the per-project `project.yaml` manifest (M1 §10) and from the reset
   model-specification topic; if the estate-configuration discussion
   restarts, this file is its natural anchor.
+
+## 2026-11-18 — Agent-executed install: the ea-install skill + book Special 4
+
+- **Context:** the owner asked whether the Desktop user could run the
+  full build with a prompt that reads inputs.yaml and the required files.
+  Design discussion concluded: the prompt is the trigger; a skill is the
+  procedure — a bare prompt would be per-session improvisation over a
+  7-stage runbook.
+- **Decision:** an agent-execution layer over the runbook, as the
+  `ea-install` skill (repo copy: `deploy-v2/skills/ea-install/SKILL.md`,
+  installed by copying to the workstation agent's `~/.hermes/skills/`).
+  Hard rules: refuse remote/CoS sessions; never read secret values (paths
+  only); never skip a stage or gate; stop at every gate and report
+  (unattended mode only on explicit owner grant); one root-cause fix per
+  failed gate then surface; evidence stays in deploy-v2/mN/evidence/.
+  The runbook remains the single source of truth — the skill is the
+  agent-execution layer over it, not a replacement.
+- **Book:** `version 2/book/special-4-driving-the-install.md` — the
+  plain-language walkthrough (when / where / how, setup, a build day,
+  what the agent will never do, the honest boundary). Cross-referenced
+  from the book README Part III, the README Getting-started section,
+  and INSTALL-INPUTS-CHECKLIST.md.
+- **Boundaries:** the skill executes commands; the owner still supplies
+  inputs, approves at every gate, makes the Desktop connection, and
+  signs the TPs.
