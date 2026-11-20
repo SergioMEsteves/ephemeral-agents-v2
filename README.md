@@ -43,6 +43,9 @@ gated follow-up, sandbox rungs trigger-gated.
 
 ## Getting started
 
+- **Collect your inputs first:** `deploy-v2/INSTALL-INPUTS-CHECKLIST.md` —
+  every account, key, address, and decision you need before the first build
+  step, with stop conditions.
 - **Read the book:** `version 2/book/` — the system in plain language: the
   architecture, the work order, the executors, the front door, two
   organizations on one estate, building from scratch, and the Evaluator's

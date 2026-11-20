@@ -668,3 +668,19 @@ unnecessary. Decisions recorded in the rewritten
   README rewritten as the standalone project's front door (no V1 references,
   no "successor to" framing); WORKING-STATE.md carries a matching dated
   update. No commit made (owner commits).
+
+## 2026-11-18 — Newcomer pre-install checklist
+
+- **Context:** the owner asked whether a newcomer has a checklist for
+  gathering everything needed before installation. The inputs existed
+  (runbook §1, secret-staging map, PREBUILD-CHECKLIST, book ch14) but were
+  split across artifacts with no standalone "collect first" worksheet.
+- **Decision:** one standalone artifact, `deploy-v2/INSTALL-INPUTS-CHECKLIST.md`
+  — accounts/access (GitHub org, gh login, App + installs), network/machines
+  (PVE host, 4 static IPs, name-resolution choice, poc SSH user, firewall
+  plan), repos and keys (roster, llm-wiki, demo/target repo, model key via
+  llm-proxy only, optional embedding key), secrets the install mints (not
+  brought), workstation tooling, configuration values (TTL, concurrency cap,
+  GC policy, ADR-0002 template choice), and stop conditions before stage 0.
+  Cross-referenced from the README's Getting-started section as the first
+  step.
