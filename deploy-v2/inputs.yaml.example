@@ -2,8 +2,11 @@
 #
 # HOW TO USE
 #   1. Copy this file to deploy-v2/inputs.yaml (gitignored — see .gitignore).
-#   2. Fill in every field. Secrets are referenced BY PATH, never by value:
-#      this file must never contain a token, key, or password.
+#   2. Replace every EXAMPLE value with your real one. All values below are
+#      deliberately fake: IPs use RFC 5737 documentation ranges, the org is
+#      "example-corp" — nothing here is real, and none of it is secret.
+#      Secrets are referenced BY PATH, never by value: this file must never
+#      contain a token, key, or password.
 #   3. Validate and render:
 #        python3 deploy-v2/render-inputs.py deploy-v2/inputs.yaml --check
 #        python3 deploy-v2/render-inputs.py deploy-v2/inputs.yaml --render
@@ -13,62 +16,116 @@
 #      per-stage staging plan.
 #
 # Corresponds 1:1 with deploy-v2/INSTALL-INPUTS-CHECKLIST.md sections
-# A–F. Fields marked REQUIRED must be non-empty for --check to pass.
+# A–F. Each field's comment shows an EXAMPLE of what real data looks like.
 
 estate:
-  name: my-estate              # REQUIRED — used in decision-log entries and evidence labels
-  name_resolution: pve_dns     # REQUIRED — pve_dns | hosts_file (pick ONE; mixing is a known failure)
+  # EXAMPLE: name: acme-agents  — any label; it labels your decision-log
+  # entries and evidence files, so make it recognizable to you.
+  name: example-estate
+  # EXAMPLE: name_resolution: pve_dns  — "pve_dns" if your Proxmox host's
+  # DNS resolves your VM names (recommended); "hosts_file" if you maintain
+  # /etc/hosts on every VM by hand. Pick ONE — mixing both is a known
+  # failure mode (a dual-network DNS bug is in the project's issue ledger).
+  name_resolution: pve_dns
 
-machines:                      # REQUIRED — exactly these four roles
-  - role: front_of_house       # CoS + gateway + manager
-    name: vm-front
-    ip: 192.0.2.2540
-    vmid: 2000
+machines:
+  # EXAMPLE of a real entry:  {role: front_of_house, name: vm-xa,
+  #   ip: 192.0.2.50, vmid: 2010}  — name = the hostname you gave the VM
+  # in Proxmox, ip = its static LAN address, vmid = the Proxmox VM ID
+  # (the number in the PVE web UI). All four roles are required, one each.
+  - role: front_of_house       # CoS + gateway + manager — the machine you'll chat with
+    name: vm-front             # EXAMPLE: vm-xa
+    ip: 192.0.2.10             # EXAMPLE: 192.0.2.50 (your LAN's static IP)
+    vmid: 2000                 # EXAMPLE: 2010 (the number shown in the PVE sidebar)
   - role: execution            # broker, engine, worker, bridge, lifecycle, llm-proxy
-    name: vm-exec
-    ip: 192.0.2.2541
-    vmid: 2001
-  - role: memory               # hindsight-api + pgvector
-    name: vm-memory
-    ip: 192.0.2.2542
-    vmid: 2002
-  - role: registry             # private image registry
-    name: vm-registry
-    ip: 192.0.2.2543
-    vmid: 2003
+    name: vm-exec              # EXAMPLE: vm-xb
+    ip: 192.0.2.11             # EXAMPLE: 192.0.2.51
+    vmid: 2001                 # EXAMPLE: 2011
+  - role: memory               # hindsight-api + pgvector — institutional memory
+    name: vm-memory            # EXAMPLE: vm-hindsight
+    ip: 192.0.2.12             # EXAMPLE: 192.0.2.52
+    vmid: 2002                 # EXAMPLE: 2012
+  - role: registry             # private image registry — where the system's containers live
+    name: vm-registry          # EXAMPLE: vm-registry
+    ip: 192.0.2.13             # EXAMPLE: 192.0.2.53
+    vmid: 2003                 # EXAMPLE: 2013
 
 ssh:
-  user: poc                    # REQUIRED — scripts SSH as this user, BatchMode only
-  key_path: ~/.ssh/id_ed25519  # REQUIRED — path on the workstation
-  passwordless_sudo: true      # REQUIRED — verified before stage 0
+  # EXAMPLE: user: ops  — a dedicated user on every VM with passwordless
+  # sudo and your SSH key authorized. The install scripts SSH as this user
+  # and never prompt for a password, so test it first:
+  #   ssh -o BatchMode=yes ops@<ip> 'sudo -n true'
+  user: ops
+  # EXAMPLE: key_path: ~/.ssh/id_ed25519  — the PRIVATE key on the
+  # workstation whose public half is authorized on every VM.
+  key_path: ~/.ssh/id_ed25519
+  passwordless_sudo: true      # must be verified on all four VMs before stage 0
 
 github:
-  org: my-org                  # REQUIRED — org you control
-  app_id: "123456"             # REQUIRED — the GitHub App's numeric ID (quote it)
-  app_key_path: ~/secrets/app-key.pem   # REQUIRED — path to the App's private key (.pem)
+  # EXAMPLE: org: acme-corp  — the GitHub organization (or username) you
+  # control, where the roster, wiki, and demo repos live.
+  org: example-corp
+  # EXAMPLE: app_id: "7891042"  — the numeric ID of your GitHub App
+  # (Settings → Developer settings → GitHub Apps). Quotes matter: it's a
+  # string, and some App IDs would otherwise parse as numbers.
+  app_id: "1234567890"
+  # EXAMPLE: app_key_path: ~/secrets/acme-agents-app.pem  — the private key
+  # you downloaded when creating the App. Path only — never paste the key here.
+  app_key_path: ~/secrets/example-app.pem
   repos:
-    roster: my-org/agent-roster     # REQUIRED — agent catalog (layout contract must hold)
-    wiki: my-org/llm-wiki           # REQUIRED — shared knowledge library
-    demo: my-org/my-demo-repo       # REQUIRED — repo coder-style tasks edit (App must be installed on it)
+    # EXAMPLE: roster: acme-corp/agent-roster  — the agent catalog repo
+    # ("owner/repo" form). Must follow the roster layout contract
+    # (persona/skills/tools/constraints files + index.json); a valid seed
+    # lives at deploy-v2/m5/agent-list-example/.
+    roster: example-corp/agent-roster
+    # EXAMPLE: wiki: acme-corp/llm-wiki  — the shared knowledge library.
+    # May start nearly empty; executors shallow-clone it at boot.
+    wiki: example-corp/llm-wiki
+    # EXAMPLE: demo: acme-corp/demo-service  — the repo coder-style tasks
+    # will edit. The GitHub App must be INSTALLED on this repo (App page →
+    # Install → select this repo).
+    demo: example-corp/demo-service
 
 model:
-  provider: openrouter         # REQUIRED — the llm-proxy's provider
-  default_model: z-ai/glm-5.3-flash  # REQUIRED — the CoS's default model
-  provider_key_path: ~/secrets/openrouter.key  # REQUIRED — llm-proxy holds it; the CoS never does
+  # EXAMPLE: provider: openrouter  — the provider the llm-proxy signs
+  # requests with. Whatever you pick, the key lives ONLY with the llm-proxy.
+  provider: openrouter
+  # EXAMPLE: default_model: z-ai/glm-5.3-flash  — "provider/model-id" as
+  # the provider names it; this becomes the CoS's default model.
+  default_model: z-ai/glm-5.3-flash
+  # EXAMPLE: provider_key_path: ~/secrets/openrouter.key  — the file
+  # holding your provider API key. Path only — the renderer will reject
+  # any key value pasted here.
+  provider_key_path: ~/secrets/example-openrouter.key
 
-embedding:                     # OPTIONAL — omit the whole block for zero-vector fallback
-  enabled: false
-  # provider_key_path: ~/secrets/embeddings.key
+embedding:                     # OPTIONAL — delete this whole block for zero-vector fallback
+  enabled: false               # false = memory works, semantic ranking degraded
+  # EXAMPLE: provider_key_path: ~/secrets/openai.key  — only if enabled: true
 
 config:
-  ttl_default: 1800            # seconds; EA_TTL_DEFAULT
-  max_parallel_agents: 5       # per-project default (manifest-configurable)
-  registry_gc_keep_last: 3     # image retention
+  # EXAMPLE: ttl_default: 1800  — task time-to-live in seconds; a task not
+  # finished within its TTL is reaped (the zero-survivors guarantee).
+  ttl_default: 1800
+  # EXAMPLE: max_parallel_agents: 5  — how many ephemeral agents may run at
+  # once, per project. 5 is the measured safe default.
+  max_parallel_agents: 5
+  # EXAMPLE: registry_gc_keep_last: 3  — keep the last 3 versions of each
+  # image; older ones are garbage-collected weekly.
+  registry_gc_keep_last: 3
+  # EXAMPLE: registry_disk_alert_pct: 80  — warn when the registry VM's
+  # disk reaches 80%.
   registry_disk_alert_pct: 80
-  isolation_tier: xlg          # xlg = dedicated VM per project | xsm = shared small-project VM (ADR-0002)
+  # EXAMPLE: isolation_tier: xlg  — "xlg" = every project gets its own VM
+  # (strongest isolation); "xsm" = one shared VM hosting several small
+  # projects (see ADR-0002; the xsm chassis is a deferred milestone).
+  isolation_tier: xlg
 
 ports:                         # host ports for the published services (xlg layout)
+  # EXAMPLE: pipeline_gateway: 8083  — the Go gateway that accepts approved
+  # work. Defaults shown match the reference estate; any free ports work.
   pipeline_gateway: 8083
-  cos_backend: 8084            # the Desktop connection target (book Special 3)
+  # EXAMPLE: cos_backend: 8084  — the CoS backend your Hermes Desktop
+  # connects to (the session-token connection; book Special 3).
+  cos_backend: 8084
   registry: 5000
   broker_mgmt: 15672
