@@ -176,7 +176,7 @@ deploy_lifecycle() {
   log "§2 — deploy lifecycle + worker on $VM_XB"
   confirm "deploy lifecycle + worker on $VM_XB (compose up -d)"
   if [ "$CHECK_ONLY" = "1" ]; then return 0; fi
-  ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m2 && sudo chown -R \"$(id -un):$(id -gn)\" /opt/ea"
+  ssh "$VM_XB" "sudo mkdir -p /opt/ea/deploy-v2/m2 && sudo chown -R poc:poc /opt/ea"
   rsync -az "$M2/compose.yaml" "$VM_XB:/opt/ea/deploy-v2/m2/compose.yaml"
   # engine=podman: the lifecycle's docker.sock mount becomes the poc user's
   # rootless podman.sock (docker-compatible API) — the container's DOCKER_HOST

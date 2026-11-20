@@ -169,7 +169,7 @@ github_side() {
   # App private key on vm-xb (presence + perms only — never print it).
   # §1 runs BEFORE §2" staging, so check the source key; §2" copies it
   # to /opt/ea/secrets/app-key.pem (S0 credential-reuse policy).
-  local key_src="${APP_KEY_SOURCE:-/opt/poc/secrets/app-key.pem}"
+  local key_src="${APP_KEY_SOURCE:-/opt/ea/secrets/app-key.pem}"
   if ssh "$VM_XB" "test -r $key_src" ; then
     local perms; perms="$(ssh "$VM_XB" "sudo stat -c '%a' $key_src")"
     log "§1   app key present at $key_src (perms $perms — must be 600)"
@@ -183,25 +183,25 @@ github_side() {
   # the estate's m3.env on vm-xb (same credential-reuse source as §2"; names only in output)
   if [ ! "${GITHUB_APP_ID:-}" ] || [ ! "${INSTALLATION_ID:-}" ]; then
     local ids
-    ids="$(ssh "$VM_XB" "sudo grep -E '^(GITHUB_APP_ID|INSTALLATION_ID)=' /opt/poc/secrets/m3.env" 2>/dev/null || true)"
+    ids="$(ssh "$VM_XB" "sudo grep -E '^(GITHUB_APP_ID|INSTALLATION_ID)=' /opt/ea/secrets/m3.env" 2>/dev/null || true)"
     if [ -n "$ids" ]; then
       log "§1   token ids sourced from the estate's m3.env (names: $(printf '%s\n' "$ids" | cut -d= -f1 | tr '\n' ' '))"
       eval "$(printf '%s\n' "$ids" | tr -d '\r' | sed 's/^/export /')"
     fi
   fi
   if [ -f "$M3/issue-token.sh" ]; then
-      # The app key only exists on vm-xb (/opt/poc/secrets) — issue a REAL
+      # The app key only exists on vm-xb (/opt/ea/secrets) — issue a REAL
       # installation token remotely against the SOURCE key; values never leave
       # vm-xb and are never printed. (--dry-run prints a fake token-shaped
       # value that cannot authenticate — the real verify needs no-arg mode.)
       local token
-      token="$(ssh "$VM_XB" "sudo bash -c 'set -a; . /opt/poc/secrets/m3.env; set +a; APP_KEY_PATH=/opt/poc/secrets/app-key.pem bash -s --'" < "$M3/issue-token.sh" 2>/dev/null || true)"
+      token="$(ssh "$VM_XB" "sudo bash -c 'set -a; . /opt/ea/secrets/m3.env; set +a; APP_KEY_PATH=/opt/ea/secrets/app-key.pem bash -s --'" < "$M3/issue-token.sh" 2>/dev/null || true)"
       [ -n "$token" ] || die "issue-token.sh produced no token (check key + installation_id, M3 §1c)"
       # installation tokens are repo-scoped — verify against the catalog repo
       # (contents:read), not /user (which always 403s for an installation token)
       local code; code="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $token" "https://api.github.com/repos/arvisdev/${CATALOG_REPO:-agent-roster}/contents/")"
       [ "$code" = "200" ] || die "issued token did not authenticate (HTTP $code on catalog repo contents)"
-      ssh "$VM_XB" "sudo bash -c 'set -a; . /opt/poc/secrets/m3.env; set +a; APP_KEY_PATH=/opt/poc/secrets/app-key.pem bash -s -- --revoke-last'" < "$M3/issue-token.sh" >/dev/null 2>&1 || true
+      ssh "$VM_XB" "sudo bash -c 'set -a; . /opt/ea/secrets/m3.env; set +a; APP_KEY_PATH=/opt/ea/secrets/app-key.pem bash -s -- --revoke-last'" < "$M3/issue-token.sh" >/dev/null 2>&1 || true
     code="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $token" "https://api.github.com/repos/arvisdev/${CATALOG_REPO:-agent-roster}/contents/")"
     log "§1   token revocation check: HTTP $code (expected 401/403)"
     [ "$code" != "200" ] || warn "token still valid after revoke — GitHub App installation tokens expire at 1 h max (M3 §7)"
@@ -248,19 +248,19 @@ stage_m3_secrets() {
   ssh "$VM_XB" "sudo mkdir -p /opt/ea/secrets /opt/ea/deploy-v2/m3 && sudo chown -R \"\$(id -un):\$(id -gn)\" /opt/ea/secrets /opt/ea/deploy-v2/m3"
   # NOTE: no `die` inside remote commands — it's a local function. Also no
   # `sudo test` — sudo can't run shell builtins; use `sudo bash -c`.
-  ssh "$VM_XB" "sudo bash -c 'test -r /opt/poc/secrets/app-key.pem'" \
-    || die "app key missing at /opt/poc/secrets/app-key.pem on $VM_XB"
-  ssh "$VM_XB" "sudo cp /opt/poc/secrets/app-key.pem /opt/ea/secrets/app-key.pem" \
+  ssh "$VM_XB" "sudo bash -c 'test -r /opt/ea/secrets/app-key.pem'" \
+    || die "app key missing at /opt/ea/secrets/app-key.pem on $VM_XB"
+  ssh "$VM_XB" "sudo cp /opt/ea/secrets/app-key.pem /opt/ea/secrets/app-key.pem" \
     || die "app-key copy from the estate's secrets failed"
-  ssh "$VM_XB" "sudo bash -c 'test -r /opt/poc/secrets/m3.env && cp /opt/poc/secrets/m3.env /opt/ea/secrets/m3.env || true'"
-  ssh "$VM_XB" "sudo chmod 600 /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chown arvisdev:arvisdev /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chmod 700 /opt/ea/deploy-v2/m3"
+  ssh "$VM_XB" "sudo bash -c 'test -r /opt/ea/secrets/m3.env && cp /opt/ea/secrets/m3.env /opt/ea/secrets/m3.env || true'"
+  ssh "$VM_XB" "sudo chmod 600 /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chown poc:poc /opt/ea/secrets/app-key.pem /opt/ea/secrets/m3.env && sudo chmod 700 /opt/ea/deploy-v2/m3"
   rsync -az "$M3/issue-token.sh" "$VM_XB:/opt/ea/deploy-v2/m3/issue-token.sh" \
     && ssh "$VM_XB" "chmod 700 /opt/ea/deploy-v2/m3/issue-token.sh" \
     || die "issue-token.sh rsync failed"
   # verify the staged m3.env carries the keys m3FromEnv() needs (names only)
   local missing_keys
   missing_keys="$(ssh "$VM_XB" "for k in GITHUB_APP_ID INSTALLATION_ID MODEL_DEFAULT; do grep -q \"^\$k=\" /opt/ea/secrets/m3.env || echo \$k; done" || true)"
-  [ -z "$missing_keys" ] || die "m3.env missing keys (staged from the estate's secrets — verify /opt/poc/secrets/m3.env): $missing_keys"
+  [ -z "$missing_keys" ] || die "m3.env missing keys (staged from the estate's secrets — verify /opt/ea/secrets/m3.env): $missing_keys"
   ok "§2\" M3 secrets staged (key + m3.env + token script; values never printed)"
 }
 
