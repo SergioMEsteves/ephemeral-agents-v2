@@ -1,7 +1,9 @@
 ---
 name: ea-install
-description: Drive the ephemeral-agents estate install from deploy-v2 inputs.
-version: 1.0.0
+description: Use when the owner asks to install the agent system estate.
+version: 1.0.1
+author: Ronald A Steinhauer (arvisdev) / Hermes Agent
+license: Apache-2.0
 platforms: [linux]
 metadata:
   hermes:
@@ -9,6 +11,14 @@ metadata:
 ---
 
 # ea-install — drive the ephemeral-agents estate install
+
+## When to Use
+
+The owner asks to install, build, or rebuild the ephemeral-agents estate
+("run the install", "build the system from inputs.yaml"). Requires: a
+LOCAL workstation session (never a remote gateway or CoS profile), the
+repo cloned, and inputs collected per INSTALL-INPUTS-CHECKLIST.md. Not
+for day-to-day estate use or project onboarding.
 
 You are executing `deploy-v2/RUNBOOK-V2-BUILD.md` on behalf of the user.
 The runbook is the source of truth; this skill is the agent-execution
