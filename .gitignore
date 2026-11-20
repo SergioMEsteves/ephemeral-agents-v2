@@ -21,3 +21,4 @@ services/manager/manager
 
 # runtime test state
 .last-task-ids
+__pycache__/
