@@ -320,7 +320,7 @@ gate_tests() {
 # The scripts own the POC's cross-VM port openings (owner baseline = SSH only).
 open_firewall() {
   local cidr="${UFW_POC_CIDR:-}"
-  [ -n "$cidr" ] || cidr="${NETPLAN_IP_3%.*}.0/24"
+  [ -n "$cidr" ] || cidr="${NETPLAN_IP_3:-${VM_HINDSIGHT%.*}}.0/24"
   [ -n "$cidr" ] && [ "$cidr" != ".0/24" ] || { log "fw   no NETPLAN_IP_3/UFW_POC_CIDR — skipping UFW setup"; return 0; }
   if [ "$CHECK_ONLY" = "1" ]; then log "check-only: would open UFW $HINDSIGHT_PORT on $VM_HINDSIGHT from $cidr"; return 0; fi
   if ssh "$VM_HINDSIGHT" "sudo -n ufw status 2>/dev/null | grep -q 'Status: active'"; then
