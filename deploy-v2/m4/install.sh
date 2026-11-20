@@ -20,7 +20,7 @@
 #   ASSUME_YES=1  — skip interactive confirms
 #
 # Configuration (env, or deploy-v2/m0/hosts.env — auto-loaded; deploy-v2/m4/.env optional):
-#   VM_3 / VM_XB — ssh aliases (defaults vm-hindsight / vm-xb)
+#   VM_HINDSIGHT / VM_XB — ssh aliases (defaults vm-hindsight / vm-xb)
 #   M3_DONE=1   — skip prereq probes
 #   EMBEDDING_PROVIDER — embedding provider name (record the choice + rate-limit note)
 #   LLM_WIKI_READ_TOKEN — read token for the llm-wiki git repo (executor boot clone)
@@ -72,12 +72,12 @@ done
 
 [ -f "$REPO_ROOT/deploy-v2/m0/hosts.env" ] && { set -a; . "$REPO_ROOT/deploy-v2/m0/hosts.env"; set +a; }
 [ -f "$M4/.env" ] && { set -a; . "$M4/.env"; set +a; }
-VM_3="${VM_3:-vm-hindsight}"; VM_XB="${VM_XB:-vm-xb}"; VM_XA="${VM_XA:-vm-xa}"
+VM_HINDSIGHT="${VM_HINDSIGHT:-vm-hindsight}"; VM_XB="${VM_XB:-vm-xb}"; VM_XA="${VM_XA:-vm-xa}"
 IMAGE_TAG="${IMAGE_TAG:-1.0.0}"
 EMBEDDING_PROVIDER="${EMBEDDING_PROVIDER:-}"
 # Coexistence: the first organization's hindsight-api owns host port 8081 on vm-hindsight; this build publishes 8082 (compose 8082:8081).
 HINDSIGHT_PORT="${HINDSIGHT_PORT:-8082}"
-HINDSIGHT_URL="http://$VM_3:$HINDSIGHT_PORT"
+HINDSIGHT_URL="http://$VM_HINDSIGHT:$HINDSIGHT_PORT"
 # ---------------------------------------------------------------- engine choice
 # ENGINE (docker | podman) — podman = ROOTLESS Podman on the EXECUTION VM
 # (vm-xb) ONLY; every other VM stays Docker. Set in inputs.yaml config.engine,
@@ -120,8 +120,8 @@ confirm() {
 prereqs() {
   log "§0 — prereq checks (M0/M3 gates)"
   [ "${M3_DONE:-0}" = "1" ] || {
-    ssh -o BatchMode=yes -o ConnectTimeout=8 "$VM_3" "docker version >/dev/null" \
-      || die "$VM_3 not reachable / docker down (M0)"
+    ssh -o BatchMode=yes -o ConnectTimeout=8 "$VM_HINDSIGHT" "docker version >/dev/null" \
+      || die "$VM_HINDSIGHT not reachable / docker down (M0)"
     ssh -o BatchMode=yes -o ConnectTimeout=8 "$VM_XB" "$(xb_engine) ps --format '{{.Names}}' | grep -Eq '^ea-m2-lifecycle-[0-9]+$'" \
       || die "lifecycle not running on $VM_XB (M2/M3)"
   }
@@ -163,8 +163,8 @@ build_apis() {
 
 # ---------------------------------------------------------------- §1 hindsight
 deploy_hindsight() {
-  log "§1 — Hindsight on $VM_3 (pgvector + API; separate Postgres instance)"
-  confirm "deploy hindsight on $VM_3"
+  log "§1 — Hindsight on $VM_HINDSIGHT (pgvector + API; separate Postgres instance)"
+  confirm "deploy hindsight on $VM_HINDSIGHT"
   [ "$CHECK_ONLY" = "1" ] && return 0
   local envf="$M4/hindsight/.env"
   if ! grep -q '^HINDSIGHT_DB_PASS=' "$envf" 2>/dev/null; then
@@ -181,21 +181,21 @@ deploy_hindsight() {
     warn "EMBEDDING_API_KEY unset — hindsight runs the zero-vector fallback (EMBEDDINGS=none): reads are degenerate until a provider key is supplied (D-embed)"
   fi
   chmod 600 "$envf" 2>/dev/null || true
-  docker save "ea/hindsight-api:$IMAGE_TAG" | ssh "$VM_3" "docker load"
+  docker save "ea/hindsight-api:$IMAGE_TAG" | ssh "$VM_HINDSIGHT" "docker load"
   # /opt/ea is root-owned (m0 pre-stages it only on vm-xb) — create with sudo,
   # then hand it to the ssh user so rsync/compose can write.
-  ssh "$VM_3" "sudo mkdir -p /opt/ea/deploy-v2/m4/hindsight && sudo chown -R \"\$(id -un):\$(id -gn)\" /opt/ea/deploy-v2"
-  rsync -az "$M4/hindsight/" "$VM_3:/opt/ea/deploy-v2/m4/hindsight/"
-  ssh "$VM_3" "cd /opt/ea/deploy-v2/m4/hindsight && docker compose up -d"
+  ssh "$VM_HINDSIGHT" "sudo mkdir -p /opt/ea/deploy-v2/m4/hindsight && sudo chown -R \"\$(id -un):\$(id -gn)\" /opt/ea/deploy-v2"
+  rsync -az "$M4/hindsight/" "$VM_HINDSIGHT:/opt/ea/deploy-v2/m4/hindsight/"
+  ssh "$VM_HINDSIGHT" "cd /opt/ea/deploy-v2/m4/hindsight && docker compose up -d"
   local i
   for i in $(seq 1 40); do
-    if ssh "$VM_3" "curl -sf $HINDSIGHT_URL/healthz >/dev/null" 2>/dev/null; then break; fi
+    if ssh "$VM_HINDSIGHT" "curl -sf $HINDSIGHT_URL/healthz >/dev/null" 2>/dev/null; then break; fi
     sleep 3
     if [ "$i" = "40" ]; then die "hindsight /healthz never came up (M4 §6: pgvector image? .env pass?)"; fi
   done
-  ssh "$VM_3" "docker compose -f /opt/ea/deploy-v2/m4/hindsight/compose.yaml exec -T hindsight-pg psql -U hindsight -c \"SELECT extname FROM pg_extension WHERE extname='vector'\"" | grep -q vector \
+  ssh "$VM_HINDSIGHT" "docker compose -f /opt/ea/deploy-v2/m4/hindsight/compose.yaml exec -T hindsight-pg psql -U hindsight -c \"SELECT extname FROM pg_extension WHERE extname='vector'\"" | grep -q vector \
     || die "vector extension missing — M4 §6: use pgvector/pgvector:pg16, not plain postgres:16"
-  ok "§1 hindsight up on $VM_3"
+  ok "§1 hindsight up on $VM_HINDSIGHT"
 }
 
 # ---------------------------------------------------------------- §2 wiring
@@ -205,11 +205,11 @@ wire_hydration() {
   # names: ensure vm-hindsight resolves on the hosts that spawn/consume
   if [ "${APPLY_HOSTS:-0}" = "1" ] && [ -n "${HOSTS_IP_3:-}" ]; then
     for h in "$VM_XA" "$VM_XB"; do
-      ssh "$h" "sudo bash -c 'grep -q \" $VM_3 \" /etc/hosts || echo \"$HOSTS_IP_3 $VM_3\" >> /etc/hosts'"
+      ssh "$h" "sudo bash -c 'grep -q \" $VM_HINDSIGHT \" /etc/hosts || echo \"$HOSTS_IP_3 $VM_HINDSIGHT\" >> /etc/hosts'"
       log "§2   /etc/hosts line added on $h (record which mechanism in the decision log)"
     done
   else
-    log "§2   verifying name resolution ($(getent hosts "$VM_3" >/dev/null && echo "workstation resolves $VM_3" || echo "workstation does NOT resolve $VM_3 — PVE DNS or /etc/hosts, M0 §5"))"
+    log "§2   verifying name resolution ($(getent hosts "$VM_HINDSIGHT" >/dev/null && echo "workstation resolves $VM_HINDSIGHT" || echo "workstation does NOT resolve $VM_HINDSIGHT — PVE DNS or /etc/hosts, M0 §5"))"
   fi
   # M2 env: HINDSIGHT_URL rides into every spawned container. The llm-wiki
   # (git repo) is cloned by the executor entrypoint at boot with
@@ -304,7 +304,7 @@ gate_tests() {
       echo "G5 latency run $run: total $(echo "$t1 $t0" | awk '{printf "%.2f", $1-$2}')s (must stay < M2 TTL headroom — record per-source)"
     done
     # G6 data isolation: hindsight's Postgres is its own instance on its own VM
-    v3v="$(ssh "$VM_3" "docker volume ls --format '{{.Name}}' | grep -E 'hindsight' | head -1 || true")"
+    v3v="$(ssh "$VM_HINDSIGHT" "docker volume ls --format '{{.Name}}' | grep -E 'hindsight' | head -1 || true")"
     echo "G6 isolation: vm-hindsight volume='${v3v:-none}' present, distinct from the M0 Postgres on $VM_XB : $([ -n "$v3v" ] && echo PASS || echo FAIL)"
   } | tee "$out"
   if grep -q ": FAIL" "$out"; then
@@ -322,13 +322,13 @@ open_firewall() {
   local cidr="${UFW_POC_CIDR:-}"
   [ -n "$cidr" ] || cidr="${NETPLAN_IP_3%.*}.0/24"
   [ -n "$cidr" ] && [ "$cidr" != ".0/24" ] || { log "fw   no NETPLAN_IP_3/UFW_POC_CIDR — skipping UFW setup"; return 0; }
-  if [ "$CHECK_ONLY" = "1" ]; then log "check-only: would open UFW $HINDSIGHT_PORT on $VM_3 from $cidr"; return 0; fi
-  if ssh "$VM_3" "sudo -n ufw status 2>/dev/null | grep -q 'Status: active'"; then
-    ssh "$VM_3" "sudo -n ufw allow from $cidr to any port $HINDSIGHT_PORT proto tcp" \
-      || die "fw   ufw rule failed on $VM_3"
-    ok "fw   UFW: $HINDSIGHT_PORT open on $VM_3 from $cidr"
+  if [ "$CHECK_ONLY" = "1" ]; then log "check-only: would open UFW $HINDSIGHT_PORT on $VM_HINDSIGHT from $cidr"; return 0; fi
+  if ssh "$VM_HINDSIGHT" "sudo -n ufw status 2>/dev/null | grep -q 'Status: active'"; then
+    ssh "$VM_HINDSIGHT" "sudo -n ufw allow from $cidr to any port $HINDSIGHT_PORT proto tcp" \
+      || die "fw   ufw rule failed on $VM_HINDSIGHT"
+    ok "fw   UFW: $HINDSIGHT_PORT open on $VM_HINDSIGHT from $cidr"
   else
-    log "fw   UFW not active on $VM_3 — skipped"
+    log "fw   UFW not active on $VM_HINDSIGHT — skipped"
   fi
 }
 

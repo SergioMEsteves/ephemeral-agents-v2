@@ -8,7 +8,7 @@
 # test — recovery never means re-running the chain).
 #
 # Usage: bash deploy-v2/m5/e2e-deploy.sh
-# Env: VM_XA VM_XB VM_3 (ssh aliases), ASSUME_YES=1 for non-interactive
+# Env: VM_XA VM_XB VM_HINDSIGHT (ssh aliases), ASSUME_YES=1 for non-interactive
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,7 +17,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # carries ENGINE, the container-engine choice: podman = rootless Podman on
 # the execution VM, run as the poc user).
 if [ -f "$REPO_ROOT/deploy-v2/m0/hosts.env" ]; then set -a; . "$REPO_ROOT/deploy-v2/m0/hosts.env"; set +a; fi
-VM_XA="${VM_XA:-vm-xa}"; VM_XB="${VM_XB:-vm-xb}"; VM_3="${VM_3:-vm-hindsight}"
+VM_XA="${VM_XA:-vm-xa}"; VM_XB="${VM_XB:-vm-xb}"; VM_HINDSIGHT="${VM_HINDSIGHT:-vm-hindsight}"
 ENGINE="${ENGINE:-docker}"
 # xb_engine — container-engine command prefix for vm-xb remote commands
 # (rootless podman runs as the poc user; the remote shell resolves $(id -u poc)).
@@ -71,9 +71,9 @@ stage "S4 token issuance dry-run (issue + verify + revoke)" \
 # S5 memory: M4 hindsight compose up on vm-hindsight + /healthz check
 # (the llm-wiki is a git repo cloned by the executor at boot — no service here)
 stage "S5 hindsight compose up (vm-hindsight)" \
-  ssh "$VM_3" "cd /opt/ea/deploy-v2/m4/hindsight && docker compose up -d"
+  ssh "$VM_HINDSIGHT" "cd /opt/ea/deploy-v2/m4/hindsight && docker compose up -d"
 stage "S5 hindsight /healthz" \
-  ssh "$VM_3" "curl -sf http://127.0.0.1:8081/healthz"
+  ssh "$VM_HINDSIGHT" "curl -sf http://127.0.0.1:8081/healthz"
 
 # S6 front-house: M5 compose up on vm-xa + gateway /healthz
 stage "S6 front-house compose up (vm-xa)" \

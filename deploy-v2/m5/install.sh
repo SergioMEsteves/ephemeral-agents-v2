@@ -24,7 +24,7 @@
 #   ASSUME_YES=1  — skip interactive confirms
 #
 # Configuration (env, or deploy-v2/m0/hosts.env — auto-loaded; deploy-v2/m5/.env optional):
-#   VM_XA / VM_XB / VM_3 — ssh aliases (defaults vm-xa/vm-xb/vm-hindsight)
+#   VM_XA / VM_XB / VM_HINDSIGHT — ssh aliases (defaults vm-xa/vm-xb/vm-hindsight)
 #   GATEWAY_URL — default "http://<vm-xa-ip-or-name>:8083" (set to the reachable form)
 #   E2E_BRIEF — the task_brief for the acceptance request (default: "add a health endpoint to the demo project")
 #   E2E_TIMEOUT_S — default 600
@@ -78,7 +78,7 @@ done
 [ -f "$REPO_ROOT/deploy-v2/m0/hosts.env" ] && { set -a; . "$REPO_ROOT/deploy-v2/m0/hosts.env"; set +a; }
 [ -f "$M5/.env" ] && { set -a; . "$M5/.env"; set +a; }
 GH_OWNER="${GH_OWNER:-arvisdev}"
-VM_XA="${VM_XA:-vm-xa}"; VM_XB="${VM_XB:-vm-xb}"; VM_3="${VM_3:-vm-hindsight}"
+VM_XA="${VM_XA:-vm-xa}"; VM_XB="${VM_XB:-vm-xb}"; VM_HINDSIGHT="${VM_HINDSIGHT:-vm-hindsight}"
 IMAGE_TAG="${IMAGE_TAG:-1.0.0}"
 GATEWAY_URL="${GATEWAY_URL:-http://$VM_XA:8083}"
 E2E_BRIEF="${E2E_BRIEF:-add a health endpoint to the POC project}"
@@ -133,8 +133,8 @@ prereqs() {
     || die "M1: topic-bridge missing on $VM_XB — earlier gate not passed"
   ssh "$VM_XB" "$(xb_engine) ps --format '{{.Names}}' | grep -Eq '^ea-m2-lifecycle-[0-9]+$'" \
     || die "M2: lifecycle missing on $VM_XB — earlier gate not passed"
-  ssh "$VM_3" "curl -sf http://127.0.0.1:8082/healthz" >/dev/null 2>&1 \
-    || die "M4: hindsight not healthy on $VM_3 — earlier gate not passed"
+  ssh "$VM_HINDSIGHT" "curl -sf http://127.0.0.1:8082/healthz" >/dev/null 2>&1 \
+    || die "M4: hindsight not healthy on $VM_HINDSIGHT — earlier gate not passed"
   ok "prereqs"
 }
 
