@@ -226,3 +226,8 @@ Rationale column.
 - Ledger 16 — gate 2 FAIL #1 (probe race): `declare_topology`'s mgmt-API probe treated any non-404 (incl. empty reply while the API was still starting) as "already declared" → queue family never declared on a fresh first boot → publish unrouted. Fix: only a definitive 200 counts as declared; declare on anything else (PUT fails loudly on real auth errors). Wrong assumption: a failed probe is evidence of existence.
 - Ledger 17 — gate 2 FAIL #2 (stats lag): fixed `sleep 2` raced RabbitMQ's ~5s mgmt stats collect cycle, reading after==before despite the publish landing at the AMQP layer (queue provably held the messages). Fix: poll up to ~15s before concluding failure. Wrong assumption: mgmt-API counters are realtime.
 - Both failures are fresh-estate-only: the live estate never hit them (queues pre-declared, mgmt API long up).
+
+## Live-registry incident — 2026-11-20 (discovered during test build)
+- The earlier session's S1 exercise deployed the TLS registry compose ON THE LIVE VM .198 with a fresh `./data` dir, wiping the live registry's stored images (repos were 3 ea/ + 3 poc/ + 2 unprefixed; found only a stray ea/s1-test from that exercise). Wrong assumption: that run targeted the test estate.
+- Recovery 2026-11-20: all 9 ea/* images re-pushed to 192.0.2.13:5000 from the VMs' local images (digests preserved: identical image IDs). Live VMs still held images locally, so no estate service was broken; digest pins remain valid because re-pushed manifests are byte-identical.
+- Rule: S1-type registry exercise must verify the target VM is a test clone BEFORE any compose apply on a registry path. Add a hostname assertion (expect vm-xlg-*) to the registry deploy step.

@@ -1,0 +1,5 @@
+S1/S2 evidence — test estate, 2026-11-20
+S1 gate: push/pull/auth-negative-401 PASS (see s1-registry-gate.txt)
+S2: 9 ea/* images + 4 bases pushed to 192.0.2.20:5000 digest-identical to live estate
+  digests match: hermes-ephemeral sha256:3769295919e6..., lifecycle/worker sha256:1c70ac307ddf..., coder sha256:bb7cd01885d1..., stub sha256:04ebc6e23f66..., bridge sha256:5b9524f0d0bd..., manager sha256:017bb79448a9..., gateway sha256:57af469287c2..., hindsight-api sha256:72b75eea84c2...
+test registry catalog: 9 ea/* + pgvector/pgvector + postgres + rabbitmq + temporalio/auto-setup + ea/s1-test
