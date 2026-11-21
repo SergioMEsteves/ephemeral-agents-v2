@@ -1,0 +1,6 @@
+# TC-M4-05 hydration latency ×3 — spawned container (ea-net), /proc/uptime deltas, 2026-11-14
+run 1: clone=0.73s hindsight=0.01s catalog=0.18s total=0.92s
+run 2: clone=0.62s hindsight=0.01s catalog=0.17s total=0.80s
+run 3: clone=0.61s hindsight=0.01s catalog=0.17s total=0.79s
+Bound: M2 TTL_S headroom (margin ≥ 50%) — total hydration ≈ 0.9 s vs TTL 600 s ⇒ ~99.8% headroom. 3/3 within bound. PASS.
+Note: clone dominates (0.6–0.73 s); hindsight read ~10 ms (store-local Postgres); catalog fetch ~0.17 s (github.com contents API).

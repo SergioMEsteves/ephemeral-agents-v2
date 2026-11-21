@@ -1,0 +1,173 @@
+[m4 06:35:25] === M4 memory install start (check-only=1 no-gate=0) ===
+[m4 06:35:25] §0 — prereq checks (M0/M3 gates)
+[m4 06:35:27] OK   - prereqs
+[m4 06:35:27] WARN - LLM_WIKI_READ_TOKEN not set — the G3 llm-wiki clone gate will fail until it is (owner-curated repo, R7)
+[m4 06:35:27] OK   - assets present
+[m4 06:35:27] check-only: would apply — M4: deploy hindsight, wire M2, gate-test
+[m4 06:35:27] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 06:35:27] check-only: would open UFW 8081 on 192.0.2.12 from 192.0.2.0/24
+[m4 06:35:27] §1 — Hindsight on 192.0.2.12 (pgvector + API; separate Postgres instance)
+[m4 06:35:27] check-only: would apply — deploy hindsight on 192.0.2.12
+[m4 06:35:27] §2 — wire hydration into the M2 lifecycle + executor env (connective work)
+[m4 06:35:27] §3 — verification G1..G6 (the M4 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/
+[m4 06:35:27] check-only: skip gate tests
+[m4 06:35:27] === M4 install complete ===
+[m4 06:35:43] === M4 memory install start (check-only=0 no-gate=0) ===
+[m4 06:35:43] §0 — prereq checks (M0/M3 gates)
+[m4 06:35:44] OK   - prereqs
+[m4 06:35:44] OK   - assets present
+[m4 06:35:44] assumed — M4: deploy hindsight, wire M2, gate-test
+[m4 06:35:44] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 06:36:31] OK   - §1 API image built
+[m4 06:36:33] OK   - fw   UFW: 8081 open on 192.0.2.12 from 192.0.2.0/24
+[m4 06:36:33] §1 — Hindsight on 192.0.2.12 (pgvector + API; separate Postgres instance)
+[m4 06:36:33] assumed — deploy hindsight on 192.0.2.12
+[m4 06:36:33] WARN - EMBEDDING_API_KEY unset — hindsight runs the zero-vector fallback (EMBEDDINGS=none): reads are degenerate until a provider key is supplied (D-embed)
+[m4 06:37:12] === M4 memory install start (check-only=0 no-gate=0) ===
+[m4 06:37:12] §0 — prereq checks (M0/M3 gates)
+[m4 06:37:14] OK   - prereqs
+[m4 06:37:14] OK   - assets present
+[m4 06:37:14] assumed — M4: deploy hindsight, wire M2, gate-test
+[m4 06:37:14] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 06:37:17] OK   - §1 API image built
+[m4 06:37:18] OK   - fw   UFW: 8081 open on 192.0.2.12 from 192.0.2.0/24
+[m4 06:37:18] §1 — Hindsight on 192.0.2.12 (pgvector + API; separate Postgres instance)
+[m4 06:37:18] assumed — deploy hindsight on 192.0.2.12
+[m4 06:37:18] WARN - EMBEDDING_API_KEY unset — hindsight runs the zero-vector fallback (EMBEDDINGS=none): reads are degenerate until a provider key is supplied (D-embed)
+[m4 06:37:43] OK   - §1 hindsight up on 192.0.2.12
+[m4 06:37:43] §2 — wire hydration into the M2 lifecycle + executor env (connective work)
+[m4 06:37:43] §2   verifying name resolution (workstation does NOT resolve 192.0.2.12 — PVE DNS or /etc/hosts, M0 §5)
+[m4 06:37:44] WARN - §2   M2 compose has no HINDSIGHT_URL yet — add the line from the snippet below, then re-run this script
+[m4 06:37:44] §2   env snippet written to /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/m4-wiring-snippet.env
+[m4 06:37:45] OK   - §2 hydration wired; M2 re-deployed with the new env
+[m4 06:37:45] §3 — verification G1..G6 (the M4 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/
+[m4 06:37:53] OK   - M4 gate tests recorded
+[m4 06:37:53] Next: run TP-M4 — version 1/test procedures/M4-Memory-Knowledge-Test-Procedure.md (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence).
+[m4 06:37:53] === M4 install complete ===
+[m4 06:42:43] === M4 memory install start (check-only=0 no-gate=0) ===
+[m4 06:42:43] §0 — prereq checks (M0/M3 gates)
+[m4 06:42:44] OK   - prereqs
+[m4 06:42:44] OK   - assets present
+[m4 06:42:44] assumed — M4: deploy hindsight, wire M2, gate-test
+[m4 06:42:44] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 06:42:47] OK   - §1 API image built
+[m4 06:42:48] OK   - fw   UFW: 8082 open on 192.0.2.12 from 192.0.2.0/24
+[m4 06:42:48] §1 — Hindsight on 192.0.2.12 (pgvector + API; separate Postgres instance)
+[m4 06:42:48] assumed — deploy hindsight on 192.0.2.12
+[m4 06:42:48] WARN - EMBEDDING_API_KEY unset — hindsight runs the zero-vector fallback (EMBEDDINGS=none): reads are degenerate until a provider key is supplied (D-embed)
+[m4 06:42:57] OK   - §1 hindsight up on 192.0.2.12
+[m4 06:42:57] §2 — wire hydration into the M2 lifecycle + executor env (connective work)
+[m4 06:42:57] §2   verifying name resolution (workstation does NOT resolve 192.0.2.12 — PVE DNS or /etc/hosts, M0 §5)
+[m4 06:42:58] WARN - §2   M2 compose has no HINDSIGHT_URL yet — add the line from the snippet below, then re-run this script
+[m4 06:42:58] §2   env snippet written to /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/m4-wiring-snippet.env
+[m4 06:42:59] OK   - §2 hydration wired; M2 re-deployed with the new env
+[m4 06:42:59] §3 — verification G1..G6 (the M4 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/
+[m4 06:43:11] OK   - M4 gate tests recorded
+[m4 06:43:11] Next: run TP-M4 — version 1/test procedures/M4-Memory-Knowledge-Test-Procedure.md (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence).
+[m4 06:43:11] === M4 install complete ===
+[m4 14:44:56] === M4 memory install start (check-only=0 no-gate=0) ===
+[m4 14:44:56] §0 — prereq checks (M0/M3 gates)
+[m4 14:44:56] OK   - prereqs
+[m4 14:44:56] WARN - LLM_WIKI_READ_TOKEN not set — the G3 llm-wiki clone gate will fail until it is (owner-curated repo, R7)
+[m4 14:44:56] OK   - assets present
+[m4 14:44:56] assumed — M4: deploy hindsight, wire M2, gate-test
+[m4 14:44:56] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 14:45:42] OK   - §1 API image built
+[m4 14:50:19] === M4 memory install start (check-only=0 no-gate=0) ===
+[m4 14:50:19] §0 — prereq checks (M0/M3 gates)
+[m4 14:50:19] OK   - prereqs
+[m4 14:50:19] WARN - LLM_WIKI_READ_TOKEN not set — the G3 llm-wiki clone gate will fail until it is (owner-curated repo, R7)
+[m4 14:50:19] OK   - assets present
+[m4 14:50:19] assumed — M4: deploy hindsight, wire M2, gate-test
+[m4 14:50:19] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 14:50:22] OK   - §1 API image built
+[m4 14:50:24] OK   - fw   UFW: 8082 open on 192.0.2.12 from 192.0.2.0/24
+[m4 14:50:24] §1 — Hindsight on 192.0.2.12 (pgvector + API; separate Postgres instance)
+[m4 14:50:24] assumed — deploy hindsight on 192.0.2.12
+[m4 14:50:24] WARN - EMBEDDING_API_KEY unset — hindsight runs the zero-vector fallback (EMBEDDINGS=none): reads are degenerate until a provider key is supplied (D-embed)
+[m4 14:51:30] OK   - §1 hindsight up on 192.0.2.12
+[m4 14:51:30] §2 — wire hydration into the M2 lifecycle + executor env (connective work)
+[m4 14:51:30] §2   verifying name resolution (workstation does NOT resolve 192.0.2.12 — PVE DNS or /etc/hosts, M0 §5)
+[m4 14:51:31] WARN - §2   m3.env has no HINDSIGHT_URL yet — add the line from the snippet below, then re-run this script
+[m4 14:51:31] §2   LLM_WIKI_READ_TOKEN not set — the executor boots without the llm-wiki clone (rollback-degrades-gracefully)
+[m4 14:51:31] §2   env snippet written to /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/m4-wiring-snippet.env
+[m4 14:51:33] OK   - §2 hydration wired; M2 re-deployed with the new env
+[m4 14:51:33] §3 — verification G1..G6 (the M4 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/
+[m4 14:51:39] WARN - M4 gate tests: FAILURES above — remediate per M4 §6, re-run from the failed test.
+[m4 14:53:13] === M4 memory install start (check-only=0 no-gate=0) ===
+[m4 14:53:13] §0 — prereq checks (M0/M3 gates)
+[m4 14:53:13] OK   - prereqs
+[m4 14:53:13] WARN - LLM_WIKI_READ_TOKEN not set — the G3 llm-wiki clone gate will fail until it is (owner-curated repo, R7)
+[m4 14:53:13] OK   - assets present
+[m4 14:53:13] assumed — M4: deploy hindsight, wire M2, gate-test
+[m4 14:53:13] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 14:53:17] OK   - §1 API image built
+[m4 14:53:18] OK   - fw   UFW: 8082 open on 192.0.2.12 from 192.0.2.0/24
+[m4 14:53:18] §1 — Hindsight on 192.0.2.12 (pgvector + API; separate Postgres instance)
+[m4 14:53:18] assumed — deploy hindsight on 192.0.2.12
+[m4 14:53:18] WARN - EMBEDDING_API_KEY unset — hindsight runs the zero-vector fallback (EMBEDDINGS=none): reads are degenerate until a provider key is supplied (D-embed)
+[m4 14:53:29] OK   - §1 hindsight up on 192.0.2.12
+[m4 14:53:29] §2 — wire hydration into the M2 lifecycle + executor env (connective work)
+[m4 14:53:29] §2   verifying name resolution (workstation does NOT resolve 192.0.2.12 — PVE DNS or /etc/hosts, M0 §5)
+[m4 14:53:30] WARN - §2   m3.env has no HINDSIGHT_URL yet — add the line from the snippet below, then re-run this script
+[m4 14:53:30] §2   LLM_WIKI_READ_TOKEN not set — the executor boots without the llm-wiki clone (rollback-degrades-gracefully)
+[m4 14:53:30] §2   env snippet written to /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/m4-wiring-snippet.env
+[m4 14:53:32] OK   - §2 hydration wired; M2 re-deployed with the new env
+[m4 14:53:32] §3 — verification G1..G6 (the M4 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/
+[m4 14:53:38] WARN - M4 gate tests: FAILURES above — remediate per M4 §6, re-run from the failed test.
+[m4 03:17:12] === M4 memory install start (check-only=1 no-gate=0) ===
+[m4 03:17:12] §0 — prereq checks (M0/M3 gates)
+[m4 03:17:14] OK   - prereqs
+[m4 03:17:14] WARN - LLM_WIKI_READ_TOKEN not set — the G3 llm-wiki clone gate will fail until it is (owner-curated repo, R7)
+[m4 03:17:14] OK   - assets present
+[m4 03:17:14] check-only: would apply — M4: deploy hindsight, wire M2, gate-test
+[m4 03:17:14] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 03:17:14] check-only: would open UFW 8082 on 192.0.2.21 from 192.0.2.0/24
+[m4 03:17:14] §1 — Hindsight on 192.0.2.21 (pgvector + API; separate Postgres instance)
+[m4 03:17:14] check-only: would apply — deploy hindsight on 192.0.2.21
+[m4 03:17:14] §2 — wire hydration into the M2 lifecycle + executor env (connective work)
+[m4 03:17:14] §3 — verification G1..G6 (the M4 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/
+[m4 03:17:14] check-only: skip gate tests
+[m4 03:17:14] === M4 install complete ===
+[m4 03:17:22] === M4 memory install start (check-only=0 no-gate=0) ===
+[m4 03:17:22] §0 — prereq checks (M0/M3 gates)
+[m4 03:17:23] OK   - prereqs
+[m4 03:17:23] WARN - LLM_WIKI_READ_TOKEN not set — the G3 llm-wiki clone gate will fail until it is (owner-curated repo, R7)
+[m4 03:17:23] OK   - assets present
+[m4 03:17:23] assumed — M4: deploy hindsight, wire M2, gate-test
+[m4 03:17:23] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 03:17:27] OK   - §1 API image built
+[m4 03:17:28] OK   - fw   UFW: 8082 open on 192.0.2.21 from 192.0.2.0/24
+[m4 03:17:28] §1 — Hindsight on 192.0.2.21 (pgvector + API; separate Postgres instance)
+[m4 03:17:28] assumed — deploy hindsight on 192.0.2.21
+[m4 03:17:28] WARN - EMBEDDING_API_KEY unset — hindsight runs the zero-vector fallback (EMBEDDINGS=none): reads are degenerate until a provider key is supplied (D-embed)
+[m4 03:18:16] OK   - §1 hindsight up on 192.0.2.21
+[m4 03:18:16] §2 — wire hydration into the M2 lifecycle + executor env (connective work)
+[m4 03:18:16] §2   verifying name resolution (workstation does NOT resolve 192.0.2.21 — PVE DNS or /etc/hosts, M0 §5)
+[m4 03:18:17] WARN - §2   m3.env has no HINDSIGHT_URL yet — add the line from the snippet below, then re-run this script
+[m4 03:18:17] §2   LLM_WIKI_READ_TOKEN not set — the executor boots without the llm-wiki clone (rollback-degrades-gracefully)
+[m4 03:18:17] §2   env snippet written to /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/m4-wiring-snippet.env
+[m4 03:18:19] OK   - §2 hydration wired; M2 re-deployed with the new env
+[m4 03:18:19] §3 — verification G1..G6 (the M4 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/
+[m4 03:18:25] WARN - M4 gate tests: FAILURES above — remediate per M4 §6, re-run from the failed test.
+[m4 03:18:41] === M4 memory install start (check-only=0 no-gate=0) ===
+[m4 03:18:41] §0 — prereq checks (M0/M3 gates)
+[m4 03:18:42] OK   - prereqs
+[m4 03:18:42] OK   - assets present
+[m4 03:18:42] assumed — M4: deploy hindsight, wire M2, gate-test
+[m4 03:18:42] §1 — build Go API images (POC Go convention; no Temporal code here)
+[m4 03:18:46] OK   - §1 API image built
+[m4 03:18:47] OK   - fw   UFW: 8082 open on 192.0.2.21 from 192.0.2.0/24
+[m4 03:18:47] §1 — Hindsight on 192.0.2.21 (pgvector + API; separate Postgres instance)
+[m4 03:18:47] assumed — deploy hindsight on 192.0.2.21
+[m4 03:18:47] WARN - EMBEDDING_API_KEY unset — hindsight runs the zero-vector fallback (EMBEDDINGS=none): reads are degenerate until a provider key is supplied (D-embed)
+[m4 03:18:58] OK   - §1 hindsight up on 192.0.2.21
+[m4 03:18:58] §2 — wire hydration into the M2 lifecycle + executor env (connective work)
+[m4 03:18:58] §2   verifying name resolution (workstation does NOT resolve 192.0.2.21 — PVE DNS or /etc/hosts, M0 §5)
+[m4 03:18:58] WARN - §2   m3.env has no HINDSIGHT_URL yet — add the line from the snippet below, then re-run this script
+[m4 03:18:59] §2   env snippet written to /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/m4-wiring-snippet.env
+[m4 03:19:00] OK   - §2 hydration wired; M2 re-deployed with the new env
+[m4 03:19:00] §3 — verification G1..G6 (the M4 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence/
+[m4 03:19:08] OK   - M4 gate tests recorded
+[m4 03:19:08] Next: run TP-M4 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence).
+[m4 03:19:08] === M4 install complete ===

@@ -1,0 +1,13 @@
+# TC-M4-01/02 raw JSON — V2 hindsight (http://192.0.2.12:8082), from a spawned-agent-shaped container on ea-net (curlimages/curl), 2026-11-14
+
+=== TC-M4-01 write ===
+{"created":"2026-11-14T06:52:06+00","scope":"cross-task"}
+=== TC-M4-01 read-back (same task, tc-m4-t2) ===
+{"entries":[{"task_id":"tc-m4-t2","agent_ref":"dev","scope":"cross-task","body":{"summary":"write X for Y from spawned container","learning":"use X for Y (tc-m4-t2)"}}]}
+PASS: write persists; read-back equals the written body.
+
+=== TC-M4-02 read-back (different task_id tc-m4-t3, q-driven) ===
+{"entries":[{"task_id":"tc-m4-t2","agent_ref":"dev","scope":"cross-task","body":{"summary":"write X for Y from spawned container","learning":"use X for Y (tc-m4-t2)"},...},
+{"task_id":"t-g1",...,"body":{"summary":"m4-install-g1",...}},
+{"task_id":"b1-004300-1",...,"body":{"summary":"boot-time probe (M3 B1)",...}}]}
+PASS: t2's learning is present in another task's cross-task recall payload.

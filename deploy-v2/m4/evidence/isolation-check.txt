@@ -1,0 +1,12 @@
+# TC-M4-07 data isolation — 2026-11-14
+
+## vm-hindsight (memory VM)
+Containers: ea-hindsight-api (ea/hindsight-api:1.0.0, host 8082) · ea-hindsight-pg (pgvector/pgvector:pg16)
+            hindsight-hindsight-api-1 (poc/hindsight-api:1.0.0, host 8081 — V1, untouched) · hindsight-hindsight-pg-1
+Volumes:    ea-hindsight_ea-hindsight-pg-data (V2, fresh) · hindsight_hindsight-pg-data (V1) — distinct per stack.
+
+## vm-xb (workload VM)
+Wiki containers: 0 · wiki images: 0 (D-wiki-git: no wiki VM/service exists; consumers shallow-clone github.com/arvisdev/llm-wiki)
+Temporal's Postgres (M0): temporal-postgres-1 (postgres:16, vm-xb) — distinct engine AND distinct host from V2's hindsight PG (pgvector/pg16, vm-hindsight).
+
+PASS: hindsight uses its own Postgres instance, separate from Temporal's; no shared DBs; zero llmwiki containers/images.
