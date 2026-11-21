@@ -457,15 +457,15 @@ credential_hardening() {
   log "§6   env review clean"
   # token lifecycle evidence (M3 §4 B5 re-run): REAL issue -> repo-scoped verify
   # (installation tokens 403 on /user) -> revoke -> 401. The key lives on vm-xb
-  # (/opt/poc/secrets source per S0); the token never leaves the VM / enters logs.
+  # (/opt/ea/secrets source per S0); the token never leaves the VM / enters logs.
   if [ -f "$REPO_ROOT/deploy-v2/m3/issue-token.sh" ]; then
     local tcode src
-    src="$(ssh "$VM_XB" 'set -a; . /opt/poc/secrets/m3.env; set +a; bash /opt/ea/deploy-v2/m3/issue-token.sh' 2>/dev/null | head -1)"
+    src="$(ssh "$VM_XB" 'sudo bash -c "set -a; . /opt/ea/secrets/m3.env; set +a; APP_KEY_PATH=/opt/ea/secrets/app-key.pem bash /opt/ea/deploy-v2/m3/issue-token.sh"' 2>/dev/null | head -1)"
     [ -n "$src" ] || die "§6   issue-token.sh produced no token (m3.env + app key state — M3 §1c)"
     tcode="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $src" "https://api.github.com/repos/$GH_OWNER/agent-roster/contents/")"
     log "§6   issued token -> HTTP $tcode on the catalog repo (want 200 pre-revoke)"
     [ "$tcode" = "200" ] || die "§6   issued token did not authenticate (HTTP $tcode)"
-    ssh "$VM_XB" 'set -a; . /opt/poc/secrets/m3.env; set +a; bash /opt/ea/deploy-v2/m3/issue-token.sh --revoke-last' >/dev/null 2>&1
+    ssh "$VM_XB" 'set -a; . /opt/ea/secrets/m3.env; set +a; bash /opt/ea/deploy-v2/m3/issue-token.sh --revoke-last' >/dev/null 2>&1
     sleep 5   # revocation propagation — an immediate check raced GitHub (seen live: 200 post-revoke)
     tcode="$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: token $src" "https://api.github.com/repos/$GH_OWNER/agent-roster/contents/")"
     log "§6   revoked token -> HTTP $tcode (want 401 post-revoke)" 
