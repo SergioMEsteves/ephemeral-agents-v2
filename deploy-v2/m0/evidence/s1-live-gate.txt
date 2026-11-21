@@ -1,0 +1,6 @@
+S1 registry TLS gate — live estate, 2026-11-20
+1) push from .233 (vm-hermes-agent): PASS (alpine -> 192.0.2.13:5000/ea/s1-live-verify:1, sha256:0f49f331...)
+2) pull from .224 (vm-ephemeral-agents): PASS
+3) auth-negative from .223 (vm-hindsight): PASS (401 Unauthorized)
+registry: registry-registry-1 Up 23h, TLS+basic-auth, 9 ea/* repos present
+CA distributed to /etc/docker/certs.d/192.0.2.13:5000/ on .223/.224/.233
