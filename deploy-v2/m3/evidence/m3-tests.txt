@@ -1,0 +1,50 @@
+# M3 gate tests — Sat Nov 21 01:40:37 AM UTC 2026
+# B1 boot-time — executor=hermes runs=3 — Sat Nov 21 01:40:37 AM UTC 2026
+| run | task_id | boot_s (spawn -> self-report.json) |
+|---|---|---|
+{"event":"start","task_id":"b1-194037-1","inject":"none","ttl_s":300}
+Running execution:
+  WorkflowId  b1-194037-1
+  RunId       01a1fbc3-40cb-7557-a9d7-0798462c54d1
+  Type        TaskWorkflow
+  Namespace   default
+  TaskQueue   ea-tasks
+{"task_id":"b1-194037-1","status":"success"}
+{"task_id":"b1-194037-1","reap":"ok","container":"gone"}
+| 1 | b1-194037-1 | 3459 ms (dispatch 9s) |
+{"event":"start","task_id":"b1-194047-2","inject":"none","ttl_s":300}
+Running execution:
+  WorkflowId  b1-194047-2
+  RunId       01a1fbc3-617c-7d23-904b-cea73a18fa54
+  Type        TaskWorkflow
+  Namespace   default
+  TaskQueue   ea-tasks
+{"task_id":"b1-194047-2","status":"success"}
+{"task_id":"b1-194047-2","reap":"ok","container":"gone"}
+| 2 | b1-194047-2 | 1006 ms (dispatch 7s) |
+{"event":"start","task_id":"b1-194054-3","inject":"none","ttl_s":300}
+Running execution:
+  WorkflowId  b1-194054-3
+  RunId       01a1fbc3-7d11-79e7-8f57-26eb42d12f2d
+  Type        TaskWorkflow
+  Namespace   default
+  TaskQueue   ea-tasks
+{"task_id":"b1-194054-3","status":"success"}
+{"task_id":"b1-194054-3","reap":"ok","container":"gone"}
+| 3 | b1-194054-3 | 1626 ms (dispatch 6s) |
+
+p50 boot time: 1626 ms (in-container spawn -> self-report ready) — record the acceptance bound, re-run to pass (M3 §4 B1)
+This p50 feeds M5's ttl_s sizing: ttl_s = max(3 x B1 p50, brief estimate) (M5 §1.4).
+B1 boot-time: table recorded (record p50, set the acceptance bound, re-run to pass)
+B2 persona: RUN the self-report assertion manually (M3 §4 B2) and record
+B3 failure: operator runs (a) unreachable AGENT_REPO_URL and (b) malformed persona -> both exit 2 + reap (record in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence)
+B4 coder: set PROJECT_LOCAL_DIR to a local clone of the project repo (manual per M3 §4 B4)
+B5 token: post-reap token must be 401 (re-run the §1 dry-run revoke check; record output)
+
+# Manual gate lines completed 2026-11-20 (test estate)
+B1 boot-time: p50 1626 ms (runs 3459/1006/1626 ms; acceptance bound = 3x p50 at M5 sizing) : PASS
+B2 persona: b2-persona-2 self-report — role ephemeral-org/eph-backend-engineer, persona_files " persona.md skill-and-tools.md behavioral-spec.md", spec_received true, agent_repo true, llm-wiki true : PASS
+B3a unreachable repo: task b3a-unreachable status fail + reaped; direct docker run exit 2 : PASS
+B3b malformed persona: task b3b-malformed status fail + reaped; direct docker run exit 2 : PASS
+B4 coder: task m3b-194848 (executor coder) status success + reaped; commit 130eb2a on origin/task/m3b-194848 (ea-demo/main.go /healthz 200 ok + main_test.go + go.mod) : PASS
+B5 token: 383-char installation token verified 200 pre-revoke; revoked; 401 post-revoke : PASS
