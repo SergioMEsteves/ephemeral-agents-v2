@@ -1,9 +1,9 @@
-# M4 gate tests — Sat Nov 21 03:19:00 AM UTC 2026
+# M4 gate tests — Sat Nov 21 04:42:00 AM UTC 2026
 G1 network R/W: write+read-back : PASS
 G2 cross-task read-back: a different task_id fetches the cross-task entry : PASS
-G3 llm-wiki shallow clone from 192.0.2.22 + README readable : PASS (https://github.com/arvisdev/llm-wiki)
+G3 llm-wiki shallow clone from 192.0.2.11 + README readable : PASS (https://github.com/arvisdev/llm-wiki)
 G4 catalog regression: boot-time harness re-ran with sources live (verify self-report in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m4/evidence)
-G5 latency run 1: total 0.05s (must stay < M2 TTL headroom — record per-source)
-G5 latency run 2: total 0.04s (must stay < M2 TTL headroom — record per-source)
-G5 latency run 3: total 0.03s (must stay < M2 TTL headroom — record per-source)
-G6 isolation: vm-hindsight volume='ea-hindsight_ea-hindsight-pg-data' present, distinct from the M0 Postgres on 192.0.2.22 : PASS
+G5 latency run 1: total 0.02s (must stay < M2 TTL headroom — record per-source)
+G5 latency run 2: total 0.01s (must stay < M2 TTL headroom — record per-source)
+G5 latency run 3: total 0.02s (must stay < M2 TTL headroom — record per-source)
+G6 isolation: vm-hindsight volume='ea-hindsight_ea-hindsight-pg-data' present, distinct from the M0 Postgres on 192.0.2.11 : PASS
