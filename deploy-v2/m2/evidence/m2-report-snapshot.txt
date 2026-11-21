@@ -1,0 +1,5 @@
+Content-Type: application/json
+Date: Sat, 21 Nov 2026 04:21:52 GMT
+Content-Length: 714
+
+{"last_reaps":["2026-11-21T04:21:51Z task_id=mix-1795234874-10 reason=ttl","2026-11-21T04:21:13Z task_id=mix-1795234837-9 reason=ttl","2026-11-21T04:20:48Z task_id=t004-221310 reason=ttl","2026-11-21T04:20:37Z task_id=mix-1795234832-8 reason=exited-1","2026-11-21T04:20:31Z task_id=mix-1795234828-7 reason=exited-1","2026-11-21T04:20:27Z task_id=mix-1795234823-6 reason=exited-1","2026-11-21T04:20:23Z task_id=mix-1795234791-5 reason=exited-0","2026-11-21T04:19:50Z task_id=mix-1795234756-4 reason=exited-0","2026-11-21T04:19:16Z task_id=mix-1795234723-3 reason=exited-0","2026-11-21T04:18:43Z task_id=mix-1795234690-2 reason=exited-0"],"pinned_image":"ea/executor-stub:1.0.0","reap_count":96,"ttl_default_s":900}

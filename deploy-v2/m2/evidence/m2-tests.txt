@@ -1,139 +1,139 @@
-# M2 gate tests — Sat Nov 21 01:14:22 AM UTC 2026
-{"event":"start","task_id":"t001-191422","inject":"none","ttl_s":30}
+# M2 gate tests — Sat Nov 21 04:13:10 AM UTC 2026
+{"event":"start","task_id":"t001-221310","inject":"none","ttl_s":30}
 Running execution:
-  WorkflowId  t001-191422
-  RunId       01a1fbab-3431-7226-97bf-b09d9dcc4bd8
+  WorkflowId  t001-221310
+  RunId       01a1fc4e-e31b-7c8c-9fe5-511bb64073a6
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"t001-191422","status":"success"}
-{"task_id":"t001-191422","reap":"ok","container":"gone"}
+{"task_id":"t001-221310","status":"success"}
+{"task_id":"t001-221310","reap":"ok","container":"gone"}
 V1 clean: success + reaped : PASS
 V2 failure: surfaced + reaped : PASS
 V3 timeout: reaped at TTL + error surfaced : PASS
-[m2 01:15:41] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
-{"event":"start","task_id":"t004-191422","inject":"hang","ttl_s":120}
+[m2 04:14:25] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+{"event":"start","task_id":"t004-221310","inject":"hang","ttl_s":120}
 Running execution:
-  WorkflowId  t004-191422
-  RunId       01a1fbac-6626-7487-907a-bdb20ea38f07
+  WorkflowId  t004-221310
+  RunId       01a1fc50-072e-7ab4-8bec-aadf4ec8ea6b
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
 ea-m2-worker-1
-{"task_id":"t004-191422","status":"timeout","note":"no result within TIMEOUT_S (reaper path)"}
-{"task_id":"t004-191422","reap":"ok","container":"gone"}
+{"task_id":"t004-221310","status":"timeout","note":"no result within TIMEOUT_S (reaper path)"}
+{"task_id":"t004-221310","reap":"ok","container":"gone"}
 ea-m2-worker-1
 V4 crash: reaper got t004's container (zero survivors) : PASS
 # mixed-runs: 10 runs (5 success / 3 failure / 2 timeout)
--- run 1/10 (success): mix-1795223933-1
-{"event":"start","task_id":"mix-1795223933-1","inject":"none","ttl_s":30}
+-- run 1/10 (success): mix-1795234657-1
+{"event":"start","task_id":"mix-1795234657-1","inject":"none","ttl_s":30}
 Running execution:
-  WorkflowId  mix-1795223933-1
-  RunId       01a1fbaf-5576-7c0a-a6a5-80662d3d2c05
+  WorkflowId  mix-1795234657-1
+  RunId       01a1fc52-f669-727c-be35-6a55f8c90fc2
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795223933-1","status":"success"}
-{"task_id":"mix-1795223933-1","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234657-1","status":"success"}
+{"task_id":"mix-1795234657-1","reap":"ok","container":"gone"}
 run 1 (success): PASS
--- run 2/10 (success): mix-1795223967-2
-{"event":"start","task_id":"mix-1795223967-2","inject":"none","ttl_s":30}
+-- run 2/10 (success): mix-1795234690-2
+{"event":"start","task_id":"mix-1795234690-2","inject":"none","ttl_s":30}
 Running execution:
-  WorkflowId  mix-1795223967-2
-  RunId       01a1fbaf-d74d-792f-b470-34d69089d863
+  WorkflowId  mix-1795234690-2
+  RunId       01a1fc53-75a8-7895-a4fe-4fe87a9eb7ab
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795223967-2","status":"success"}
-{"task_id":"mix-1795223967-2","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234690-2","status":"success"}
+{"task_id":"mix-1795234690-2","reap":"ok","container":"gone"}
 run 2 (success): PASS
--- run 3/10 (success): mix-1795224000-3
-{"event":"start","task_id":"mix-1795224000-3","inject":"none","ttl_s":30}
+-- run 3/10 (success): mix-1795234723-3
+{"event":"start","task_id":"mix-1795234723-3","inject":"none","ttl_s":30}
 Running execution:
-  WorkflowId  mix-1795224000-3
-  RunId       01a1fbb0-5869-70d1-87d2-12ef913aa29c
+  WorkflowId  mix-1795234723-3
+  RunId       01a1fc53-fa20-70ea-a818-063df47f4e66
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795224000-3","status":"success"}
-{"task_id":"mix-1795224000-3","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234723-3","status":"success"}
+{"task_id":"mix-1795234723-3","reap":"ok","container":"gone"}
 run 3 (success): PASS
--- run 4/10 (success): mix-1795224033-4
-{"event":"start","task_id":"mix-1795224033-4","inject":"none","ttl_s":30}
+-- run 4/10 (success): mix-1795234756-4
+{"event":"start","task_id":"mix-1795234756-4","inject":"none","ttl_s":30}
 Running execution:
-  WorkflowId  mix-1795224033-4
-  RunId       01a1fbb0-dcbd-79f5-a820-19a076afa915
+  WorkflowId  mix-1795234756-4
+  RunId       01a1fc54-7ad5-7454-ac37-ceda25865755
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795224033-4","status":"success"}
-{"task_id":"mix-1795224033-4","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234756-4","status":"success"}
+{"task_id":"mix-1795234756-4","reap":"ok","container":"gone"}
 run 4 (success): PASS
--- run 5/10 (success): mix-1795224067-5
-{"event":"start","task_id":"mix-1795224067-5","inject":"none","ttl_s":30}
+-- run 5/10 (success): mix-1795234791-5
+{"event":"start","task_id":"mix-1795234791-5","inject":"none","ttl_s":30}
 Running execution:
-  WorkflowId  mix-1795224067-5
-  RunId       01a1fbb1-610a-76ee-bd5d-d842cec7de5f
+  WorkflowId  mix-1795234791-5
+  RunId       01a1fc55-006c-72da-8aca-5ba7e37ff905
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795224067-5","status":"success"}
-{"task_id":"mix-1795224067-5","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234791-5","status":"success"}
+{"task_id":"mix-1795234791-5","reap":"ok","container":"gone"}
 run 5 (success): PASS
--- run 6/10 (failure): mix-1795224101-6
-{"event":"start","task_id":"mix-1795224101-6","inject":"exit-1","ttl_s":30}
+-- run 6/10 (failure): mix-1795234823-6
+{"event":"start","task_id":"mix-1795234823-6","inject":"exit-1","ttl_s":30}
 Running execution:
-  WorkflowId  mix-1795224101-6
-  RunId       01a1fbb1-e2cc-781d-a1a0-5895b4032a5f
+  WorkflowId  mix-1795234823-6
+  RunId       01a1fc55-8046-73f5-ad63-09c24cbc78bd
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795224101-6","status":"fail"}
-{"task_id":"mix-1795224101-6","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234823-6","status":"fail"}
+{"task_id":"mix-1795234823-6","reap":"ok","container":"gone"}
 run 6 (failure): PASS
--- run 7/10 (failure): mix-1795224106-7
-{"event":"start","task_id":"mix-1795224106-7","inject":"exit-1","ttl_s":30}
+-- run 7/10 (failure): mix-1795234828-7
+{"event":"start","task_id":"mix-1795234828-7","inject":"exit-1","ttl_s":30}
 Running execution:
-  WorkflowId  mix-1795224106-7
-  RunId       01a1fbb1-f74e-7791-aa4b-d15050b961fd
+  WorkflowId  mix-1795234828-7
+  RunId       01a1fc55-91f1-76e8-966e-0411e975fe76
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795224106-7","status":"fail"}
-{"task_id":"mix-1795224106-7","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234828-7","status":"fail"}
+{"task_id":"mix-1795234828-7","reap":"ok","container":"gone"}
 run 7 (failure): PASS
--- run 8/10 (failure): mix-1795224111-8
-{"event":"start","task_id":"mix-1795224111-8","inject":"exit-1","ttl_s":30}
+-- run 8/10 (failure): mix-1795234832-8
+{"event":"start","task_id":"mix-1795234832-8","inject":"exit-1","ttl_s":30}
 Running execution:
-  WorkflowId  mix-1795224111-8
-  RunId       01a1fbb2-0c81-76b3-a8e2-685aef54d804
+  WorkflowId  mix-1795234832-8
+  RunId       01a1fc55-a229-7402-b7a8-dcba68a28669
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795224111-8","status":"fail"}
-{"task_id":"mix-1795224111-8","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234832-8","status":"fail"}
+{"task_id":"mix-1795234832-8","reap":"ok","container":"gone"}
 run 8 (failure): PASS
--- run 9/10 (timeout): mix-1795224117-9
-{"event":"start","task_id":"mix-1795224117-9","inject":"hang","ttl_s":15}
+-- run 9/10 (timeout): mix-1795234837-9
+{"event":"start","task_id":"mix-1795234837-9","inject":"hang","ttl_s":15}
 Running execution:
-  WorkflowId  mix-1795224117-9
-  RunId       01a1fbb2-2473-7c72-976e-fadefafd90ad
+  WorkflowId  mix-1795234837-9
+  RunId       01a1fc55-b61c-7d8e-a351-993a969a04a1
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795224117-9","status":"timeout","note":"reaper path (M2 V3)"}
-{"task_id":"mix-1795224117-9","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234837-9","status":"timeout","note":"reaper path (M2 V3)"}
+{"task_id":"mix-1795234837-9","reap":"ok","container":"gone"}
 run 9 (timeout): PASS
--- run 10/10 (timeout): mix-1795224155-10
-{"event":"start","task_id":"mix-1795224155-10","inject":"hang","ttl_s":15}
+-- run 10/10 (timeout): mix-1795234874-10
+{"event":"start","task_id":"mix-1795234874-10","inject":"hang","ttl_s":15}
 Running execution:
-  WorkflowId  mix-1795224155-10
-  RunId       01a1fbb2-b832-71f0-87cc-3fbd3bafeeb7
+  WorkflowId  mix-1795234874-10
+  RunId       01a1fc56-479d-7f39-9fb9-4d19b7422420
   Type        TaskWorkflow
   Namespace   default
   TaskQueue   ea-tasks
-{"task_id":"mix-1795224155-10","status":"timeout","note":"reaper path (M2 V3)"}
-{"task_id":"mix-1795224155-10","reap":"ok","container":"gone"}
+{"task_id":"mix-1795234874-10","status":"timeout","note":"reaper path (M2 V3)"}
+{"task_id":"mix-1795234874-10","reap":"ok","container":"gone"}
 run 10 (timeout): PASS
 survivors after 10 mixed runs: 0 (want 0)
 V5 mixed-10: all events logged : PASS

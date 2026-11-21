@@ -1,0 +1,260 @@
+[m2 03:39:54] === M2 lifecycle install start (check-only=1 no-gate=0) ===
+[m2 03:39:54] §0 — prereq checks (M0 + M1 gates)
+[m2 03:39:54] FAIL: Temporal not healthy (M0)
+[m2 03:40:11] === M2 lifecycle install start (check-only=1 no-gate=0) ===
+[m2 03:40:11] §0 — prereq checks (M0 + M1 gates)
+[m2 03:40:11] FAIL: Temporal not healthy (M0)
+[m2 03:40:21] === M2 lifecycle install start (check-only=1 no-gate=0) ===
+[m2 03:40:21] §0 — prereq checks (M0 + M1 gates)
+[m2 03:40:22] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 03:40:22] OK   - prereqs
+[m2 03:40:22] OK   - assets present
+[m2 03:40:22] check-only: would apply — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 03:40:22] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 03:40:22] check-only: skip build
+[m2 03:40:22] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 03:40:22] check-only: would apply — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 03:40:22] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 03:40:22] check-only: skip gate tests
+[m2 03:40:22] §4 — observability spot-checks (M2.5)
+[m2 03:40:22] === M2 install complete ===
+[m2 03:40:55] === M2 lifecycle install start (check-only=1 no-gate=0) ===
+[m2 03:40:55] §0 — prereq checks (M0 + M1 gates)
+[m2 03:40:56] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 03:40:56] OK   - prereqs
+[m2 03:40:56] OK   - assets present
+[m2 03:40:56] check-only: would apply — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 03:40:56] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 03:40:56] check-only: skip build
+[m2 03:40:56] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 03:40:56] check-only: would apply — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 03:40:56] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 03:40:56] check-only: skip gate tests
+[m2 03:40:56] §4 — observability spot-checks (M2.5)
+[m2 03:40:56] === M2 install complete ===
+[m2 03:42:59] === M2 lifecycle install start (check-only=0 no-gate=1) ===
+[m2 03:42:59] §0 — prereq checks (M0 + M1 gates)
+[m2 03:43:00] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 03:43:00] OK   - prereqs
+[m2 03:43:00] OK   - assets present
+[m2 03:43:00] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 03:43:00] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 03:45:12] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.11
+[m2 03:45:45] §1   loaded ea/worker:1.0.0 on 192.0.2.11
+[m2 03:45:52] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.11
+[m2 03:45:52] OK   - §1 build + load
+[m2 03:45:52] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 03:45:52] assumed — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 03:45:58] §2   worker registered check
+[m2 03:45:59] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 03:45:59] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 03:46:59] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 03:50:57] WARN - M2 gate tests: FAILURES above — remediate per M2 §6, re-run from the failed test.
+[m2 03:50:57] §4 — observability spot-checks (M2.5)
+[m2 03:50:58] OK   - §4 observability evidence filed
+[m2 03:50:58] === M2 install complete ===
+[m2 03:56:21] === M2 lifecycle install start (check-only=0 no-gate=1) ===
+[m2 03:56:21] §0 — prereq checks (M0 + M1 gates)
+[m2 03:56:22] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 03:56:22] OK   - prereqs
+[m2 03:56:22] OK   - assets present
+[m2 03:56:22] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 03:56:22] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 03:56:58] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.11
+[m2 03:57:29] §1   loaded ea/worker:1.0.0 on 192.0.2.11
+[m2 03:57:36] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.11
+[m2 03:57:36] OK   - §1 build + load
+[m2 03:57:36] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 03:57:36] assumed — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 03:57:41] §2   worker registered check
+[m2 03:57:42] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 03:57:42] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 03:58:58] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 04:18:27] === M2 lifecycle install start (check-only=0 no-gate=1) ===
+[m2 04:18:27] §0 — prereq checks (M0 + M1 gates)
+[m2 04:18:28] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 04:18:28] OK   - prereqs
+[m2 04:18:28] OK   - assets present
+[m2 04:18:28] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 04:18:28] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 04:19:06] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.11
+[m2 04:19:33] §1   loaded ea/worker:1.0.0 on 192.0.2.11
+[m2 04:19:39] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.11
+[m2 04:19:39] OK   - §1 build + load
+[m2 04:19:39] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 04:19:39] assumed — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 04:19:41] §2   worker registered check
+[m2 04:19:42] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 04:19:42] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 04:20:57] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 04:28:24] OK   - M2 gate tests: V1..V5 PASS
+[m2 04:28:24] Next: run TP-M2 — version 1/test procedures/M2-Lifecycle-Test-Procedure.md (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence).
+[m2 04:28:24] §4 — observability spot-checks (M2.5)
+[m2 04:28:25] OK   - §4 observability evidence filed
+[m2 04:28:25] === M2 install complete ===
+[m2 05:12:16] === M2 lifecycle install start (check-only=1 no-gate=0) ===
+[m2 05:12:16] §0 — prereq checks (M0 + M1 gates)
+[m2 05:12:17] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 05:12:17] OK   - prereqs
+[m2 05:12:17] OK   - assets present
+[m2 05:12:17] check-only: would apply — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 05:12:17] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 05:12:17] check-only: skip build
+[m2 05:12:17] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 05:12:17] check-only: would apply — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 05:12:17] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 05:12:17] check-only: skip gate tests
+[m2 05:12:17] §4 — observability spot-checks (M2.5)
+[m2 05:12:17] === M2 install complete ===
+[m2 05:12:25] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 05:12:25] §0 — prereq checks (M0 + M1 gates)
+[m2 05:12:25] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 05:12:25] OK   - prereqs
+[m2 05:12:25] OK   - assets present
+[m2 05:12:25] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 05:12:25] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 05:15:35] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.11
+[m2 05:16:33] §1   loaded ea/worker:1.0.0 on 192.0.2.11
+[m2 05:16:43] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.11
+[m2 05:16:43] OK   - §1 build + load
+[m2 05:16:43] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 05:16:43] assumed — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 05:17:12] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 05:17:12] §0 — prereq checks (M0 + M1 gates)
+[m2 05:17:12] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 05:17:12] OK   - prereqs
+[m2 05:17:12] OK   - assets present
+[m2 05:17:12] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 05:17:13] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 05:18:09] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.11
+[m2 05:18:50] §1   loaded ea/worker:1.0.0 on 192.0.2.11
+[m2 05:18:56] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.11
+[m2 05:18:56] OK   - §1 build + load
+[m2 05:18:56] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 05:18:56] assumed — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 05:19:01] §2   worker registered check
+[m2 05:19:01] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 05:19:01] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 05:20:27] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 05:32:18] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 05:32:18] §0 — prereq checks (M0 + M1 gates)
+[m2 05:32:18] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 05:32:18] OK   - prereqs
+[m2 05:32:18] OK   - assets present
+[m2 05:32:18] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 05:32:18] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 05:33:06] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.11
+[m2 05:33:46] §1   loaded ea/worker:1.0.0 on 192.0.2.11
+[m2 05:33:53] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.11
+[m2 05:33:53] OK   - §1 build + load
+[m2 05:33:53] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 05:33:53] assumed — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 05:33:56] §2   worker registered check
+[m2 05:33:57] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 05:33:57] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 05:35:12] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 05:42:46] OK   - M2 gate tests: V1..V5 PASS
+[m2 05:42:46] Next: run TP-M2 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence).
+[m2 05:42:46] §4 — observability spot-checks (M2.5)
+[m2 05:42:47] OK   - §4 observability evidence filed
+[m2 05:42:47] === M2 install complete ===
+[m2 00:15:14] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 00:15:14] §0 — prereq checks (M0 + M1 gates)
+[m2 00:15:14] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.22
+[m2 00:15:14] OK   - prereqs
+[m2 00:15:14] OK   - assets present
+[m2 00:15:14] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 00:15:14] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 00:16:09] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.22
+[m2 00:16:56] §1   loaded ea/worker:1.0.0 on 192.0.2.22
+[m2 00:17:05] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.22
+[m2 00:17:05] OK   - §1 build + load
+[m2 00:17:05] §2 — deploy lifecycle + worker on 192.0.2.22
+[m2 00:17:05] assumed — deploy lifecycle + worker on 192.0.2.22 (compose up -d)
+[m2 00:17:11] §2   worker registered check
+[m2 00:17:12] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 00:17:12] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 00:18:37] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 00:26:06] WARN - M2 gate tests: FAILURES above — remediate per M2 §6, re-run from the failed test.
+[m2 01:02:40] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 01:02:40] §0 — prereq checks (M0 + M1 gates)
+[m2 01:02:40] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.22
+[m2 01:02:40] OK   - prereqs
+[m2 01:02:40] OK   - assets present
+[m2 01:02:40] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 01:02:40] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 01:03:20] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.22
+[m2 01:03:59] §1   loaded ea/worker:1.0.0 on 192.0.2.22
+[m2 01:04:06] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.22
+[m2 01:04:06] OK   - §1 build + load
+[m2 01:04:06] §2 — deploy lifecycle + worker on 192.0.2.22
+[m2 01:04:06] assumed — deploy lifecycle + worker on 192.0.2.22 (compose up -d)
+[m2 01:04:09] §2   worker registered check
+[m2 01:04:10] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 01:04:10] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 01:05:28] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 01:12:58] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 01:12:58] §0 — prereq checks (M0 + M1 gates)
+[m2 01:12:58] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.22
+[m2 01:12:58] OK   - prereqs
+[m2 01:12:58] OK   - assets present
+[m2 01:12:58] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 01:12:58] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 01:13:37] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.22
+[m2 01:14:13] §1   loaded ea/worker:1.0.0 on 192.0.2.22
+[m2 01:14:19] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.22
+[m2 01:14:19] OK   - §1 build + load
+[m2 01:14:19] §2 — deploy lifecycle + worker on 192.0.2.22
+[m2 01:14:19] assumed — deploy lifecycle + worker on 192.0.2.22 (compose up -d)
+[m2 01:14:21] §2   worker registered check
+[m2 01:14:22] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 01:14:22] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 01:15:41] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 01:23:13] OK   - M2 gate tests: V1..V5 PASS
+[m2 01:23:13] Next: run TP-M2 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence).
+[m2 01:23:13] §4 — observability spot-checks (M2.5)
+[m2 01:23:13] OK   - §4 observability evidence filed
+[m2 01:23:13] === M2 install complete ===
+[m2 04:01:39] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 04:01:39] §0 — prereq checks (M0 + M1 gates)
+[m2 04:01:39] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 04:01:39] OK   - prereqs
+[m2 04:01:39] OK   - assets present
+[m2 04:01:39] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 04:01:39] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 04:02:16] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.11
+[m2 04:02:43] §1   loaded ea/worker:1.0.0 on 192.0.2.11
+[m2 04:02:50] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.11
+[m2 04:02:50] OK   - §1 build + load
+[m2 04:02:50] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 04:02:50] assumed — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 04:02:56] §2   worker registered check
+[m2 04:02:56] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 04:02:56] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 04:02:57] §3   draining 33 leftover pending workflow(s) from the ea-tasks queue
+[m2 04:02:57] §3   drain done (leftover M1-era workflows removed)
+[m2 04:04:13] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 04:11:53] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 04:11:53] §0 — prereq checks (M0 + M1 gates)
+[m2 04:11:53] §0   container names assumed per the M2 doc: lifecycle + worker on 192.0.2.11
+[m2 04:11:53] OK   - prereqs
+[m2 04:11:53] OK   - assets present
+[m2 04:11:53] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 04:11:53] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 04:12:29] §1   loaded ea/lifecycle:1.0.0 on 192.0.2.11
+[m2 04:13:00] §1   loaded ea/worker:1.0.0 on 192.0.2.11
+[m2 04:13:06] §1   loaded ea/executor-stub:1.0.0 on 192.0.2.11
+[m2 04:13:06] OK   - §1 build + load
+[m2 04:13:06] §2 — deploy lifecycle + worker on 192.0.2.11
+[m2 04:13:06] assumed — deploy lifecycle + worker on 192.0.2.11 (compose up -d)
+[m2 04:13:09] §2   worker registered check
+[m2 04:13:09] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 04:13:09] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 04:13:10] §3   draining 1 leftover pending workflow(s) from the ea-tasks queue
+[m2 04:13:10] §3   drain done (leftover M1-era workflows removed)
+[m2 04:14:25] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 04:21:52] OK   - M2 gate tests: V1..V5 PASS
+[m2 04:21:52] Next: run TP-M2 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence).
+[m2 04:21:52] §4 — observability spot-checks (M2.5)
+[m2 04:21:53] OK   - §4 observability evidence filed
+[m2 04:21:53] === M2 install complete ===
