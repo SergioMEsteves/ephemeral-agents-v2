@@ -1,0 +1,168 @@
+[m1 03:23:43] === M1 adapter install start (check-only=0 no-gate=1) ===
+[m1 03:23:43] §0 — prereq checks (M0 gate)
+[m1 03:23:44] FAIL: Temporal not healthy (TEMPORAL_ADDR=192.0.2.11:7233)
+[m1 03:24:12] === M1 adapter install start (check-only=0 no-gate=1) ===
+[m1 03:24:12] §0 — prereq checks (M0 gate)
+[m1 03:24:12] FAIL: Temporal not healthy (TEMPORAL_ADDR=192.0.2.11:7233)
+[m1 03:24:23] === M1 adapter install start (check-only=0 no-gate=1) ===
+[m1 03:24:23] §0 — prereq checks (M0 gate)
+[m1 03:24:23] §0   ea-tasks queue present: "messages":0
+[m1 03:24:23] OK   - §0 prereqs
+[m1 03:24:23] FAIL: schemas/message-v1.json and services/topic-bridge/schemas/message-v1.json diverge — re-copy the authoritative schema (cp schemas/message-v1.json services/topic-bridge/schemas/)
+[m1 03:24:28] === M1 adapter install start (check-only=0 no-gate=1) ===
+[m1 03:24:28] §0 — prereq checks (M0 gate)
+[m1 03:24:28] §0   ea-tasks queue present: "messages":0
+[m1 03:24:28] OK   - §0 prereqs
+[m1 03:24:28] OK   - assets present (schema copy matches the authoritative schema)
+[m1 03:24:47] === M1 adapter install start (check-only=0 no-gate=1) ===
+[m1 03:24:47] §0 — prereq checks (M0 gate)
+[m1 03:24:48] §0   ea-tasks queue present: "messages":0
+[m1 03:24:48] OK   - §0 prereqs
+[m1 03:24:48] OK   - assets present (schema copy matches the authoritative schema)
+[m1 03:24:48] assumed — M1: build + deploy + gate-test the Go adapter
+[m1 03:24:48] §1 — language-decision check: the adapter MUST be Go (owner instruction: speed + size)
+[m1 03:24:48] §1   go vet + build (proof of Go toolchain, M0 §4b chain)
+[m1 03:24:57] OK   - §1 adapter is Go
+[m1 03:24:57] §2 — build ea/topic-bridge:1.0.0 and load onto 192.0.2.11 (no registry)
+[m1 03:26:12] OK   - §2 image built (Go) + loaded
+[m1 03:26:12] §3 — deploy topic-bridge on 192.0.2.11
+[m1 03:26:12] assumed — deploy topic-bridge on 192.0.2.11 (compose up -d)
+[m1 03:26:17] §3   consumer: 
+[m1 03:26:17] OK   - §3 topic-bridge deployed
+[m1 03:26:17] §4 — verification run T1..T5 (the M1 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence/m1-tests.txt
+[m1 03:27:16] === M1 adapter install start (check-only=0 no-gate=1) ===
+[m1 03:27:16] §0 — prereq checks (M0 gate)
+[m1 03:27:17] §0   ea-tasks queue present: "messages":0
+[m1 03:27:17] OK   - §0 prereqs
+[m1 03:27:17] OK   - assets present (schema copy matches the authoritative schema)
+[m1 03:27:17] assumed — M1: build + deploy + gate-test the Go adapter
+[m1 03:27:17] §1 — language-decision check: the adapter MUST be Go (owner instruction: speed + size)
+[m1 03:27:17] §1   go vet + build (proof of Go toolchain, M0 §4b chain)
+[m1 03:27:17] OK   - §1 adapter is Go
+[m1 03:27:17] §2 — build ea/topic-bridge:1.0.0 and load onto 192.0.2.11 (no registry)
+[m1 03:28:19] OK   - §2 image built (Go) + loaded
+[m1 03:28:19] §3 — deploy topic-bridge on 192.0.2.11
+[m1 03:28:19] assumed — deploy topic-bridge on 192.0.2.11 (compose up -d)
+[m1 03:28:24] §3   consumer: 
+[m1 03:28:24] OK   - §3 topic-bridge deployed
+[m1 03:28:24] §4 — verification run T1..T5 (the M1 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence/m1-tests.txt
+[m1 03:31:50] OK   - M1 gate tests: T1..T5 PASS
+[m1 03:31:50] Next: run TP-M1 — version 1/test procedures/M1-Adapter-Test-Procedure.md (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence).
+[m1 03:31:50] === M1 install complete ===
+[m1 05:05:02] === M1 adapter install start (check-only=1 no-gate=0) ===
+[m1 05:05:02] §0 — prereq checks (M0 gate)
+[m1 05:05:04] §0   ea-tasks queue present: "messages":0
+[m1 05:05:04] OK   - §0 prereqs
+[m1 05:05:04] OK   - assets present (schema copy matches the authoritative schema)
+[m1 05:05:04] check-only: would apply — M1: build + deploy + gate-test the Go adapter
+[m1 05:05:04] §1 — language-decision check: the adapter MUST be Go (owner instruction: speed + size)
+[m1 05:05:04] check-only: skip build
+[m1 05:05:04] §2 — build ea/topic-bridge:1.0.0 and load onto 192.0.2.11 (no registry)
+[m1 05:05:04] check-only: skip build
+[m1 05:05:04] §3 — deploy topic-bridge on 192.0.2.11
+[m1 05:05:04] check-only: would apply — deploy topic-bridge on 192.0.2.11 (compose up -d)
+[m1 05:05:04] §4 — verification run T1..T5 (the M1 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence/m1-tests.txt
+[m1 05:05:04] check-only: skip gate tests
+[m1 05:05:04] === M1 install complete ===
+[m1 05:05:13] === M1 adapter install start (check-only=0 no-gate=0) ===
+[m1 05:05:13] §0 — prereq checks (M0 gate)
+[m1 05:05:13] §0   M0_DONE=1 — skipping live prereq checks
+[m1 05:05:13] OK   - assets present (schema copy matches the authoritative schema)
+[m1 05:05:13] assumed — M1: build + deploy + gate-test the Go adapter
+[m1 05:05:13] §1 — language-decision check: the adapter MUST be Go (owner instruction: speed + size)
+[m1 05:05:13] §1   go vet + build (proof of Go toolchain, M0 §4b chain)
+[m1 05:05:43] OK   - §1 adapter is Go
+[m1 05:05:43] §2 — build ea/topic-bridge:1.0.0 and load onto 192.0.2.11 (no registry)
+[m1 05:07:53] OK   - §2 image built (Go) + loaded
+[m1 05:07:53] §3 — deploy topic-bridge on 192.0.2.11
+[m1 05:07:53] assumed — deploy topic-bridge on 192.0.2.11 (compose up -d)
+[m1 05:08:00] §3   consumer: 
+[m1 05:08:00] OK   - §3 topic-bridge deployed
+[m1 05:08:00] §4 — verification run T1..T5 (the M1 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence/m1-tests.txt
+[m1 05:12:10] OK   - M1 gate tests: T1..T5 PASS
+[m1 05:12:10] Next: run TP-M1 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence).
+[m1 05:12:10] === M1 install complete ===
+[m1 00:08:18] === M1 adapter install start (check-only=1 no-gate=0) ===
+[m1 00:08:18] §0 — prereq checks (M0 gate)
+[m1 00:08:19] §0   ea-tasks queue present: "messages":4
+[m1 00:08:19] OK   - §0 prereqs
+[m1 00:08:19] OK   - assets present (schema copy matches the authoritative schema)
+[m1 00:08:19] check-only: would apply — M1: build + deploy + gate-test the Go adapter
+[m1 00:08:19] §1 — language-decision check: the adapter MUST be Go (owner instruction: speed + size)
+[m1 00:08:19] check-only: skip build
+[m1 00:08:19] §2 — build ea/topic-bridge:1.0.0 and load onto 192.0.2.22 (no registry)
+[m1 00:08:19] check-only: skip build
+[m1 00:08:19] §3 — deploy topic-bridge on 192.0.2.22
+[m1 00:08:19] check-only: would apply — deploy topic-bridge on 192.0.2.22 (compose up -d)
+[m1 00:08:19] §4 — verification run T1..T5 (the M1 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence/m1-tests.txt
+[m1 00:08:19] check-only: skip gate tests
+[m1 00:08:19] === M1 install complete ===
+[m1 00:08:26] === M1 adapter install start (check-only=0 no-gate=0) ===
+[m1 00:08:26] §0 — prereq checks (M0 gate)
+[m1 00:08:26] §0   ea-tasks queue present: "messages":4
+[m1 00:08:26] OK   - §0 prereqs
+[m1 00:08:26] OK   - assets present (schema copy matches the authoritative schema)
+[m1 00:08:26] assumed — M1: build + deploy + gate-test the Go adapter
+[m1 00:08:26] §1 — language-decision check: the adapter MUST be Go (owner instruction: speed + size)
+[m1 00:08:26] §1   go vet + build (proof of Go toolchain, M0 §4b chain)
+[m1 00:08:32] OK   - §1 adapter is Go
+[m1 00:08:32] §2 — build ea/topic-bridge:1.0.0 and load onto 192.0.2.22 (no registry)
+[m1 00:10:38] OK   - §2 image built (Go) + loaded
+[m1 00:10:38] §3 — deploy topic-bridge on 192.0.2.22
+[m1 00:10:39] assumed — deploy topic-bridge on 192.0.2.22 (compose up -d)
+[m1 00:10:45] §3   consumer: 
+[m1 00:10:45] OK   - §3 topic-bridge deployed
+[m1 00:10:45] §4 — verification run T1..T5 (the M1 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence/m1-tests.txt
+[m1 00:14:44] OK   - M1 gate tests: T1..T5 PASS
+[m1 00:14:44] Next: run TP-M1 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence).
+[m1 00:14:44] === M1 install complete ===
+[m1 03:40:18] === M1 adapter install start (check-only=0 no-gate=0) ===
+[m1 03:40:18] §0 — prereq checks (M0 gate)
+[m1 03:40:18] §0   M0_DONE=1 — skipping live prereq checks
+[m1 03:40:18] OK   - assets present (schema copy matches the authoritative schema)
+[m1 03:40:18] assumed — M1: build + deploy + gate-test the Go adapter
+[m1 03:40:18] §1 — language-decision check: the adapter MUST be Go (owner instruction: speed + size)
+[m1 03:40:18] §1   go vet + build (proof of Go toolchain, M0 §4b chain)
+[m1 03:40:23] OK   - §1 adapter is Go
+[m1 03:40:23] §2 — build ea/topic-bridge:1.0.0 and load onto 192.0.2.11 (no registry)
+[m1 03:42:09] OK   - §2 image built (Go) + loaded
+[m1 03:42:09] §3 — deploy topic-bridge on 192.0.2.11
+[m1 03:42:09] assumed — deploy topic-bridge on 192.0.2.11 (compose up -d)
+[m1 03:42:13] §3   consumer: 
+[m1 03:42:13] OK   - §3 topic-bridge deployed
+[m1 03:42:13] §4 — verification run T1..T5 (the M1 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence/m1-tests.txt
+[m1 03:46:19] WARN - M1 gate tests: FAILURES above — remediate per M1 §6 troubleshooting, re-run from the failed test.
+[m1 03:47:57] === M1 adapter install start (check-only=0 no-gate=0) ===
+[m1 03:47:57] §0 — prereq checks (M0 gate)
+[m1 03:47:57] §0   M0_DONE=1 — skipping live prereq checks
+[m1 03:47:57] OK   - assets present (schema copy matches the authoritative schema)
+[m1 03:47:57] assumed — M1: build + deploy + gate-test the Go adapter
+[m1 03:47:57] §1 — language-decision check: the adapter MUST be Go (owner instruction: speed + size)
+[m1 03:47:57] §1   go vet + build (proof of Go toolchain, M0 §4b chain)
+[m1 03:47:58] OK   - §1 adapter is Go
+[m1 03:47:58] §2 — build ea/topic-bridge:1.0.0 and load onto 192.0.2.11 (no registry)
+[m1 03:48:23] OK   - §2 image built (Go) + loaded
+[m1 03:48:23] §3 — deploy topic-bridge on 192.0.2.11
+[m1 03:48:23] assumed — deploy topic-bridge on 192.0.2.11 (compose up -d)
+[m1 03:49:05] §3   consumer: 
+[m1 03:49:05] OK   - §3 topic-bridge deployed
+[m1 03:49:05] §4 — verification run T1..T5 (the M1 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence/m1-tests.txt
+[m1 03:53:16] WARN - M1 gate tests: FAILURES above — remediate per M1 §6 troubleshooting, re-run from the failed test.
+[m1 03:55:46] === M1 adapter install start (check-only=0 no-gate=0) ===
+[m1 03:55:46] §0 — prereq checks (M0 gate)
+[m1 03:55:46] §0   M0_DONE=1 — skipping live prereq checks
+[m1 03:55:46] OK   - assets present (schema copy matches the authoritative schema)
+[m1 03:55:46] assumed — M1: build + deploy + gate-test the Go adapter
+[m1 03:55:46] §1 — language-decision check: the adapter MUST be Go (owner instruction: speed + size)
+[m1 03:55:46] §1   go vet + build (proof of Go toolchain, M0 §4b chain)
+[m1 03:55:48] OK   - §1 adapter is Go
+[m1 03:55:48] §2 — build ea/topic-bridge:1.0.0 and load onto 192.0.2.11 (no registry)
+[m1 03:56:23] OK   - §2 image built (Go) + loaded
+[m1 03:56:23] §3 — deploy topic-bridge on 192.0.2.11
+[m1 03:56:23] assumed — deploy topic-bridge on 192.0.2.11 (compose up -d)
+[m1 03:56:27] §3   consumer: 
+[m1 03:56:27] OK   - §3 topic-bridge deployed
+[m1 03:56:27] §4 — verification run T1..T5 (the M1 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence/m1-tests.txt
+[m1 04:01:05] OK   - M1 gate tests: T1..T5 PASS
+[m1 04:01:05] Next: run TP-M1 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m1/evidence).
+[m1 04:01:05] === M1 install complete ===

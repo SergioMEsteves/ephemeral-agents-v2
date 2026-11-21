@@ -1,0 +1,15 @@
+{
+  "payload_bytes": 26,
+  "redelivered": false,
+  "exchange": "",
+  "routing_key": "ea-tasks.dlq",
+  "properties": {
+    "delivery_mode": 2,
+    "headers": {
+      "x-reject-reason": "missing required field \"agent_ref\""
+    },
+    "content_type": "application/json"
+  },
+  "payload": "{\"task_id\": \"not-valid-1\"}",
+  "payload_encoding": "string"
+}

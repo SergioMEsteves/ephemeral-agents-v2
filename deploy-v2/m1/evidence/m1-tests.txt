@@ -1,0 +1,14 @@
+# M1 gate tests — Sat Nov 21 03:56:27 AM UTC 2026
+published 50 messages to agent.tasks
+T1 n->n: +50 started (expected 50) : PASS
+republishing 50 duplicate task_ids (expect: no new workflows)
+published 50 messages to agent.tasks
+T2 dup: +0 started (expected 0) : PASS
+ea-m1-topic-bridge-1
+ea-m1-topic-bridge-1
+published 20 messages to agent.tasks
+T3 kill-9: +20 started (expected 20, no doubles) : PASS
+published 3 invalid messages to agent.tasks (expect DLQ)
+T4 dlq: 25 (expected 3; consumer still up) : PASS
+published 5 messages to agent.tasks
+T5 temporal-restart: +5 started (expected 5) : PASS
