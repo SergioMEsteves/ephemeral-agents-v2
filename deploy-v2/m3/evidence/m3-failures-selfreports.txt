@@ -1,0 +1,5 @@
+{"task_id":"m3fail-a","role":"","skills":[],"spec_received":false,"error":"agent repo unreachable or token rejected","sources":{"agent_repo":false,"llm-wiki":"not-configured","hindsight":false}}
+
+{"task_id":"m3fail-b","role":"","skills":[],"spec_received":false,"error":"index miss: AGENT_REF 'ephemeral-org/nonexistent' not in index.json","sources":{"agent_repo":false,"llm-wiki":"not-configured","hindsight":false}}
+
+{"task_id": "m3ctl", "role": "ephemeral-org/eph-backend-engineer", "skills": [], "spec_received": true, "sources": {"agent_repo": true, "llm-wiki": "not-configured", "hindsight": "false"}, "persona_files": " persona.md skill-and-tools.md behavioral-spec.md", "boot_ms": "644"}

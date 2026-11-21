@@ -1,0 +1,15 @@
+# TC-M3-04 — Coder real work (V2 M3 B4)
+
+Date: 2026-11-14 · Executor: ea/claude-coder:1.0.0 · Task: m3b-001622
+Harness: deploy-v2/m2/tests/run-task.sh — workflow COMPLETED, exit 0, reap ok.
+
+Branch task/m3b-001622 on github.com/arvisdev/ea-demo-repo:
+commit d36d49f3f20780e28c4d2d610ab8c834a9ac5ed0 — "task/m3b-001622: ... Added the /healthz
+handler in work/project/main.go:10-19" (1 file changed, 4 insertions), author ephemeral-coder.
+
+Verified on a fresh clone: main.go line 13 = http.HandleFunc("/healthz", ...) — the handler is present on the pushed branch.
+
+Fixes made en route (recorded in the V2 issue ledger):
+- lifecycle m3FromEnv() was missing EA_GITHUB_URL_PREFIX → REPO_URL was org-less; key added and the lifecycle image rebuilt/redeployed.
+- repo_target must be org-relative ("repos/<repo>") — the org prefix comes from EA_GITHUB_URL_PREFIX in m3.env.
+- llm-proxy was only on poc-net (V1): deployed ea-llm-proxy (network alias llm-proxy) on ea-net via compose.m3-era.yaml; claude-coder can now reach the gateway (previous failure: EAI_AGAIN).

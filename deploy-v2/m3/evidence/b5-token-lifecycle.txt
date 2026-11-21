@@ -1,0 +1,4 @@
+# B5 token lifecycle — Fri Nov 20 06:03:16 AM UTC 2026
+issue: token length 383
+pre-revoke catalog contents: HTTP 200
+post-revoke: HTTP 401

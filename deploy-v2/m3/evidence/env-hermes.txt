@@ -1,0 +1,4 @@
+HOSTNAME=cbcf8f16916e
+HOME=/root
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PWD=/

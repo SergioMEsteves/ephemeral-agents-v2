@@ -1,0 +1,10 @@
+# TC-M3-05 — Token lifecycle (post-reap 401)
+
+Install §1 token issuance dry-run chain (real issue → verify → revoke):
+- §1   token ids sourced from V1 m3.env (GITHUB_APP_ID, INSTALLATION_ID — names only, values never printed)
+- token issued on vm-xb against /opt/poc/secrets/app-key.pem (RS256 app JWT → installation token)
+- verification HTTP 200 (catalog repo contents — installation tokens are repo-scoped)
+- revoke check: HTTP 401 (expected 401/403) — install-m3.log line: "§1   token revocation check: HTTP 401"
+- B3 session token revoked post-run on vm-xb (revoke script, no output surfaced)
+
+Verdict: **PASS** — token unusable post-reap; installation tokens TTL ≤ 1 h max (M3 §7).

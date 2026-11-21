@@ -1,0 +1,393 @@
+[m3 05:16:59] === M3 executor install start (check-only=1 no-gate=0) ===
+[m3 05:16:59] §0 — prereq checks (M2 gate)
+[m3 05:17:00] FAIL: lifecycle/worker not running on 192.0.2.11 — run M2 install first
+[m3 05:17:19] === M3 executor install start (check-only=1 no-gate=0) ===
+[m3 05:17:19] §0 — prereq checks (M2 gate)
+[m3 05:17:19] FAIL: lifecycle/worker not running on 192.0.2.11 — run M2 install first
+[m3 05:17:37] === M3 executor install start (check-only=1 no-gate=0) ===
+[m3 05:17:37] §0 — prereq checks (M2 gate)
+[m3 05:17:38] FAIL: lifecycle/worker not running on 192.0.2.11 — run M2 install first
+[m3 05:17:44] === M3 executor install start (check-only=1 no-gate=0) ===
+[m3 05:17:44] §0 — prereq checks (M2 gate)
+[m3 05:17:44] FAIL: lifecycle/worker not running on 192.0.2.11 — run M2 install first
+[m3 05:17:51] === M3 executor install start (check-only=1 no-gate=0) ===
+[m3 05:17:51] §0 — prereq checks (M2 gate)
+[m3 05:17:51] FAIL: lifecycle/worker not running on 192.0.2.11 — run M2 install first
+[m3 05:19:13] === M3 executor install start (check-only=1 no-gate=0) ===
+[m3 05:19:13] §0 — prereq checks (M2 gate)
+[m3 05:19:14] OK   - prereqs
+[m3 05:19:14] OK   - assets present
+[m3 05:19:14] check-only: would apply — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:19:14] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:19:14] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:19:14] check-only: would apply — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:19:14] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 05:19:14] §2' — select executor images in the M2 config (EA_IMAGE switch; writes the M3-era compose)
+[m3 05:19:14] §3 — concurrency model (R3)
+[m3 05:19:14] §3   model: DEFAULT one-coder-per-task (one container, one task/<id> branch, no shared checkout)
+[m3 05:19:14] OK   - §3 concurrency model recorded
+[m3 05:19:14] §4 — verification B1..B5 (the M3 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/
+[m3 05:19:14] check-only: skip gate tests
+[m3 05:19:14] §5 — secret hygiene checks (R4, run before claiming done)
+[m3 05:19:14] === M3 install complete ===
+[m3 05:19:21] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:19:21] §0 — prereq checks (M2 gate)
+[m3 05:19:22] OK   - prereqs
+[m3 05:19:22] OK   - assets present
+[m3 05:19:55] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:19:55] §0 — prereq checks (M2 gate)
+[m3 05:19:56] OK   - prereqs
+[m3 05:19:56] OK   - assets present
+[m3 05:20:18] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:20:18] §0 — prereq checks (M2 gate)
+[m3 05:20:19] OK   - prereqs
+[m3 05:20:19] OK   - assets present
+[m3 05:20:19] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:20:19] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:20:20] §1   repo agent-roster : present
+[m3 05:20:21] §1   repo ea-demo-repo : MISSING (M3 §1a/1b — create it on the owner's account)
+[m3 05:20:21] FAIL: App private key missing on 192.0.2.11 (/opt/ea/secrets/app-key.pem) — M3 §1c: create the GitHub App, save the PEM key, chmod 600. Never in git or any image.
+[m3 05:21:02] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:21:02] §0 — prereq checks (M2 gate)
+[m3 05:21:03] OK   - prereqs
+[m3 05:21:03] OK   - assets present
+[m3 05:21:03] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:21:03] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:21:03] §1   repo agent-roster : present
+[m3 05:21:04] §1   repo ea-demo-repo : present
+[m3 05:21:04] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:21:04] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:21:56] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:21:56] §0 — prereq checks (M2 gate)
+[m3 05:21:57] OK   - prereqs
+[m3 05:21:57] OK   - assets present
+[m3 05:21:57] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:21:57] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:21:58] §1   repo agent-roster : present
+[m3 05:21:59] §1   repo ea-demo-repo : present
+[m3 05:22:00] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:22:00] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:22:00] §1   token ids sourced from V1 m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:22:00] FAIL: issued token did not authenticate (HTTP 401)
+[m3 05:22:31] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:22:31] §0 — prereq checks (M2 gate)
+[m3 05:22:31] OK   - prereqs
+[m3 05:22:31] OK   - assets present
+[m3 05:22:31] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:22:31] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:22:32] §1   repo agent-roster : present
+[m3 05:22:33] §1   repo ea-demo-repo : present
+[m3 05:22:34] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:22:34] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:22:34] §1   token ids sourced from V1 m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:22:35] FAIL: issued token did not authenticate (HTTP 401)
+[m3 05:22:59] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:22:59] §0 — prereq checks (M2 gate)
+[m3 05:23:00] OK   - prereqs
+[m3 05:23:00] OK   - assets present
+[m3 05:23:00] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:23:00] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:23:01] §1   repo agent-roster : present
+[m3 05:23:01] §1   repo ea-demo-repo : present
+[m3 05:23:02] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:23:02] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:23:02] §1   token ids sourced from V1 m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:23:03] FAIL: issued token did not authenticate (HTTP 403)
+[m3 05:23:28] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:23:28] §0 — prereq checks (M2 gate)
+[m3 05:23:29] OK   - prereqs
+[m3 05:23:29] OK   - assets present
+[m3 05:23:29] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:23:29] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:23:29] §1   repo agent-roster : present
+[m3 05:23:30] §1   repo ea-demo-repo : present
+[m3 05:23:31] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:23:31] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:23:31] §1   token ids sourced from V1 m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:23:33] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 05:23:33] OK   - §1 github-side
+[m3 05:23:33] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:23:33] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:24:58] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:24:58] §0 — prereq checks (M2 gate)
+[m3 05:24:59] OK   - prereqs
+[m3 05:24:59] OK   - assets present
+[m3 05:24:59] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:24:59] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:25:00] §1   repo agent-roster : present
+[m3 05:25:00] §1   repo ea-demo-repo : present
+[m3 05:25:01] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:25:01] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:25:02] §1   token ids sourced from V1 m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:25:04] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 05:25:04] OK   - §1 github-side
+[m3 05:25:04] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:25:04] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:33:24] OK   - §2 executor images built + loaded
+[m3 05:33:24] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 05:33:25] FAIL: app-key copy from V1 failed
+[m3 05:34:02] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:34:02] §0 — prereq checks (M2 gate)
+[m3 05:34:03] OK   - prereqs
+[m3 05:34:03] OK   - assets present
+[m3 05:34:03] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:34:03] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:34:04] §1   repo agent-roster : present
+[m3 05:34:05] §1   repo ea-demo-repo : present
+[m3 05:34:05] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:34:05] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:34:06] §1   token ids sourced from V1 m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:34:08] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 05:34:08] OK   - §1 github-side
+[m3 05:34:08] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:34:08] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:37:19] OK   - §2 executor images built + loaded
+[m3 05:37:19] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 05:37:20] FAIL: V1 app key missing at /opt/poc/secrets/app-key.pem on 192.0.2.11
+[m3 05:37:59] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:37:59] §0 — prereq checks (M2 gate)
+[m3 05:37:59] OK   - prereqs
+[m3 05:37:59] OK   - assets present
+[m3 05:37:59] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:37:59] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:38:00] §1   repo agent-roster : present
+[m3 05:38:01] §1   repo ea-demo-repo : present
+[m3 05:38:01] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:38:01] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:38:02] §1   token ids sourced from V1 m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:38:04] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 05:38:04] OK   - §1 github-side
+[m3 05:38:04] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:38:04] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:40:44] OK   - §2 executor images built + loaded
+[m3 05:40:44] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 05:40:59] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:40:59] §0 — prereq checks (M2 gate)
+[m3 05:41:00] OK   - prereqs
+[m3 05:41:00] OK   - assets present
+[m3 05:41:00] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:41:00] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:41:01] §1   repo agent-roster : present
+[m3 05:41:02] §1   repo ea-demo-repo : present
+[m3 05:41:02] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:41:02] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:41:03] §1   token ids sourced from V1 m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:41:05] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 05:41:05] OK   - §1 github-side
+[m3 05:41:05] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:41:05] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:44:02] OK   - §2 executor images built + loaded
+[m3 05:44:02] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 05:44:06] OK   - §2" M3 secrets staged (key + m3.env + token script; values never printed)
+[m3 05:44:06] §2' — select executor images in the M2 config (EA_IMAGE switch; writes the M3-era compose)
+[m3 05:44:10] OK   - §2' M2 config switched to the selected images (M3-era compose live)
+[m3 05:44:10] §3 — concurrency model (R3)
+[m3 05:44:10] §3   model: DEFAULT one-coder-per-task (one container, one task/<id> branch, no shared checkout)
+[m3 05:44:10] OK   - §3 concurrency model recorded
+[m3 05:44:10] §4 — verification B1..B5 (the M3 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/
+[m3 05:44:33] OK   - M3 gate tests recorded (complete the manual B2/B3/B5 lines in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/m3-tests.txt before signing TP-M3)
+[m3 05:44:33] Next: run TP-M3 — version 1/test procedures/M3-Executors-Test-Procedure.md (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence).
+[m3 05:44:33] §5 — secret hygiene checks (R4, run before claiming done)
+[m3 05:45:57] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:45:57] §0 — prereq checks (M2 gate)
+[m3 05:45:58] OK   - prereqs
+[m3 05:45:58] OK   - assets present
+[m3 05:45:58] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:45:58] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:45:59] §1   repo agent-roster : present
+[m3 05:46:00] §1   repo ea-demo-repo : present
+[m3 05:46:01] §1   app key present at /opt/poc/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:46:01] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:46:01] §1   token ids sourced from V1 m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:46:03] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 05:46:03] OK   - §1 github-side
+[m3 05:46:03] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:46:03] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:48:35] OK   - §2 executor images built + loaded
+[m3 05:48:35] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 05:48:38] OK   - §2" M3 secrets staged (key + m3.env + token script; values never printed)
+[m3 05:48:38] §2' — select executor images in the M2 config (EA_IMAGE switch; writes the M3-era compose)
+[m3 05:48:43] OK   - §2' M2 config switched to the selected images (M3-era compose live)
+[m3 05:48:43] §3 — concurrency model (R3)
+[m3 05:48:43] §3   model: DEFAULT one-coder-per-task (one container, one task/<id> branch, no shared checkout)
+[m3 05:48:43] OK   - §3 concurrency model recorded
+[m3 05:48:43] §4 — verification B1..B5 (the M3 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/
+[m3 05:48:57] OK   - M3 gate tests recorded (complete the manual B2/B3/B5 lines in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/m3-tests.txt before signing TP-M3)
+[m3 05:48:57] Next: run TP-M3 — version 1/test procedures/M3-Executors-Test-Procedure.md (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence).
+[m3 05:48:57] §5 — secret hygiene checks (R4, run before claiming done)
+[m3 05:49:03] §5   image env dumps clean (secrets are injected at spawn)
+[m3 05:49:03] §5   docker history: no secret-writing layers
+[m3 05:49:06] FAIL: trivy found issues — remediate before claiming done
+[m3 05:43:00] === M3 executor install start (check-only=1 no-gate=0) ===
+[m3 05:43:00] §0 — prereq checks (M2 gate)
+[m3 05:43:00] OK   - prereqs
+[m3 05:43:00] OK   - assets present
+[m3 05:43:00] check-only: would apply — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:43:00] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:43:00] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:43:00] check-only: would apply — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:43:00] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 05:43:00] §2' — select executor images in the M2 config (EA_IMAGE switch; writes the M3-era compose)
+[m3 05:43:00] §3 — concurrency model (R3)
+[m3 05:43:00] §3   model: DEFAULT one-coder-per-task (one container, one task/<id> branch, no shared checkout)
+[m3 05:43:00] OK   - §3 concurrency model recorded
+[m3 05:43:00] §4 — verification B1..B5 (the M3 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/
+[m3 05:43:00] check-only: skip gate tests
+[m3 05:43:00] §5 — secret hygiene checks (R4, run before claiming done)
+[m3 05:43:00] === M3 install complete ===
+[m3 05:43:05] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:43:05] §0 — prereq checks (M2 gate)
+[m3 05:43:05] OK   - prereqs
+[m3 05:43:05] OK   - assets present
+[m3 05:43:05] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:43:05] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:43:06] §1   repo agent-roster : present
+[m3 05:43:07] §1   repo ea-demo-repo : present
+[m3 05:43:08] §1   app key present at /opt/ea/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:43:08] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:43:08] §1   token ids sourced from the estate's m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:43:11] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 05:43:11] OK   - §1 github-side
+[m3 05:43:11] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:43:11] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:50:15] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:50:15] §0 — prereq checks (M2 gate)
+[m3 05:50:15] OK   - prereqs
+[m3 05:50:15] OK   - assets present
+[m3 05:50:15] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:50:15] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:50:16] §1   repo agent-roster : present
+[m3 05:50:17] §1   repo ea-demo-repo : present
+[m3 05:50:18] §1   app key present at /opt/ea/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:50:18] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:50:18] §1   token ids sourced from the estate's m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:50:20] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 05:50:20] OK   - §1 github-side
+[m3 05:50:20] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:50:20] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:53:55] OK   - §2 executor images built + loaded (llm-proxy staged)
+[m3 05:53:55] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 05:53:56] FAIL: app-key copy from the estate's secrets failed
+[m3 05:54:36] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 05:54:36] §0 — prereq checks (M2 gate)
+[m3 05:54:36] OK   - prereqs
+[m3 05:54:36] OK   - assets present
+[m3 05:54:36] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 05:54:36] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 05:54:37] §1   repo agent-roster : present
+[m3 05:54:38] §1   repo ea-demo-repo : present
+[m3 05:54:39] §1   app key present at /opt/ea/secrets/app-key.pem (perms 600 — must be 600)
+[m3 05:54:39] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 05:54:40] §1   token ids sourced from the estate's m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 05:54:42] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 05:54:42] OK   - §1 github-side
+[m3 05:54:42] §2 — build both executor images and load onto 192.0.2.11
+[m3 05:54:42] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 05:57:42] OK   - §2 executor images built + loaded (llm-proxy staged)
+[m3 05:57:42] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 05:57:44] OK   - §2" M3 secrets staged (key + m3.env + token script; values never printed)
+[m3 05:57:44] §2' — select executor images in the M2 config (EA_IMAGE switch; writes the M3-era compose)
+[m3 05:57:49] OK   - §2' M2 config switched to the selected images (M3-era compose live)
+[m3 05:57:49] §3 — concurrency model (R3)
+[m3 05:57:49] §3   model: DEFAULT one-coder-per-task (one container, one task/<id> branch, no shared checkout)
+[m3 05:57:49] OK   - §3 concurrency model recorded
+[m3 05:57:49] §4 — verification B1..B5 (the M3 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/
+[m3 05:58:04] OK   - M3 gate tests recorded (complete the manual B2/B3/B5 lines in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/m3-tests.txt before signing TP-M3)
+[m3 05:58:04] Next: run TP-M3 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence).
+[m3 05:58:04] §5 — secret hygiene checks (R4, run before claiming done)
+[m3 05:58:12] §5   image env dumps clean (secrets are injected at spawn)
+[m3 05:58:13] §5   docker history: no secret-writing layers
+[m3 05:58:17] §5   trivy secrets = 0: ea/hermes-ephemeral:1.0.0
+[m3 05:58:18] §5   trivy secrets = 0: ea/claude-coder:1.0.0
+[m3 05:58:18] OK   - §5 secret hygiene
+[m3 05:58:18] === M3 install complete ===
+[m3 01:27:54] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 01:27:54] §0 — prereq checks (M2 gate)
+[m3 01:27:54] OK   - prereqs
+[m3 01:27:54] OK   - assets present
+[m3 01:27:54] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 01:27:54] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 01:27:55] §1   repo agent-roster : present
+[m3 01:27:56] §1   repo ea-demo-repo : present
+[m3 01:27:56] FAIL: App private key missing on 192.0.2.22 (/opt/ea/secrets/app-key.pem) — M3 §1c: create the GitHub App, save the PEM key, chmod 600. Never in git or any image.
+[m3 01:28:12] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 01:28:12] §0 — prereq checks (M2 gate)
+[m3 01:28:12] OK   - prereqs
+[m3 01:28:12] OK   - assets present
+[m3 01:28:12] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 01:28:12] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 01:28:13] §1   repo agent-roster : present
+[m3 01:28:14] §1   repo ea-demo-repo : present
+[m3 01:28:15] §1   app key present at /opt/ea/secrets/app-key.pem (perms 600 — must be 600)
+[m3 01:28:15] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 01:28:16] §1   token ids sourced from the estate's m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 01:28:18] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 01:28:18] OK   - §1 github-side
+[m3 01:28:18] §2 — build both executor images and load onto 192.0.2.22
+[m3 01:28:18] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 01:35:23] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 01:35:23] §0 — prereq checks (M2 gate)
+[m3 01:35:23] OK   - prereqs
+[m3 01:35:23] OK   - assets present
+[m3 01:35:23] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 01:35:23] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 01:35:24] §1   repo agent-roster : present
+[m3 01:35:24] §1   repo ea-demo-repo : present
+[m3 01:35:25] §1   app key present at /opt/ea/secrets/app-key.pem (perms 600 — must be 600)
+[m3 01:35:25] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 01:35:26] §1   token ids sourced from the estate's m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 01:35:28] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 01:35:28] OK   - §1 github-side
+[m3 01:35:28] §2 — build both executor images and load onto 192.0.2.22
+[m3 01:35:28] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 01:40:28] OK   - §2 executor images built + loaded (llm-proxy staged)
+[m3 01:40:28] §2" — stage M3 secrets on 192.0.2.22 (app key + m3.env + token script)
+[m3 01:40:31] OK   - §2" M3 secrets staged (key + m3.env + token script; values never printed)
+[m3 01:40:31] §2' — select executor images in the M2 config (EA_IMAGE switch; writes the M3-era compose)
+[m3 01:40:37] OK   - §2' M2 config switched to the selected images (M3-era compose live)
+[m3 01:40:37] §3 — concurrency model (R3)
+[m3 01:40:37] §3   model: DEFAULT one-coder-per-task (one container, one task/<id> branch, no shared checkout)
+[m3 01:40:37] OK   - §3 concurrency model recorded
+[m3 01:40:37] §4 — verification B1..B5 (the M3 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/
+[m3 01:41:00] OK   - M3 gate tests recorded (complete the manual B2/B3/B5 lines in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/m3-tests.txt before signing TP-M3)
+[m3 01:41:00] Next: run TP-M3 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence).
+[m3 01:41:00] §5 — secret hygiene checks (R4, run before claiming done)
+[m3 01:41:05] §5   image env dumps clean (secrets are injected at spawn)
+[m3 01:41:05] §5   docker history: no secret-writing layers
+[m3 01:41:06] §5   trivy secrets = 0: ea/hermes-ephemeral:1.0.0
+[m3 01:41:06] §5   trivy secrets = 0: ea/claude-coder:1.0.0
+[m3 01:41:06] OK   - §5 secret hygiene
+[m3 01:41:06] === M3 install complete ===
+[m3 04:22:32] === M3 executor install start (check-only=0 no-gate=0) ===
+[m3 04:22:32] §0 — prereq checks (M2 gate)
+[m3 04:22:32] OK   - prereqs
+[m3 04:22:32] OK   - assets present
+[m3 04:22:32] assumed — M3: github-side + build + select + gate-test the executor spikes
+[m3 04:22:32] §1 — GitHub-side checks (owner's workstation; do-once setup verified)
+[m3 04:22:32] §1   repo agent-roster : present
+[m3 04:22:33] §1   repo ea-demo-repo : present
+[m3 04:22:34] §1   app key present at /opt/ea/secrets/app-key.pem (perms 600 — must be 600)
+[m3 04:22:34] §1   token issuance dry-run (issue -> verify -> revoke)
+[m3 04:22:34] §1   token ids sourced from the estate's m3.env (names: GITHUB_APP_ID INSTALLATION_ID )
+[m3 04:22:36] §1   token revocation check: HTTP 401 (expected 401/403)
+[m3 04:22:36] OK   - §1 github-side
+[m3 04:22:36] §2 — build both executor images and load onto 192.0.2.11
+[m3 04:22:36] assumed — build ea/hermes-ephemeral + ea/claude-coder (outside the Go mandate: these run their own tooling runtimes)
+[m3 04:24:40] OK   - §2 executor images built + loaded (llm-proxy staged)
+[m3 04:24:40] §2" — stage M3 secrets on 192.0.2.11 (app key + m3.env + token script)
+[m3 04:24:43] OK   - §2" M3 secrets staged (key + m3.env + token script; values never printed)
+[m3 04:24:43] §2' — select executor images in the M2 config (EA_IMAGE switch; writes the M3-era compose)
+[m3 04:24:47] OK   - §2' M2 config switched to the selected images (M3-era compose live)
+[m3 04:24:47] §3 — concurrency model (R3)
+[m3 04:24:47] §3   model: DEFAULT one-coder-per-task (one container, one task/<id> branch, no shared checkout)
+[m3 04:24:47] OK   - §3 concurrency model recorded
+[m3 04:24:47] §4 — verification B1..B5 (the M3 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/
+[m3 04:25:04] OK   - M3 gate tests recorded (complete the manual B2/B3/B5 lines in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence/m3-tests.txt before signing TP-M3)
+[m3 04:25:04] Next: run TP-M3 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m3/evidence).
+[m3 04:25:04] §5 — secret hygiene checks (R4, run before claiming done)
+[m3 04:25:09] §5   image env dumps clean (secrets are injected at spawn)
+[m3 04:25:09] §5   docker history: no secret-writing layers
+[m3 04:25:10] §5   trivy secrets = 0: ea/hermes-ephemeral:1.0.0
+[m3 04:25:11] §5   trivy secrets = 0: ea/claude-coder:1.0.0
+[m3 04:25:11] OK   - §5 secret hygiene
+[m3 04:25:11] === M3 install complete ===

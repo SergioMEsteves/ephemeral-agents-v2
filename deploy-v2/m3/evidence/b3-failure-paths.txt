@@ -1,0 +1,28 @@
+# B3 failure paths — Fri Nov 20 06:03:45 AM UTC 2026
+--- B3a unreachable agent_repo_url:
+{"event":"start","task_id":"b3a-000345","inject":"none","ttl_s":180}
+Running execution:
+  WorkflowId  b3a-000345
+  RunId       01a1f78d-c68b-7f31-9cd6-2228313d9d59
+  Type        TaskWorkflow
+  Namespace   default
+  TaskQueue   ea-tasks
+{"task_id":"b3a-000345","status":"fail"}
+{"task_id":"b3a-000345","reap":"ok","container":"gone"}
+exit=1
+--- B3b malformed persona:
+{"event":"start","task_id":"b3b-000350","inject":"none","ttl_s":180}
+Running execution:
+  WorkflowId  b3b-000350
+  RunId       01a1f78d-d87e-7186-9520-97fc6283d39e
+  Type        TaskWorkflow
+  Namespace   default
+  TaskQueue   ea-tasks
+{"task_id":"b3b-000350","status":"fail"}
+{"task_id":"b3b-000350","reap":"ok","container":"gone"}
+exit=1
+
+# verification of exit codes (lifecycle logs):
+b3a-000345: {"event":"reap","task_id":"b3a-000345","reason":"exited-2"} -> PASS (exit 2 + reap)
+b3b-000350: {"event":"reap","task_id":"b3b-000350","reason":"exited-2"} -> PASS (exit 2 + reap)
+B3 failure paths: PASS

@@ -1,0 +1,11 @@
+{
+  "source": "/var/ea/tasks/b1-234852-3.log on vm-xb (M3 B2/TC-M3-02 persona correctness)",
+  "task_id": "b1-234852-3",
+  "role": "ephemeral-org/eph-backend-engineer",
+  "skills": [],
+  "spec_received": true,
+  "sources": { "agent_repo": true, "llm-wiki": "https://github.com/arvisdev/llm-wiki", "hindsight": "true" },
+  "persona_files": " persona.md skill-and-tools.md behavioral-spec.md",
+  "boot_ms": "1386",
+  "verification": "persona_files exactly match the catalog folder contents (agent-roster/ephemeral-org/eph-backend-engineer: persona.md, skill-and-tools.md, behavioral-spec.md); role matches AGENT_REF; sources fields present"
+}
