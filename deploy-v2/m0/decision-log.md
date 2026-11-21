@@ -231,3 +231,8 @@ Rationale column.
 - The earlier session's S1 exercise deployed the TLS registry compose ON THE LIVE VM .198 with a fresh `./data` dir, wiping the live registry's stored images (repos were 3 ea/ + 3 poc/ + 2 unprefixed; found only a stray ea/s1-test from that exercise). Wrong assumption: that run targeted the test estate.
 - Recovery 2026-11-20: all 9 ea/* images re-pushed to 192.0.2.13:5000 from the VMs' local images (digests preserved: identical image IDs). Live VMs still held images locally, so no estate service was broken; digest pins remain valid because re-pushed manifests are byte-identical.
 - Rule: S1-type registry exercise must verify the target VM is a test clone BEFORE any compose apply on a registry path. Add a hostname assertion (expect vm-xlg-*) to the registry deploy step.
+
+## Fresh-estate ledger 18 — M2 V1/V5 FAIL (workflow backlog collision), 2026-11-20
+- Symptom: V1 clean run timed out + reap FAIL; V5 zero-survivors=31. Root cause: M1's gate tests dispatch ~75 workflows into Temporal's ea-tasks queue while no worker exists on a fresh estate; the M2 worker deployed in §2 then consumes the backlog mid-V-suite (spawn collisions, stale containers Up at the survivor check). Live estate never hit it (a live worker was consuming continuously).
+- Fix: m2/install.sh §3 now drains non-terminal ea-tasks workflows before the V-suite (idempotent, fresh-estate-safe). Re-run: V1–V5 all PASS, zero survivors.
+- Rule: any stage gate that spawns consumers must drain upstream producer leftovers first on a fresh estate.

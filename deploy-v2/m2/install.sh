@@ -222,6 +222,29 @@ gate_tests() {
   log "§3 — verification suite V1..V5 (the M2 gate tests) -> $EVIDENCE/m2-tests.txt"
   local out="$EVIDENCE/m2-tests.txt"
   if [ "$CHECK_ONLY" = "1" ]; then log "check-only: skip gate tests"; return 0; fi
+  # Drain leftover ea-tasks workflow state BEFORE the V-suite. On a fresh
+  # estate, M1's gate tests dispatch workflows into Temporal while no worker
+  # exists; they sit pending, and the M2 worker deployed in §2 consumes the
+  # backlog mid-suite — colliding with V1 (timeout) and V5 (survivors).
+  # Fresh-estate ledger entry, 2026-11-20. Idempotent: deletes any workflow
+  # in a non-terminal state, leaves nothing behind.
+  local pend
+  pend="$(ssh "$VM_XB" "docker exec ea-m0-temporal-temporal-1 temporal workflow list \
+    --query 'ExecutionStatus=\"Running\"' --output json 2>/dev/null" \
+    | python3 -c 'import json,sys
+try:
+    ws=json.load(sys.stdin)
+except Exception:
+    ws=[]
+print(len(ws)); print("\n".join(w.get("workflowId","") for w in ws))' 2>/dev/null)" || pend="0"
+  local pcount="${pend%%$'\n'*}"
+  if [ "${pcount:-0}" -gt 0 ] 2>/dev/null; then
+    log "§3   draining $pcount leftover pending workflow(s) from the ea-tasks queue"
+    printf '%s\n' "$pend" | tail -n +2 | while read -r wid; do
+      [ -n "$wid" ] && ssh "$VM_XB" "docker exec ea-m0-temporal-temporal-1 temporal workflow delete --workflow-id '$wid' --yes 2>/dev/null" || true
+    done
+    log "§3   drain done (leftover M1-era workflows removed)"
+  fi
   local R2="$M2/tests/run-task.sh"
   local v4pid t004 survivors
   local RUNID="$(date +%H%M%S)"
