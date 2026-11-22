@@ -18,7 +18,7 @@ Rationale column.
 | D-curation | **llm-wiki curation ownership** (owner, 2026-11-04): the **Human-In-The-Loop (HITL)** — the engineer(s) in the work loop — curates the llm-wiki repo. The POC's scripts, services, and ephemeral agents never write to it (matches the catalog rule: owner-curated only). Cadence: append-only, need-driven commits/PRs by the HITL; no fixed schedule; promotion rule unchanged (load-bearing standards pin into behavioral-spec.md). Ownership + cadence re-examined at M5 exit. The record lives in the llm-wiki repo's CHANGELOG.md (D-wiki-git). | 2026-11-04 |
 | D-signoff | **TP gate sign-off authority** (owner, 2026-11-04): the **Human-In-The-Loop (HITL)** — the engineer in the work loop — signs every gate (TP-M0..TP-M5). The operator who ran the cases records results + evidence; the HITL reviews and signs. In a solo run the HITL and operator are the same person — the signature asserts the evidence pack is complete, not that a second person watched. Resolves the 'sign-off roles unnamed' gap found in the 2026-11-04 audit. | 2026-11-04 |
 
-## M0 install run — 2026-11-04
+M0 install run — 2026-11-04
 - VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
 - Language decision: Go for ALL Temporal code (owner instruction: speed + size)
 - Name-resolution mechanism used: /etc/hosts + ~/.ssh/config on the workstation (IP-based hosts.env per D-8: role labels map to real VMs)
@@ -28,102 +28,17 @@ Rationale column.
 ## M0 install run — 2026-11-07
 - VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
 - Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-07
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+- Name-resolution mechanism used: /etc/hosts (per inputs.yaml estate.name_resolution: hosts_file)
 
 ## M0 install run — 2026-11-13
 - VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
 - Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+- Name-resolution mechanism used: /etc/hosts (per inputs.yaml estate.name_resolution: hosts_file)
 
 ## M0 install run — 2026-11-14
 - VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
 - Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-14
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-14
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-14
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+- Name-resolution mechanism used: /etc/hosts (per inputs.yaml estate.name_resolution: hosts_file)
 
 ## D-routing — V2 publishes queue-direct to ea-tasks (2026-11-14)
 - Decision: the V2 manager publishes task messages DIRECTLY to the `ea-tasks` queue
@@ -141,85 +56,15 @@ Rationale column.
 - Commit trail: c4e1282 (intent, tree was gitignore-masked), 28b8616 (sources
   tracked + publish fix), a710d08 (compose EA_TASKS_QUEUE).
 
-## M0 install run — 2026-11-14
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-14
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-14
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-14
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); POC hostnames: vm-xa/vm-xb/vm-hindsight -> diagram labels VM-Xa/VM-Xb/VM-3
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
 ## M0 install run — 2026-11-19
 - VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
 - Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-19
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-19
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-19
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+- Name-resolution mechanism used: /etc/hosts (per inputs.yaml estate.name_resolution: hosts_file)
 
 ## M0 install run — 2026-11-20
 - VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
 - Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-20
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-20
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-20
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-20
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-20
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-20
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
-
-## M0 install run — 2026-11-20
-- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
-- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
-- Name-resolution mechanism used: (PVE DNS or /etc/hosts — record which)
+- Name-resolution mechanism used: /etc/hosts (per inputs.yaml estate.name_resolution: hosts_file)
 
 ## M0 test-estate build — 2026-11-20 (first fresh-clone exercise)
 - Test build context: 4 clones of golden template `ubuntu-24-ea-base` (VMIDs 901–904) at .200–.203 per `inputs-test.yaml`; live estate untouched. Router ARP wedged mid-build (MAC-level; resolved by full router power-cycle by owner).

@@ -1,0 +1,139 @@
+# inputs.yaml — the estate's install inputs, in one file.
+#
+# HOW TO USE
+#   1. Copy this file to deploy-v2/inputs.yaml (gitignored — see .gitignore).
+#   2. Replace every EXAMPLE value with your real one. All values below are
+#      deliberately fake: IPs use RFC 5737 documentation ranges, the org is
+#      "example-corp" — nothing here is real, and none of it is secret.
+#      Secrets are referenced BY PATH, never by value: this file must never
+#      contain a token, key, or password.
+#   3. Validate and render:
+#        python3 deploy-v2/render-inputs.py deploy-v2/inputs.yaml --check
+#        python3 deploy-v2/render-inputs.py deploy-v2/inputs.yaml --render
+#      --check validates against the schema and verifies every referenced
+#      file exists; --render writes deploy-v2/m0/hosts.env from the
+#      machines block (the scripts' single source of truth) and prints the
+#      per-stage staging plan.
+#
+# Corresponds 1:1 with deploy-v2/INSTALL-INPUTS-CHECKLIST.md sections
+# A–F. Each field's comment shows an EXAMPLE of what real data looks like.
+
+estate:
+  # EXAMPLE: name: acme-agents  — any label; it labels your decision-log
+  # entries and evidence files, so make it recognizable to you.
+  name: ephemeral-agent-system
+  # EXAMPLE: name_resolution: pve_dns  — "pve_dns" if your Proxmox host's
+  # DNS resolves your VM names (recommended); "hosts_file" if you maintain
+  # /etc/hosts on every VM by hand. Pick ONE — mixing both is a known
+  # failure mode (a dual-network DNS bug is in the project's issue ledger).
+  name_resolution: hosts_file
+
+machines:
+  # EXAMPLE of a real entry:  {role: front_of_house, name: vm-xa,
+  #   ip: 192.0.2.50, vmid: 2010}  — name = the hostname you gave the VM
+  # in Proxmox, ip = its static LAN address, vmid = the Proxmox VM ID
+  # (the number in the PVE web UI). All four roles are required, one each.
+  - role: front_of_house       # CoS + gateway + manager — the machine you'll chat with
+    name: vm-xlg-xa             # EXAMPLE: vm-xa
+    ip: 192.0.2.23             # EXAMPLE: 192.0.2.50 (your LAN's static IP)
+    vmid: 901                 # EXAMPLE: 2010 (the number shown in the PVE sidebar)
+  - role: execution            # broker, engine, worker, bridge, lifecycle, llm-proxy
+    name: vm-xlg-exec              # EXAMPLE: vm-xb
+    ip: 192.0.2.22             # EXAMPLE: 192.0.2.51
+    vmid: 903                 # EXAMPLE: 2011
+  - role: memory               # hindsight-api + pgvector — institutional memory
+    name: vm-xlg-hindsight            # EXAMPLE: vm-hindsight
+    ip: 192.0.2.21             # EXAMPLE: 192.0.2.52
+    vmid: 904                 # EXAMPLE: 2012
+  - role: registry             # private image registry — where the system's containers live
+    name: vm-xlg-registry          # EXAMPLE: vm-registry
+    ip: 192.0.2.20             # EXAMPLE: 192.0.2.53
+    vmid: 902                 # EXAMPLE: 2013
+
+ssh:
+  # EXAMPLE: user: ops  — a dedicated user on every VM with passwordless
+  # sudo and your SSH key authorized. The install scripts SSH as this user
+  # and never prompt for a password, so test it first:
+  #   ssh -o BatchMode=yes ops@<ip> 'sudo -n true'
+  user: poc
+  # EXAMPLE: key_path: ~/.ssh/id_ed25519  — the PRIVATE key on the
+  # workstation whose public half is authorized on every VM.
+  key_path: ~/.ssh/id_ed25519
+  passwordless_sudo: true      # must be verified on all four VMs before stage 0
+
+github:
+  # EXAMPLE: org: acme-corp  — the GitHub organization (or username) you
+  # control, where the roster, wiki, and demo repos live.
+  org: arvisdev
+  # EXAMPLE: app_id: "7891042"  — the numeric ID of your GitHub App
+  # (Settings → Developer settings → GitHub Apps). Quotes matter: it's a
+  # string, and some App IDs would otherwise parse as numbers.
+  app_id: "5650740"
+  # EXAMPLE: app_key_path: ~/secrets/acme-agents-app.pem  — the private key
+  # you downloaded when creating the App. Path only — never paste the key here.
+  app_key_path: ~/secrets/ephemeral-agents-poc.private-key.pem
+  repos:
+    # EXAMPLE: roster: acme-corp/agent-roster  — the agent catalog repo
+    # ("owner/repo" form). Must follow the roster layout contract
+    # (persona/skills/tools/constraints files + index.json); a valid seed
+    # lives at deploy-v2/m5/agent-list-example/.
+    roster: arvisdev/agent-roster
+    # EXAMPLE: wiki: acme-corp/llm-wiki  — the shared knowledge library.
+    # May start nearly empty; executors shallow-clone it at boot.
+    wiki: arvisdev/llm-wiki
+    # EXAMPLE: demo: acme-corp/demo-service  — the repo coder-style tasks
+    # will edit. The GitHub App must be INSTALLED on this repo (App page →
+    # Install → select this repo).
+    demo: arvisdev/ea-demo-repo
+
+model:
+  # EXAMPLE: provider: openrouter  — the provider the llm-proxy signs
+  # requests with. Whatever you pick, the key lives ONLY with the llm-proxy.
+  provider: openrouter
+  # EXAMPLE: default_model: z-ai/glm-5.3-flash  — "provider/model-id" as
+  # the provider names it; this becomes the CoS's default model.
+  default_model: z-ai/glm-5.3-flash
+  # EXAMPLE: provider_key_path: ~/secrets/openrouter.key  — the file
+  # holding your provider API key. Path only — the renderer will reject
+  # any key value pasted here.
+  provider_key_path: ~/secrets/openrouter.key
+
+embedding:                     # OPTIONAL — delete this whole block for zero-vector fallback
+  enabled: false               # false = memory works, semantic ranking degraded
+  # EXAMPLE: provider_key_path: ~/secrets/openai.key  — only if enabled: true
+
+config:
+  # EXAMPLE: ttl_default: 1800  — task time-to-live in seconds; a task not
+  # finished within its TTL is reaped (the zero-survivors guarantee).
+  ttl_default: 1800
+  # EXAMPLE: max_parallel_agents: 5  — how many ephemeral agents may run at
+  # once, per project. 5 is the measured safe default.
+  max_parallel_agents: 5
+  # EXAMPLE: registry_gc_keep_last: 3  — keep the last 3 versions of each
+  # image; older ones are garbage-collected weekly.
+  registry_gc_keep_last: 3
+  # EXAMPLE: registry_disk_alert_pct: 80  — warn when the registry VM's
+  # disk reaches 80%.
+  registry_disk_alert_pct: 80
+  # EXAMPLE: engine: docker  — the container engine for the EXECUTION VM only
+  # ("docker" = the estate default, unchanged). "podman" = ROOTLESS Podman on
+  # the execution VM (vm-xb) instead of Docker — every other VM (front-of-house,
+  # memory, registry) stays Docker. Rationale: rootless Podman removes the
+  # worst failure mode (a container escape reaching the root Docker daemon
+  # that owns the execution VM); all vm-xb ports (5672, 7233, 8080, 15672)
+  # are >1024 so rootless works. See decision-log.md.
+  engine: docker
+  # EXAMPLE: isolation_tier: xlg  — "xlg" = every project gets its own VM
+  # (strongest isolation); "xsm" = one shared VM hosting several small
+  # projects (see ADR-0002; the xsm chassis is a deferred milestone).
+  isolation_tier: xlg
+
+ports:                         # host ports for the published services (xlg layout)
+  # EXAMPLE: pipeline_gateway: 8083  — the Go gateway that accepts approved
+  # work. Defaults shown match the reference estate; any free ports work.
+  pipeline_gateway: 8083
+  # EXAMPLE: cos_backend: 8084  — the CoS backend your Hermes Desktop
+  # connects to (the session-token connection; book Special 3).
+  cos_backend: 8084
+  registry: 5000
+  broker_mgmt: 15672
