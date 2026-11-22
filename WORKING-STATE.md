@@ -5,7 +5,7 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-18 (fifteenth) — Second-Edition reorganization
+*Last updated: 2026-11-22 (sixteenth) — Second-Edition reorganization
 complete; deploy-v2 transform
 COMPLETE: 33-file tree ea-named end-to-end (paths repointed to
 `deploy-v2/mN`, broker user `ea:`, ea-tasks queue family, ea labels,
@@ -347,6 +347,36 @@ proposes, the code disposes** — the manager validates every proposal.
    §9.2/§9.6, no longer separate queue items); dedicated V2 demo repo (+
    1-min GitHub App install when coder-style work arrives); key vault
    (D-secret-vault) on the front-of-house VM (owner-deferred)
+
+
+## Sixteenth update — live-estate sequence complete: S1, m1–m5, TP-M5 PASS (2026-11-22)
+
+- **The full milestone sequence re-ran on the LIVE estate** (vm-xa .233 / vm-xb
+  .224 / vm-hindsight .223 / vm-registry .198) and closed: S1 registry TLS gate,
+  m1 T1–T5, m2 V1–V5, m3 B1–B5, m4 G1–G6 (commits 564250d..80344c3), and
+  **m5/TP-M5 PASS** (commit `caf9f9d`): E2E task `83229c03` success via the real
+  hermes executor, F1–F5 (F1/F2/F5 PASS; F3/F4 CHECK→recover-and-complete),
+  trivy 9/9 clean, token issue→200→revoke→401. Evidence:
+  `deploy-v2/m5/evidence/` (`tp-m5-results.md` live pack; the test-estate pack
+  preserved as `*-test-estate.*`).
+- **Ledger 17 (layer cache):** a cached apt RUN layer ships the build-day
+  package snapshot — the needrestart CVE survived a "rebuild". Rule: a
+  CVE-remediation rebuild must bust the base-image layer cache.
+- **Ledger 18 (privilege path):** §6 minted its token under sudo but revoked as
+  poc (root-owned state file unreadable) — silent `set -e` death. Rule: gate
+  steps sharing state must share a privilege path.
+- **Repo hygiene:** m0 decision-log had 33 duplicate install-run blocks
+  (append-loop bug) — deduped; `inputs-test.yaml` (MAC-corrected test inventory,
+  901=vm-xlg-xa/.203, 902=registry/.200, 903=exec/.202, 904=hindsight/.201)
+  recovered from session records and committed (`afa9420`).
+- **Estate:** all 4 live VMs were found STOPPED on the PVE host — booted
+  2000/1000/2001/1001; the m0-era Temporal stack and hindsight-pg had the known
+  reboot-orphan race, restarted in dependency order, healthy. Test clones
+  901–904 stay stopped.
+- **Remaining:** TP-M1-COS only — prereq is the owner-side step (add the Hermes
+  Desktop gateway connection `http://192.0.2.10:8084` with the
+  `COS_SESSION_TOKEN` from `/opt/ea/deploy-v2/m5/.env` on vm-xa), then
+  `deploy-v2/m1-cos/install.sh --gate`.
 
 ## Working protocol (cost reduction — ENABLED 2026-11-08, owner directive)
 
