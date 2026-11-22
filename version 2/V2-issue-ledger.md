@@ -268,3 +268,16 @@
 - **Rule:** contract denials are re-examined whenever an architecture
   decision gives a component a new legitimate resource need.
 
+## 17. Docker layer cache shipped a stale base package (needrestart CVE)
+
+- **Symptom:** M5 §6 trivy failed `ea/lifecycle:1.0.0` on one fixable HIGH (CVE-2026-124757, needrestart LPE, fixed in 3.11-1.1~deb13u1) — after an image "rebuild".
+- **Root cause:** the Dockerfile's `apt-get update && apt-get -y upgrade` layer was cache-hit from the 2026-11-19 build; a cached RUN layer's apt snapshot is frozen. Wrong assumption: a rebuild re-fetches packages.
+- **Fix:** `--no-cache` rebuild of ea/lifecycle + ea/worker, push to the registry, redeploy. Image eb040562cd74 (2026-11-22) scans clean 9/9.
+- **Rule:** a CVE-remediation rebuild must bust the base-image layer cache; a cached rebuild changes nothing.
+
+## 18. Privilege-path mismatch aborted the token-lifecycle gate silently
+
+- **Symptom:** M5 §6 exited with no message right after "issued token -> HTTP 200" — the revoke step never logged.
+- **Root cause:** the §6 issuance runs under `sudo` (token state file `/tmp/ea-issue-token-last` written root-owned); the `--revoke-last` step ran as `poc`, could not read the root-owned state file, and `set -euo pipefail` killed the run. Wrong assumption: the two steps of one gate share an execution context.
+- **Fix:** both steps now run the same `sudo bash -c` path in `deploy-v2/m5/install.sh` §6. Re-run: issue→200→revoke→401 green.
+- **Rule:** gate steps that share state must share a privilege path; a state file written by one user is unreadable to another.

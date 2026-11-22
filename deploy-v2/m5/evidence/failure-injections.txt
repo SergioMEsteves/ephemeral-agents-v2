@@ -1,0 +1,50 @@
+# M5 failure injections — Sun Nov 22 09:04:51 PM UTC 2026
+[m5 21:04:51] F1 — block outbound git/HTTPS to github.com on 192.0.2.11 during a task (llm-wiki clone fails)
+[m5 21:04:52] nft block loaded: 8 drop rule(s)
+F1 report status=failure survivors=0 : PASS
+F1 report JSON: {
+  "task_id": "4c0132c6-6d62-4046-8658-4ed2e094018f",
+  "status": "failure",
+  "outcome": "task 4c0132c6-6d62-4046-8658-4ed2e094018f failure",
+  "artifact": "/var/ea/tasks/4c0132c6-6d62-4046-8658-4ed2e094018f.log",
+  "reason": "task failed (no reason supplied by the worker)",
+  "completed_at": "2026-11-22T21:07:15Z"
+}
+[m5 21:07:19] F2 — block vm-xb -> GitHub 443 (nftables; agent-repo clone path)
+[m5 21:07:20] nft block loaded: 8 drop rule(s)
+F2 report status=failure survivors=0 : PASS
+F2 report JSON: {
+  "task_id": "b74ae13a-62b6-428b-ac43-a72d4fec8cc7",
+  "status": "failure",
+  "outcome": "task b74ae13a-62b6-428b-ac43-a72d4fec8cc7 failure",
+  "artifact": "/var/ea/tasks/b74ae13a-62b6-428b-ac43-a72d4fec8cc7.log",
+  "reason": "task failed (no reason supplied by the worker)",
+  "completed_at": "2026-11-22T21:09:42Z"
+}
+[m5 21:09:47] F3 — pkill -9 the agent process mid-task
+F3 report status=success survivors=0 — injection did NOT bite (fault path not exercised) : CHECK
+F3 report JSON: {
+  "task_id": "59b9f538-91cd-40df-9f28-e6f03886a57f",
+  "status": "success",
+  "outcome": "task 59b9f538-91cd-40df-9f28-e6f03886a57f success",
+  "artifact": "/var/ea/tasks/59b9f538-91cd-40df-9f28-e6f03886a57f.log",
+  "completed_at": "2026-11-22T21:09:54Z"
+}
+[m5 21:10:01] F4 — task with TTL_S smaller than work time (reaper path with real agents)
+F4 report status=success survivors=0 — injection did NOT bite (fault path not exercised) : CHECK
+F4 report JSON: {
+  "task_id": "29356d49-7b5e-47ba-a91c-948cbf97afb1",
+  "status": "success",
+  "outcome": "task 29356d49-7b5e-47ba-a91c-948cbf97afb1 success",
+  "artifact": "/var/ea/tasks/29356d49-7b5e-47ba-a91c-948cbf97afb1.log",
+  "completed_at": "2026-11-22T21:10:07Z"
+}
+[m5 21:10:15] F5 — docker restart manager mid-task; report must still be written after restart
+F5 manager-restart: report written after restart (status=success survivors=0) : PASS
+F5 report JSON: {
+  "task_id": "fbe1e878-962e-4d47-b224-0fe98b18cb43",
+  "status": "success",
+  "outcome": "task fbe1e878-962e-4d47-b224-0fe98b18cb43 success",
+  "artifact": "/var/ea/tasks/fbe1e878-962e-4d47-b224-0fe98b18cb43.log",
+  "completed_at": "2026-11-22T21:10:21Z"
+}

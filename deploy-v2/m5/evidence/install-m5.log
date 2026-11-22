@@ -1,0 +1,97 @@
+[m5 20:41:24] === M5 e2e+hardening install start (check-only=0 no-gate=0) ===
+[m5 20:41:24] §0 — prereq: TP-M0..TP-M4 all signed
+[m5 20:41:24] §0   ALL_GATES_DONE — skipping live probes
+[m5 20:41:24] OK   - assets present
+[m5 20:41:24] assumed — M5: front-of-house + bring-up + E2E + injections + hardening + docs closeout
+[m5 20:41:24] §1 — build gateway + manager (Go) and deploy on 192.0.2.10
+[m5 20:41:24] assumed — build ea/gateway + ea/manager and deploy on 192.0.2.10
+[m5 20:42:00] OK   - §1 front-of-house up on 192.0.2.10
+[m5 20:42:01] OK   - fw   UFW: 8083 (gateway, this build — the first organization keeps 8080) open on 192.0.2.10 from 192.0.2.0/24
+[m5 20:42:01] §3 — ordered full-stack bring-up (S1–S7, stage-gated)
+[m5 20:49:41] OK   - §3 e2e-deploy.sh S1–S7 green
+[m5 20:49:41] §4 — E2E acceptance run: one real request, human to human
+[m5 20:49:43] §4   gateway response: {"agent_ref":"https://github.com/arvisdev/agent-roster.git#ephemeral-org/eph-backend-engineer","task_id":"83229c03-77d5-4544-8a4b-f3a74932d8c4","ttl_s":900}
+[m5 20:49:44] WARN - §4   temporal: workflow row for 83229c03-77d5-4544-8a4b-f3a74932d8c4 not yet listed (poll)
+[m5 21:04:48] §4   post-completion POC container count: 0 (expected 0)
+[m5 21:04:48] WARN - §4   PROJECT_LOCAL_DIR unset — operator must verify the commit per M5 §4
+[m5 21:04:48] §4   report status: success
+[m5 21:04:48] §4   evidence pack -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m5/evidence (add: temporal trace export + lifecycle log)
+[m5 21:04:48] OK   - §4 E2E run: artifact chain verified (survivors=0)
+[m5 21:04:48] §2' — M5-era executor default: EA_EXECUTOR_DEFAULT=hermes in the ea-m2 compose
+[m5 21:04:51] OK   - §2' executor default = hermes (stub remains the rollback pin)
+[m5 21:04:51] §5 — failure-injection runbook F1–F5 (each: clean reap + human-visible error)
+[m5 21:04:51] F1 — block outbound git/HTTPS to github.com on 192.0.2.11 during a task (llm-wiki clone fails)
+[m5 21:04:52] nft block loaded: 8 drop rule(s)
+[m5 21:07:19] F2 — block vm-xb -> GitHub 443 (nftables; agent-repo clone path)
+[m5 21:07:20] nft block loaded: 8 drop rule(s)
+[m5 21:09:47] F3 — pkill -9 the agent process mid-task
+[m5 21:10:01] F4 — task with TTL_S smaller than work time (reaper path with real agents)
+[m5 21:10:15] F5 — docker restart manager mid-task; report must still be written after restart
+[m5 21:10:29] OK   - §5 F1–F5 clean + reported
+[m5 21:10:29] §6 — credential hardening (R4 final)
+[m5 21:10:55] §6   trivy ea/topic-bridge:1.0.0 : clean
+[m5 21:11:34] FAIL: §6   trivy: ea/lifecycle:1.0.0 has fixable HIGH/CRITICAL findings or secrets — remediate
+[m5 21:14:20] === M5 e2e+hardening install start (check-only=0 no-gate=0) ===
+[m5 21:14:20] §0 — prereq: TP-M0..TP-M4 all signed
+[m5 21:14:20] §0   ALL_GATES_DONE — skipping live probes
+[m5 21:14:20] OK   - assets present
+[m5 21:14:20] assumed — M5: front-of-house + bring-up + E2E + injections + hardening + docs closeout
+[m5 21:14:20] M5_FROM=6 — skipping §1/§3/§4 (already green)
+[m5 21:14:20] §2' — M5-era executor default: EA_EXECUTOR_DEFAULT=hermes in the ea-m2 compose
+[m5 21:14:23] OK   - §2' executor default = hermes (stub remains the rollback pin)
+[m5 21:14:23] §6 — credential hardening (R4 final)
+[m5 21:14:23] §6   trivy ea/topic-bridge:1.0.0 : clean
+[m5 21:14:24] FAIL: §6   trivy: ea/lifecycle:1.0.0 has fixable HIGH/CRITICAL findings or secrets — remediate
+[m5 21:20:55] === M5 e2e+hardening install start (check-only=0 no-gate=0) ===
+[m5 21:20:55] §0 — prereq: TP-M0..TP-M4 all signed
+[m5 21:20:55] §0   ALL_GATES_DONE — skipping live probes
+[m5 21:20:55] OK   - assets present
+[m5 21:20:55] assumed — M5: front-of-house + bring-up + E2E + injections + hardening + docs closeout
+[m5 21:20:55] M5_FROM=6 — skipping §1/§3/§4 (already green)
+[m5 21:20:55] §2' — M5-era executor default: EA_EXECUTOR_DEFAULT=hermes in the ea-m2 compose
+[m5 21:20:59] OK   - §2' executor default = hermes (stub remains the rollback pin)
+[m5 21:20:59] §6 — credential hardening (R4 final)
+[m5 21:20:59] §6   trivy ea/topic-bridge:1.0.0 : clean
+[m5 21:21:00] §6   trivy ea/lifecycle:1.0.0 : clean
+[m5 21:21:21] §6   trivy ea/worker:1.0.0 : clean
+[m5 21:21:22] §6   trivy ea/executor-stub:1.0.0 : clean
+[m5 21:21:23] §6   trivy ea/hermes-ephemeral:1.0.0 : clean (pinned-runtime lang-pkgs accepted residual)
+[m5 21:21:23] §6   trivy ea/claude-coder:1.0.0 : clean
+[m5 21:21:27] §6   trivy ea/hindsight-api:1.0.0 : clean
+[m5 21:21:29] §6   trivy ea/gateway:1.0.0 : clean
+[m5 21:21:33] §6   trivy ea/manager:1.0.0 : clean
+[m5 21:21:38] §6   env review clean
+[m5 21:21:39] §6   issued token -> HTTP 200 on the catalog repo (want 200 pre-revoke)
+[m5 21:22:15] === M5 e2e+hardening install start (check-only=0 no-gate=0) ===
+[m5 21:22:15] §0 — prereq: TP-M0..TP-M4 all signed
+[m5 21:22:15] §0   ALL_GATES_DONE — skipping live probes
+[m5 21:22:15] OK   - assets present
+[m5 21:22:15] assumed — M5: front-of-house + bring-up + E2E + injections + hardening + docs closeout
+[m5 21:22:15] M5_FROM=6 — skipping §1/§3/§4 (already green)
+[m5 21:22:15] §2' — M5-era executor default: EA_EXECUTOR_DEFAULT=hermes in the ea-m2 compose
+[m5 21:22:18] OK   - §2' executor default = hermes (stub remains the rollback pin)
+[m5 21:22:18] §6 — credential hardening (R4 final)
+[m5 21:22:18] §6   trivy ea/topic-bridge:1.0.0 : clean
+[m5 21:22:19] §6   trivy ea/lifecycle:1.0.0 : clean
+[m5 21:22:19] §6   trivy ea/worker:1.0.0 : clean
+[m5 21:22:20] §6   trivy ea/executor-stub:1.0.0 : clean
+[m5 21:22:21] §6   trivy ea/hermes-ephemeral:1.0.0 : clean (pinned-runtime lang-pkgs accepted residual)
+[m5 21:22:21] §6   trivy ea/claude-coder:1.0.0 : clean
+[m5 21:22:21] §6   trivy ea/hindsight-api:1.0.0 : clean
+[m5 21:22:22] §6   trivy ea/gateway:1.0.0 : clean
+[m5 21:22:22] §6   trivy ea/manager:1.0.0 : clean
+[m5 21:22:23] §6   env review clean
+[m5 21:22:24] §6   issued token -> HTTP 200 on the catalog repo (want 200 pre-revoke)
+[m5 21:22:30] §6   revoked token -> HTTP 401 (want 401 post-revoke)
+[m5 21:22:30] OK   - §6 hardening
+[m5 21:22:30] §7 — lock the last open items + close the docs
+[m5 21:22:30] §7   template at /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m5/decision-log.md — the operator locks each box, then updates the estate's architecture record
+[m5 21:22:30] OK   - §7 docs-closeout prepared
+[m5 21:22:30] BUILD COMPLETE CHECK (M5 §9 done-when — all five):
+[m5 21:22:30]  1. E2E run passed, zero surviving executor containers : survivors=0 (PASS)
+[m5 21:22:30]  2. F1–F4 clean + reported : see /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m5/evidence/failure-injections.txt
+[m5 21:22:30]  3. §6 scans pass : see /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m5/evidence/install-m5.log
+[m5 21:22:30]  4. §7 open items locked : see /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m5/decision-log.md
+[m5 21:22:30]  5. Engineer sees the outcome : report JSON with artifact pointer (GET http://192.0.2.10:8083/gateway/reports/<task_id>)
+[m5 21:22:30] When 1–5 hold: run TP-M5 to sign the final gate.
+[m5 21:22:30] OK   - M5 install complete
