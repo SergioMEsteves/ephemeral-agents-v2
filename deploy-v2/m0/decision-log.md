@@ -81,3 +81,8 @@ M0 install run — 2026-11-04
 - Symptom: V1 clean run timed out + reap FAIL; V5 zero-survivors=31. Root cause: M1's gate tests dispatch ~75 workflows into Temporal's ea-tasks queue while no worker exists on a fresh estate; the M2 worker deployed in §2 then consumes the backlog mid-V-suite (spawn collisions, stale containers Up at the survivor check). Live estate never hit it (a live worker was consuming continuously).
 - Fix: m2/install.sh §3 now drains non-terminal ea-tasks workflows before the V-suite (idempotent, fresh-estate-safe). Re-run: V1–V5 all PASS, zero survivors.
 - Rule: any stage gate that spawns consumers must drain upstream producer leftovers first on a fresh estate.
+
+## M0 install run — 2026-11-22
+- VM naming: D-8 RESOLVED by owner 2026-10-25 (labels are POC discussion devices, not commitments); V2 estate: 4 VMs — vm-xa/vm-xb/vm-hindsight/vm-docker-registry (diagram labels VM-Xa/VM-Xb/VM-3/VM-registry)
+- Language decision: Go for ALL Temporal code (owner instruction: speed + size)
+- Name-resolution mechanism used: /etc/hosts (per inputs.yaml estate.name_resolution: hosts_file)
