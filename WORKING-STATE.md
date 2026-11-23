@@ -5,7 +5,7 @@
 > the same turn a decision is made or a step completes. Context lives HERE
 > (cheap, read once) — not in the conversation (expensive, resent every turn).
 
-*Last updated: 2026-11-22 (sixteenth) — Second-Edition reorganization
+*Last updated: 2026-11-23 (seventeenth) — Second-Edition reorganization
 complete; deploy-v2 transform
 COMPLETE: 33-file tree ea-named end-to-end (paths repointed to
 `deploy-v2/mN`, broker user `ea:`, ea-tasks queue family, ea labels,
@@ -377,6 +377,29 @@ proposes, the code disposes** — the manager validates every proposal.
   Desktop gateway connection `http://192.0.2.10:8084` with the
   `COS_SESSION_TOKEN` from `/opt/ea/deploy-v2/m5/.env` on vm-xa), then
   `deploy-v2/m1-cos/install.sh --gate`.
+
+
+## Seventeenth update — the CoS milestone closed; TP-M1-COS signed (2026-11-23)
+
+- **TP-M1-COS PASS and signed** (`deploy-v2/m1-cos/evidence/tp-m1-cos-results.md`):
+  judgment corpus 13 fixtures / 0 errors; the manager approval-hash suite
+  17/17 (retry integrity, mismatch-reject, whitespace-exactness); the
+  interactive assertions exercised by the owner's real desktop use of the
+  CoS (live analysis request over the `ea-cos` gateway connection);
+  desktop reconnect proven across the 2026-11-22 full estate restart.
+- **Ledger 20 (gate-caught defect):** the D12 board state lived in the
+  container FS — a recreate wiped it. Fixed: `HERMES_HOME=/state` in the
+  cos compose + entrypoint; state migrated live (2.9 GB, no loss).
+  Rule: a durable-mount claim must name the mechanism and the env that
+  activates it, asserted by the compose.
+- **The full V2 milestone sequence is complete:** S1 registry TLS, M0–M5
+  (live estate, TP-M5 PASS), and the CoS milestone (TP-M1-COS PASS).
+- **Publication prep in progress:** real LAN addresses swept to RFC 5737
+  placeholders across files AND full history (`git filter-repo`; mapping
+  table at `deploy-v2/IP-PLACEHOLDER-MAPPING.md`; all commit hashes
+  changed — HEAD `18c9a24`). Remaining before the visibility flip:
+  owner's two topology diagrams (ch11/ch14 slots — post-publication OK),
+  AUTHORSHIP V2-era sign-off line, README honesty pass.
 
 ## Working protocol (cost reduction — ENABLED 2026-11-08, owner directive)
 
