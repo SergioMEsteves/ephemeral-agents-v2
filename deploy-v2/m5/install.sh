@@ -185,7 +185,16 @@ build_and_deploy_front_of_house() {
     if [ -n "${AGENT_LIST_READ_TOKEN:-}" ]; then
       printf '%s\n' "AGENT_LIST_READ_TOKEN=$AGENT_LIST_READ_TOKEN"
     fi
-  } | ssh "$VM_XA" 'umask 077; cat > /opt/ea/deploy-v2/m5/.env && chmod 600 /opt/ea/deploy-v2/m5/.env'   # stdin + 600: secret not in argv/logs
+  } | ssh "$VM_XA" 'umask 077; cat > /opt/ea/deploy-v2/m5/.env.staged && chmod 600 /opt/ea/deploy-v2/m5/.env.staged'   # stdin + 600: secret not in argv/logs
+  # MERGE, never clobber: the staged file carries only the keys this script
+  # knows. The staged .env also carries the CoS allow-list vars minted by
+  # m1-cos/stage-credentials.sh (COS_SESSION_TOKEN, LLM_PROXY_COS_TOKEN,
+  # COS_API_TOKEN, HINDSIGHT_WRITE_TOKEN) — an earlier run clobbered them and
+  # the recreated cos container lost its auth (ledger 19). Staged values win;
+  # existing keys not staged are preserved.
+  ssh "$VM_XA" 'cd /opt/ea/deploy-v2/m5 && if [ -f .env ]; then awk -F= "!seen[\$1]++" .env.staged .env > .env.merged; else cp .env.staged .env.merged; fi && chmod 600 .env.merged && mv .env.merged .env && rm -f .env.staged'
+  # re-add any missing allow-list key (idempotent; values generated on the VM, never printed)
+  ssh "$VM_XA" 'bash -s -- /opt/ea/deploy-v2/m5/.env' < "$REPO_ROOT/deploy-v2/m1-cos/stage-credentials.sh" >/dev/null
   [ -n "${AGENT_LIST_READ_TOKEN:-}" ] || warn "AGENT_LIST_READ_TOKEN not set — manager cannot clone the catalog until it is"
   ssh "$VM_XA" "cd /opt/ea/deploy-v2/m5 && docker compose up -d"
   local i

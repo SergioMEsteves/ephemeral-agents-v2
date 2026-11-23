@@ -281,3 +281,10 @@
 - **Root cause:** the §6 issuance runs under `sudo` (token state file `/tmp/ea-issue-token-last` written root-owned); the `--revoke-last` step ran as `poc`, could not read the root-owned state file, and `set -euo pipefail` killed the run. Wrong assumption: the two steps of one gate share an execution context.
 - **Fix:** both steps now run the same `sudo bash -c` path in `deploy-v2/m5/install.sh` §6. Re-run: issue→200→revoke→401 green.
 - **Rule:** gate steps that share state must share a privilege path; a state file written by one user is unreadable to another.
+
+## 19. Staging overwrote the CoS credential file — the recreated CoS lost its auth
+
+- **Symptom:** after the 2026-11-22 m5 live-estate runs, `ea-m5-cos` came back up with blank `GATEWAY_SESSION_TOKEN`/`HERMES_DASHBOARD_SESSION_TOKEN` and crash-looped on the public-dashboard auth guard; the Desktop's `ea-cos` connection 401'd against a rotated token.
+- **Root cause:** §1 stages `deploy-v2/m5/.env` to VM-Xa with `cat >` — a full overwrite from a local copy that carries only the keys §1 knows (rabbitmq pass, repo, hosts). The four CoS allow-list vars minted by `m1-cos/stage-credentials.sh` were silently dropped, and the next compose recreate rebuilt the container without them. Wrong assumption: the staged .env is a superset of what the compose file interpolates.
+- **Fix:** §1 now stages to `.env.staged`, merges (staged values win, existing keys preserved), then runs `stage-credentials.sh` remotely to re-add any missing allow-list key. Recovery performed live: four vars re-minted on VM-Xa, `cos` recreated, model-info 200 with the new token; the Desktop's stored token updated.
+- **Rule:** a staged config file must be merged, not overwritten — the staging script's key set is not the deploy's key set; anything minted by a later stage belongs to the file's lifetime, not the run's.
