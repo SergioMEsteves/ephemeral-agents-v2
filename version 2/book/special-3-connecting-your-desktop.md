@@ -48,8 +48,24 @@ as a door key for this one agent machine:
 
 1. **Get the token.** The person who deployed the machine gives you the
    session token (or points you at the file it lives in). If you
-   deployed it yourself: it is in the machine's gitignored env file —
-   the deployment runbook names the exact path.
+   deployed it yourself, here is exactly where it is on the reference
+   estate:
+
+   - Machine: the agent machine (VM-Xa) — static address `192.0.2.10`
+     in the reference estate, SSH user `poc`.
+   - File: `/opt/ea/deploy-v2/m5/.env` on that machine — a gitignored,
+     permission-0600 file the deployment staged. The variable you want
+     is `COS_SESSION_TOKEN`.
+   - Reading it: from the workstation,
+     `ssh poc@192.0.2.10 'grep COS_SESSION_TOKEN /opt/ea/deploy-v2/m5/.env'`.
+     Copy everything after the `=` sign. The token never belongs in the
+     repo, in chat, or in a screenshot.
+
+   Before moving on, confirm the thing you are about to connect to is
+   actually running: `ssh poc@192.0.2.10 'docker ps --format
+   "{{.Names}}" | grep ea-m5-cos'` should print `ea-m5-cos`. A token
+   test against a stopped backend reads as "unreachable" and sends you
+   debugging the wrong layer.
 2. **Open the Desktop's gateway registry.** Settings → **Gateways**.
    This is the list of machines your Desktop knows how to talk to.
 3. **Add a connection.** "Add connection" → **Remote gateway**.
@@ -85,8 +101,8 @@ Three failure modes, each with a distinct cause:
 
 | Symptom | Likely cause | What to do |
 |---|---|---|
-| Timeout / unreachable | The machine is down, the port is wrong, or the firewall is closed | Confirm the machine answers (`ping` the address), confirm the port matches the deployment, and check the machine's firewall allows your subnet |
-| 401 / unauthorized | The stored token does not match the token the backend is running | The token was rotated or the connection holds a stale copy — re-stage the token and re-paste it |
+| Timeout / unreachable | The machine is down, the CoS container is stopped, the port is wrong, or the firewall is closed | Confirm the machine answers (`ping` the address), confirm the CoS container is up (`docker ps | grep ea-m5-cos` on the agent machine), confirm the port matches the deployment (`:8084` for the CoS, `:8083` is the pipeline gateway — pointing the Desktop at 8083 connects you to the wrong service), and check the machine's firewall allows your subnet |
+| 401 / unauthorized | The stored token does not match the token the backend is running | The token was rotated or the connection holds a stale copy — re-stage the token and re-paste it. On the reference estate that means re-reading `COS_SESSION_TOKEN` from `/opt/ea/deploy-v2/m5/.env` on VM-Xa — the container reloads it only on restart, so if the file changed, restart the CoS container, then paste the new token |
 | HTTP passes but chat hangs | The WebSocket path is blocked | Something between Desktop and machine is blocking `/api/ws` — check any proxy in the path; the plain HTTP test can pass while WebSocket fails |
 
 One habit worth keeping: after any restart of the agent machine, if a
