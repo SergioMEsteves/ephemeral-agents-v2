@@ -41,3 +41,14 @@ May 13, 2026. AI served as the author's research assistant, document creator,
 and — operating strictly inside the author's stated rules, business rules, and
 architectural specifications — the coder, tester, and deployment-tooling writer
 of the implementation.
+
+## 5. Version 2 record extension
+
+The same authority governs the Version 2 build: the milestone sequence
+(S1 registry gate, M0–M5, and the Chief-of-Staff milestone) was designed,
+reviewed, executed, and accepted under the author's standing sign-off,
+completed **2026-11-23** (TP-M5 and TP-M1-COS signed with evidence in
+`deploy-v2/m*/evidence/` and `deploy-v2/m1-cos/evidence/`). The AI's
+directed functions above extend unchanged to every Version 2 artifact —
+the deploy layer, the Go services, the issue ledger, and the second-edition
+book.

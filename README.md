@@ -90,15 +90,24 @@ decision-log.md       append-only decisions (date, rationale, rejected alternati
 - Failure paths: crash recovery with an independent reaper (the
   load-bearing test), timeout TTL clamp, restart-durable stack, token
   revocation race closed.
+- The Chief-of-Staff front door: the resident CoS Hermes agent on the
+  front-of-house VM, driven live from the Desktop over the native gateway
+  connection; approval-hash retry integrity + mismatch-reject enforced
+  manager-side (TP-M1-COS PASS; the D12 board state is reboot-durable on
+  a named mount, asserted by the compose).
 
 **Designed but not yet built (tracked in `version 2/V2-gap-analysis.md`):**
 
-- The CoS itself is the current milestone: its design is complete and
-  reviewed, its runtime is not yet deployed.
 - Rootless execution + egress allow-list (isolation rung A+), digest-pinned
   spawn path re-verification, capacity model + soak test, key vault,
   embeddings provider decision, dependency refresh pipeline, multi-project
   template onboarding (ADR-0002 shape decided, not built).
+
+**Pending refinements (deliberate, post-publication):** the two
+owner-drawn topology diagrams for the book's ch11/ch14 slots (anchors in
+place, drawings to follow); the built-template freeze (`vm-xlg-built`,
+book ch16 §16.3) and the first newcomer-exercised run of the offboard
+runbook.
 
 ## Authorship
 
