@@ -44,7 +44,7 @@ and earned new siblings where the build found they weren't enough.
 | 13 | What Remains | deferred topics and the next-version list |
 | 14 | Building from Scratch | the operator's chapter: RUNBOOK-V2-BUILD, clean-VM netplan, secrets staging |
 | 15 | Evaluating the System | the evaluator's chapter: gate-by-gate checklists and the live dashboards |
-| 16 | After the Build: Estates That Clone | the three-layer template scheme (golden base / built template / live estate), the freeze procedure, and the ~15-minute project spin-up (ADR-0002) |
+| 16 | After the Build: Estates That Clone | the three-layer template scheme (golden base / built template / live estate), the freeze procedure, the ~15-minute project spin-up, and the project-retirement procedure — the seven places a finished project leaves state and the two exit paths that hand the estate to the next one (ADR-0002) |
 
 ## Part III — Plain-language specials (owner directive)
 

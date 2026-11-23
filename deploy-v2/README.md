@@ -31,6 +31,7 @@ other deploy tree.
 - `RUNBOOK-V2-BUILD.md` — the clean-build runbook: bare PVE host → passed
   TP-V2-M1 gate, stage by stage (S0–S7), each step naming its script or doc.
 - `RUNBOOK-V2-NEW-PROJECT.md` — the per-project replication recipe for
+- `RUNBOOK-V2-OFFBOARD.md` — retiring a finished project and handing the estate to the next one (book ch16 §16.6; Path A CoS reset / Path B estate reclone)
   adopting teams.
 - `PREBUILD-CHECKLIST.md` — per-VM pre-build checklist (VM-Xa, VM-Xb, memory
   VM, registry VM, PVE host) with source decisions.

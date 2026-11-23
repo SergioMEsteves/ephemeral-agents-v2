@@ -118,11 +118,121 @@ fifteen minutes instead of days.
   rules from the build apply unchanged — and if it will *replace* a
   retired estate, reuse of the names is safe because the old one is gone.
 
-## 16.6 The one-line summary
+## 16.6 Retiring a project — handing the estate to the next one
+
+> **In plain terms.** A project ends — it ships, it pauses, or the team
+> moves on. The estate does not. This section is the exit procedure: how
+> to *end* a project cleanly and point the same machines at a brand-new
+> one, reusing as much of the system as possible. It is the mirror image
+> of §16.4: spin-up asks "what does the new project need?"; offboard asks
+> "what does the old project still own?"
+
+### 16.6.1 What the old project still owns
+
+When a project ends, it leaves state in exactly seven places. The whole
+offboard procedure is: **empty all seven, in this order.**
+
+| # | Where the old project lives | Why it must be cleared |
+|---|---|---|
+| 1 | **In-flight work** — board cards, queue messages, running workflows | a new project must inherit zero tasks, zero approvals, zero queues |
+| 2 | **The CoS's VM-Xa state** — `/opt/ea/cos/state` (board, sessions) and `/opt/ea/repos` (task clones) | this is the project's *memory of itself*; it is disposable by design (Chapter 5) |
+| 3 | **Minted credentials** — CoS session token, Hindsight write/read tokens, broker password, registry CA, provider key | every credential was minted *for* this project; none survives the project (§16.4 rule: nothing is inherited) |
+| 4 | **The GitHub App installation** on the old project's repo | it grants container-level write to a repo that no longer belongs to this estate |
+| 5 | **The Desktop connection** named for the old project | the desktop is stateless (D5), but a stale connection is a door into the wrong estate |
+| 6 | **The Tier-1 tracker project** (GitHub Issues) | plan-of-record for the old project; archive it, don't delete it |
+| 7 | **Hindsight scope rows** keyed to the old project's scope key | memory isolation is per-project; the next project starts with an empty scope (see the honesty note on scoping) |
+
+The project's *work* — commits, reports, artifacts — needs nothing: it
+lives in the git repo and `/opt/ea/reports`, both already outside the
+estate's identity. The source of truth moves with the repo, never with
+the machines (D4).
+
+### 16.6.2 The two exit paths
+
+Choose by how much changes. **The decision rule: if the old project's
+repo, roster, and topology stay the same and only the *work* changes,
+take Path A; if the estate points at a different repo (the usual
+"brand-new project" case), take Path B.**
+
+**Path A — CoS reset (same estate, same repo, fresh start).** The
+lightweight path, ~10 minutes. Everything below the front-of-house
+survives: broker, Temporal, lifecycle, executors, registry, Hindsight
+VM, images.
+
+1. Wait for or cancel in-flight work; verify the worker queue drains and
+   survivors are zero (the reaper's normal close-out).
+2. `docker compose down` the m5 front-of-house stack on VM-Xa — the CoS
+   container is disposable: profile and roster are read-only mounts,
+   so removing it destroys nothing authored.
+3. Clear the state volumes: empty `/opt/ea/cos/state` and
+   `/opt/ea/repos` on VM-Xa. *This is the step a plain container-delete
+   misses* — the container is stateless, but its mounts remember.
+4. Remint the CoS session token; re-register the Desktop connection
+   (a fresh named entry, fresh token — never reuse the old one).
+5. Board and tracker: archive what the audit trail needs (the board's
+   backup rule), then start the new backlog.
+
+**Path B — estate reclone (different repo, full identity reset).** The
+thorough path, and the one to default to when the new project is
+genuinely new. It reuses **everything frozen** and re-mints only what
+the project defines.
+
+1. Do Path A's steps 1–2 first (drain in-flight work; bring the
+   front-of-house down).
+2. **Export the close-out record** before anything is wiped: the final
+   TP/evidence packs, the issue ledger, and the decision-log are
+   committed in the project repo — that *is* the archive; verify the
+   repo is fully pushed before touching any VM.
+3. Reclone the four VMs from the built template (`vm-xlg-built`, or the
+   golden base `ubuntu-24-ea-base` if the build itself changed) and run
+   §16.4's spin-up against the new project's `inputs.yaml`: fresh IPs or
+   re-pinned same IPs, fresh credentials, fresh compose bring-up, gates
+   re-run as the acceptance test.
+4. Register the new project: repo, manifest, roster persona, Desktop
+   connection, GitHub App installation on the new repo, new tracker
+   project, new Hindsight scope key.
+5. Record the offboard in the decision log (retired project id, date,
+   archive location) and the onboarding per the new-project runbook.
+
+Both paths end identically: **the new project starts with an estate
+that carries nothing from the old one** — no queues, no tokens, no
+memory, no board — which is the same guarantee a from-scratch build
+gives, at template speed.
+
+### 16.6.3 The honesty notes
+
+- **No offboard script exists yet.** Paths A and B are checklists, not
+  automation (`deploy-v2/RUNBOOK-V2-OFFBOARD.md` is the executable
+  checklist). Every ingredient is individually proven — the profile
+  restage is the same one `m1-cos/install.sh` performs, the token mint
+  is the same §6 path — but the composed procedure has not been run by
+  a newcomer, so treat it like a first-build: verify each step's
+  expected result, don't run ahead.
+- **The built template is the multiplier.** Without it, Path B costs a
+  full rebuild (days). With it, minutes. The freeze procedure (§16.3)
+  is therefore not an optimization — it is what makes offboarding
+  cheap. If `vm-xlg-built` has not been frozen yet, the honest Path B
+  is: freeze first, then reclone.
+- **Hindsight scoping is per-key, enforced thin.** Memory isolation
+  today is a scope-key convention, not a hard boundary (a known
+  deferred item). On Path A, explicitly delete the old project's scope
+  rows on the memory VM; on Path B the reclone starts the store empty.
+- **The desktop never carries project state, so there is nothing to
+  clean there** — but delete the old *connection* anyway: a stale
+  named connection pointing at a dead estate is how operators end up
+  talking to the wrong CoS.
+- **Secrets never survive, ever.** The re-mint rule (§16.4) is not
+  relaxed at offboard: a credential minted for project N must never
+  authenticate project N+1, even when "N+1" is the same humans on the
+  same machines.
+
+## 16.7 The one-line summary
 
 **Build once, gate it, strip it, freeze it.** Every project after the
-first one is a clone plus a re-mint — the factory line pays for itself
-from the second car on.
+first one is a clone plus a re-mint — and when a project ends, the
+estate empties its seven pockets and starts the next one clean. The
+factory line pays for itself from the second car on, and it never
+carries the previous car's passengers.
 
 ---
 
