@@ -35,7 +35,7 @@ echo "{\"event\":\"self-report\",\"task_id\":\"$TASK_ID\",\"boot_ms\":$BOOT_MS,\
 # authorizes the Desktop's remote-gateway 'Session token' field).
 # --skip-build: the container has no web-UI build step; serve the existing dist.
 hermes profile list 2>/dev/null | grep -q "cos " || hermes profile create cos --description "Chief of Staff — proposes, owner disposes" >/dev/null
-cp /profile/AGENTS.md /root/.hermes/profiles/cos/AGENTS.md   # the CoS prompt IS the profile
+cp /profile/AGENTS.md "${HERMES_HOME:-/root/.hermes}/profiles/cos/AGENTS.md"   # the CoS prompt IS the profile; HERMES_HOME=/state keeps the board durable (D12)
 hermes profile use cos >/dev/null                            # sticky default profile
 hermes config set model.default z-ai/glm-5.3-flash >/dev/null
 hermes config set model.provider openrouter >/dev/null

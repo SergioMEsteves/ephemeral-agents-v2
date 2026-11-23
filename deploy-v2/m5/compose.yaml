@@ -57,6 +57,10 @@ services:
       GATEWAY_URL: "http://gateway:8080"
       HINDSIGHT_URL: "http://${HINDSIGHT_HOST}:8082"
       HINDSIGHT_WRITE_TOKEN: "${HINDSIGHT_WRITE_TOKEN}"
+      # D12 board/state durability: the profile home (kanban board, sessions,
+      # skills) must live on the bind-mounted volume, not the container FS —
+      # a recreate otherwise wipes the board (observed 2026-11-22/23).
+      HERMES_HOME: "/state"
       AGENTS_MD: "/profile/AGENTS.md"
     volumes:
       - /opt/ea/cos/profile:/profile:ro

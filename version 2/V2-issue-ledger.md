@@ -288,3 +288,10 @@
 - **Root cause:** §1 stages `deploy-v2/m5/.env` to VM-Xa with `cat >` — a full overwrite from a local copy that carries only the keys §1 knows (rabbitmq pass, repo, hosts). The four CoS allow-list vars minted by `m1-cos/stage-credentials.sh` were silently dropped, and the next compose recreate rebuilt the container without them. Wrong assumption: the staged .env is a superset of what the compose file interpolates.
 - **Fix:** §1 now stages to `.env.staged`, merges (staged values win, existing keys preserved), then runs `stage-credentials.sh` remotely to re-add any missing allow-list key. Recovery performed live: four vars re-minted on VM-Xa, `cos` recreated, model-info 200 with the new token; the Desktop's stored token updated.
 - **Rule:** a staged config file must be merged, not overwritten — the staging script's key set is not the deploy's key set; anything minted by a later stage belongs to the file's lifetime, not the run's.
+
+## 20. The durable mount existed; the state didn't use it
+
+- **Symptom:** TP-M1-COS TC-4 — the CoS kanban board and session state (D12's "reboot-durable state store of record") lived in the container filesystem; `/opt/ea/cos/state` was empty while `/root/.hermes` inside the container held everything, and a container recreate (which the 2026-11-22 recovery actually performed) wiped the board.
+- **Root cause:** the compose mounted `/state` and the entrypoint's comment claimed "the board state lives in /state (D12)", but nothing told the Hermes profile to use it — `HERMES_HOME` was unset, so the profile defaulted to `~/.hermes`. Wrong assumption: a bind mount is a location, not a pointer — state goes where HOME says, not where a volume exists.
+- **Fix:** `HERMES_HOME=/state` in the cos compose env; the entrypoint's profile paths became `$HERMES_HOME`-relative; live migration of the 2.9 GB profile state (`docker cp` snapshot → recreate → restore) with zero data loss; profile verified at `/state/profiles/cos` post-recreate.
+- **Rule:** every reboot-durability claim must name the exact mechanism AND the env/flag that activates it, asserted by the compose file — "we mounted a volume" is not durability.
