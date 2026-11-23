@@ -295,3 +295,10 @@
 - **Root cause:** the compose mounted `/state` and the entrypoint's comment claimed "the board state lives in /state (D12)", but nothing told the Hermes profile to use it — `HERMES_HOME` was unset, so the profile defaulted to `~/.hermes`. Wrong assumption: a bind mount is a location, not a pointer — state goes where HOME says, not where a volume exists.
 - **Fix:** `HERMES_HOME=/state` in the cos compose env; the entrypoint's profile paths became `$HERMES_HOME`-relative; live migration of the 2.9 GB profile state (`docker cp` snapshot → recreate → restore) with zero data loss; profile verified at `/state/profiles/cos` post-recreate.
 - **Rule:** every reboot-durability claim must name the exact mechanism AND the env/flag that activates it, asserted by the compose file — "we mounted a volume" is not durability.
+
+## 21. A live token's recognizable prefix/suffix published in an evidence snippet
+
+- **Symptom:** the M4 wiring snippet (`deploy-v2/m4/evidence/m4-wiring-snippet.env`) recorded `LLM_WIKI_READ_TOKEN=gho_<redacted>` — the first 7 and last 4 characters of the workstation's **currently live** GitHub OAuth token.
+- **Root cause:** the masking convention ("show first+last") is right for chat, wrong for artifacts — a mask short enough to keep typing-friendly keeps enough to identify the credential and defeats later rotation audits. Wrong assumption: a masked value is a redacted value.
+- **Fix:** the snippet now carries `gho_<redacted>`; the fragments were scrubbed from full history via a second `git filter-repo` pass before the token fragments could circulate. Rotation optional: a 7+4-character fragment of a ~40-char token is not usable; recorded as an accepted residual with the option to rotate the workstation token out of caution.
+- **Rule:** masks live in conversation, never in artifacts — artifacts carry `<redacted>` or nothing; "enough to recognize" is enough to leak.
