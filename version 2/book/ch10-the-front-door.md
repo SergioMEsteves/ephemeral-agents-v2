@@ -16,7 +16,7 @@
 ![Ephemeral Agents v2 — Stages 1 & 2: the human-in-the-loop workflow](../../assets/stages-1-2-hitl.jpg)
 
 *The front door at a glance — intent capture, the CoS proposal, the human
-sign-off, and the deterministic manager's safety gates. Owner-drawn,
+sign-off, and the deterministic manager's safety gates.
 2026-11-23. Two accuracy notes: today the manager's enforced checks are
 message-v1 schema validation, roster-index authorization, manifest
 repo-target validation, TTL policy, and approval-hash retry integrity
