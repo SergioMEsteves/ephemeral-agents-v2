@@ -571,3 +571,10 @@ services/             Go services (evolve here as milestones require)
 - **Verification:** final grep clean except the categorized exceptions
   (message-v1 contract identifier, dated-history files, live coexistence
   identifiers, M2 gate test-case names V1–V5).
+
+Seventeenth update (2026-11-23): post-publication architecture audit
+recorded at `version 2/V2-architecture-audit-report-2026-11-23.md`
+(7-law review; 4 compliant, 3 P1 — egress filtering/A+ rung,
+memory-injection governance, continuous evaluation; remediation roadmap
+phases recorded). Aligns with the existing post-publication backlog:
+A+ isolation was already first.
