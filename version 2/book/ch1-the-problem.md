@@ -104,6 +104,13 @@ because they were never seven independent problems. They were seven symptoms
 of one missing thing: **agents were being used as individuals, when the unit of
 value is an organization.**
 
+![Why AI agents fail at real work — and the organizational reframe](../../assets/the-problem-7-walls.jpg)
+
+*The chapter in one picture: the seven walls a chat-based agent hits on
+the left (§1.2), the organizational reframe on the right (§1.3). The
+unit of value is the organization, not the individual agent.*
+
+
 ## 1.4 What "solved" looks like
 
 Before we design anything, picture the destination — the same scene from §1.1,
