@@ -40,6 +40,21 @@ matters is at the queues and the routes, not at the wire protocol.
 
 <!-- DIAGRAM: two-organizations-one-estate (owner-drawn) -->
 
+![Ephemeral Agents v2 — Proxmox VE deployment topology](../../assets/pve-deployment-topology.jpg)
+
+*The estate at a glance — one bare-metal PVE host, four role-typed VMs
+(front-of-house/CoS, orchestration & executor workshop, vector memory,
+registry/infra), and the external Git target. The functional layout,
+ports (gateway 8083, CoS 8084, RabbitMQ 5672, registry 5000, Postgres 16
++ pgvector 5432), and the zero-survivors reaper are all real; the render
+idealizes the specifics — the live VM IDs are 2000/1000/2001/1001, the
+manager listens on 8086, the llm-proxy (:9999) runs beside the workers
+rather than on its own VM, the network is one flat LAN plus the
+`ea-net` Docker network (not dedicated vmbrs), the credential vault is
+the deferred D-secret-vault decision, and the Git target is
+github.com.*
+
+
 ## 11.2 The rule set: born ea-named
 
 The `ea-` rename was executed as a gated micro-gate *before* the build
