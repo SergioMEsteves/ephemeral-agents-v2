@@ -21,6 +21,15 @@ retry policy is MaximumAttempts 2 (not 5), the Temporal namespace is
 ("Rung A+") are the *next* gated hardening milestone, not current state —
 today's runtime is Docker on the execution VM (the isolation ladder is in
 the platform design §6).*
+![Ephemeral Agents v2 — Stage 5: reap, report & zero survivors](../../assets/stage-5-reap-report.jpg)
+
+*The close of the lifecycle — the phase this chapter's gates exist to
+protect. Owner-drawn, 2026-11-23. Two accuracy notes on a stylized
+render: the executor's commit artifact lands on the task branch
+(`origin/task/<task_id>`), not `main`; and today's runtime is Docker —
+"Podman" is the A+ rung's future. The memory write-back shown in Phase
+5.3 is real and verified in the executor entrypoint (`memory/write` at
+end-of-task, hydrated by the successor at boot).*
 ## 7.1 Carried forward: role ≠ body
 
 The first build's design decisions hold unchanged: a role is knowledge and
