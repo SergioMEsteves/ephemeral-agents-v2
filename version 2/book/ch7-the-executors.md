@@ -14,7 +14,7 @@
 *The execution half of the system at a glance — the durable queue and
 workflow spine (Stage 3, this chapter and Chapter 5) feeding the
 zero-survivor ephemeral container (Stage 4, this chapter and Chapter 8).
-Owner-drawn, 2026-11-23. One honesty note on a stylized render: the real
+ One honesty note on a stylized render: the real
 retry policy is MaximumAttempts 2 (not 5), the Temporal namespace is
 `default`, the executor pushes its commit to a task branch
 (`origin/task/<task_id>`), and rootless-Podman/egress-allow-list
@@ -24,7 +24,7 @@ the platform design §6).*
 ![Ephemeral Agents v2 — Stage 5: reap, report & zero survivors](../../assets/stage-5-reap-report.jpg)
 
 *The close of the lifecycle — the phase this chapter's gates exist to
-protect. Owner-drawn, 2026-11-23. Two accuracy notes on a stylized
+protect. Two accuracy notes on a stylized
 render: the executor's commit artifact lands on the task branch
 (`origin/task/<task_id>`), not `main`; and today's runtime is Docker —
 "Podman" is the A+ rung's future. The memory write-back shown in Phase
