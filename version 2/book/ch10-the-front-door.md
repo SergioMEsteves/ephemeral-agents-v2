@@ -6,10 +6,24 @@
 > itself: the same two services as the first organization's door, standing on the same machine
 > as the still-running first door, at a new address. It ends with the thing
 > the first book promised at this exact point — the Chief of Staff — except that
-> this build can report something the first build could not: the design is finished, specified
-> down to individual gate assertions, and waiting for its build. Nothing in
-> that design is running yet, and this chapter is careful never to pretend
-> otherwise.
+> this build can report something the first build could not: the design was
+> finished, specified down to individual gate assertions — and then built,
+> gated, and signed (TP-M1-COS, 2026-11-23). The CoS is live on the
+> front-of-house VM, driven daily from the Desktop over the native gateway
+> connection. What follows describes the door as it now stands, with the
+> honesty trail that got it there.
+
+![Ephemeral Agents v2 — Stages 1 & 2: the human-in-the-loop workflow](../../assets/stages-1-2-hitl.jpg)
+
+*The front door at a glance — intent capture, the CoS proposal, the human
+sign-off, and the deterministic manager's safety gates. Owner-drawn,
+2026-11-23. Two accuracy notes: today the manager's enforced checks are
+message-v1 schema validation, roster-index authorization, manifest
+repo-target validation, TTL policy, and approval-hash retry integrity
+("spend cap" enforcement lives in the llm-proxy layer, not a manager
+gate); and the approval hash is tamper-*evidence* over what was signed —
+the human approval loop remains the actual control (design §7.10's
+honesty note).*
 
 ## 10.1 The boundary that matters
 
