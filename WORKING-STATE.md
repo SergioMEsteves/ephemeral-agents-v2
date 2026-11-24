@@ -595,3 +595,11 @@ llm-proxy found down (container lost at reboot) and recreated from the
 repo-staged source; ledger follow-up opened to give it a compose/unit home.
 Remaining hardening sequence per ADR-0003: H2 memory governance, H3
 continuous evaluation, H1b rootless Podman.
+
+Twentieth update (2026-11-24): ADR-0003 H2 executed — memory-injection
+governance (D-mem-governance, TP-H2 all-PASS): untrusted-memory wrapper in
+the executor hydration contract, CoS rules 9–11 (untrusted data, 90-day
+staleness re-validation, CoS-only load-bearing writes) deployed live to the
+CoS profile, platform design §2 amended, canary injection test evidence in
+`deploy-v2/h2/`. Executor image rebuild deferred to H1b. Remaining: H3
+continuous evaluation, H1b rootless Podman.

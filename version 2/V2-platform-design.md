@@ -66,8 +66,12 @@ Decisions:
    deleted, or a branch pruned — a known cost of pointer stores, mitigated
    by the repo's own history index and by git history itself.*
 4. **The store stays on the memory VM.** It already serves every executor
-   (the hydration contract: `/memory/read` at boot, logged as
-   `M4_MEMORY_HYDRATE`) and outlives VM rebuilds. The CoS writes through
+   (the hydration contract: `/memory/read` at boot, emitted wrapped in
+   `BEGIN/END UNTRUSTED MEMORY` markers per D-mem-governance — hydrated
+   entries are untrusted data with per-entry provenance (`task_id`,
+   `agent_ref`, `created`), subject to the 90-day staleness
+   re-validation rule, and load-bearing conventions enter the store only
+   through the CoS's roll-up writes) and outlives VM rebuilds. The CoS writes through
    the same API the executors already read.
 5. **Flow:** memory surfaces a pointer ("relevant past work exists, here
    is where to look") → the CoS or executor pulls the actual document from
