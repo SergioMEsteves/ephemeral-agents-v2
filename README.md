@@ -9,6 +9,8 @@ token, does the work against a real repo, writes a report, and disappears —
 leaving zero survivors. The manager (deterministic Go, never an agent) is the
 contract-enforcer; the agent proposes, the code disposes.
 
+![Ephemeral Agents v2 — Architecture & Pipeline](assets/architecture-pipeline.jpg)
+
 ## Architecture
 
 ```
