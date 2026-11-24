@@ -261,7 +261,7 @@ unnecessary. Decisions recorded in the rewritten
   five expert lenses; closure verification + fresh analysis). Verdict:
   **ready-with-conditions**; all first-review closures verified as
   correctly applied, none reopened owner decisions. Full report persisted
-  as `version 2/V2-design-review-report.md`.
+  as `version 2/audits/2026-11-10-design-review.md`.
 - **Convergent critical finding (both panels, introduced by the
   amendments):** `cos-state/state.json` (M1 §6.8) contradicts the §5
   credential contract — the CoS is denied a GitHub token yet must push
@@ -313,7 +313,7 @@ unnecessary. Decisions recorded in the rewritten
 
 - **Third-pass review performed** (same two-panel method) against the
   fully amended state; the updated report is persisted in
-   `version 2/V2-design-review-report.md` (third-pass section appended).
+   `version 2/audits/2026-11-10-design-review.md` (third-pass section appended).
   - **Closures verified:** D12 confirmed by both panels as the correct
    resolution of the credential contradiction; assertion conditionals
    consistent; A+ hydration/token-split decisions recorded correctly. No

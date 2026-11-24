@@ -1,7 +1,7 @@
 # Version 2 — Feature List (the full offer)
 
 *Status: DRAFT v1, 2026-11-10. Derived from the decided V2 design set:
-`V2-M1-cos-design.md`, `V2-platform-design.md`, `V2-design-review-report.md`,
+`V2-M1-cos-design.md`, `V2-platform-design.md`, `audits/2026-11-10-design-review.md`,
 and the decision log. Status markers: **decided** (owner-approved, in scope),
 **trigger-gated** (policy recorded, built only when its trigger fires),
 **deferred** (owner-deferred topic, not in scope until reopened).*

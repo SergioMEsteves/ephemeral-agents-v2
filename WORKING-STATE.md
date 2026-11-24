@@ -239,7 +239,7 @@ proposes, the code disposes** — the manager validates every proposal.
   after the full installation/deployment is proven working — the closing
   deliverable, containing V2's findings and corrective actions from the
   record. **Second-pass review performed (2026-11-10, third): verdict
-  ready-with-conditions; report persisted at `version 2/V2-design-review-report.md`.**
+  ready-with-conditions; report persisted at `version 2/audits/2026-11-10-design-review.md`.**
   Convergent critical: the cos-state/state.json mechanism (M1 §6.8)
   contradicts the §5 CoS credential contract (no GitHub token) — owner
   decision required: scoped CoS repo credential (amend §5) OR local
@@ -269,7 +269,7 @@ proposes, the code disposes** — the manager validates every proposal.
   approval-hash verifier, mark 11 conditional to A+), (3) record A+
   memory-hydration + Hindsight token-split choices, (4) doc drift.
 - **2026-11-10 (fifth): THIRD-PASS REVIEW performed** (report updated in
-  `version 2/V2-design-review-report.md`). D12 confirmed correct by both
+  `version 2/audits/2026-11-10-design-review.md`). D12 confirmed correct by both
   panels; verdict **ready-with-conditions (narrowing)**. Five conditions
   before the build gate: (1) restate §5's credential allow-list (the CoS
   now holds a Hindsight write token + llm-proxy CoS-class token —
@@ -573,8 +573,17 @@ services/             Go services (evolve here as milestones require)
   identifiers, M2 gate test-case names V1–V5).
 
 Seventeenth update (2026-11-23): post-publication architecture audit
-recorded at `version 2/V2-architecture-audit-report-2026-11-23.md`
+recorded at `version 2/audits/2026-11-23-architecture-audit.md`
 (7-law review; 4 compliant, 3 P1 — egress filtering/A+ rung,
 memory-injection governance, continuous evaluation; remediation roadmap
 phases recorded). Aligns with the existing post-publication backlog:
 A+ isolation was already first.
+
+Eighteenth update (2026-11-23): audits folder convention established.
+Independent review/audit documents now live in `version 2/audits/` with
+date-led filenames: `2026-11-10-design-review.md` (the multi-pass design
+review, previously V2-design-review-report.md) and
+`2026-11-23-architecture-audit.md` (the 7-law post-publication audit).
+Build-record documents (V2-findings-report.md, V2-issue-ledger.md) stay
+in `version 2/` — the record/review distinction is deliberate. Future
+audits land in `audits/` by convention, dated in the filename.
