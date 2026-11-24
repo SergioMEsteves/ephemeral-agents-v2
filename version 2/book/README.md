@@ -14,7 +14,7 @@ acceptance request — *"add a health endpoint to the POC project"* —
 carried from the gateway through the queue to the coder's commit
 (`7c9a32c` on the task branch).
 
-![Ephemeral Agents v2 — Architecture & Pipeline](../assets/architecture-pipeline.jpg)
+![Ephemeral Agents v2 — Architecture & Pipeline](../../assets/architecture-pipeline.jpg)
 
 *The pipeline at a glance — the five stages this book walks through, from
 desktop conversation to zero-survivor reap (owner-drawn, 2026-11-23).*
