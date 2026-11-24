@@ -587,3 +587,11 @@ review, previously V2-design-review-report.md) and
 Build-record documents (V2-findings-report.md, V2-issue-ledger.md) stay
 in `version 2/` — the record/review distinction is deliberate. Future
 audits land in `audits/` by convention, dated in the filename.
+
+Nineteenth update (2026-11-24): ADR-0003 H1a executed — executor egress
+allow-list live on the execution VM (DOCKER-USER policy, systemd-persisted;
+TP-H1a all-PASS, evidence `deploy-v2/h1/evidence/`, decision D-APlus-egress).
+llm-proxy found down (container lost at reboot) and recreated from the
+repo-staged source; ledger follow-up opened to give it a compose/unit home.
+Remaining hardening sequence per ADR-0003: H2 memory governance, H3
+continuous evaluation, H1b rootless Podman.

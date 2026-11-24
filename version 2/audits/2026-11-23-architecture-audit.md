@@ -81,3 +81,6 @@
 ---
 
 **Bottom line**: 4 of 7 laws fully compliant, 3 at P1 — and every P1 is a known, documented deferral rather than an undiscovered flaw, which is itself evidence the architecture's self-audit discipline works. The single highest-leverage next build is the A+ rung; it converts the two biggest residual risks (egress, root daemon) into closed items and completes the isolation ladder's second step.
+
+---
+*Remediation status (updated 2026-11-24): Phase 1 network half executed — executor egress allow-list live on the execution VM (D-APlus-egress, TP-H1a all-PASS, `deploy-v2/h1/tp-h1a-results.md`). Remaining: H1b rootless Podman (engine half), H2 memory governance, H3 continuous evaluation — per ADR-0003.*

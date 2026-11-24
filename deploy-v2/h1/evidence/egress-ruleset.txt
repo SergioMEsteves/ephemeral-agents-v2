@@ -1,0 +1,20 @@
+Chain DOCKER-USER (1 references)
+num   pkts bytes target     prot opt in     out     source               destination         
+1      695 43068 ACCEPT     all  --  *      *       172.18.0.0/16        0.0.0.0/0            ctstate RELATED,ESTABLISHED
+2        0     0 ACCEPT     all  --  *      *       172.18.0.0/16        172.18.0.0/16       
+3        2   120 ACCEPT     tcp  --  *      *       172.18.0.0/16        192.168.0.198        tcp dpt:5000
+4        2   120 ACCEPT     tcp  --  *      *       172.18.0.0/16        192.168.0.223        tcp dpt:8082
+5        0     0 ACCEPT     tcp  --  *      *       172.18.0.0/16        192.168.0.224        tcp dpt:9999
+6        4   240 ACCEPT     tcp  --  *      *       172.18.0.0/16       !192.168.0.0/24       multiport dports 80,443
+7       32  1920 DROP       all  --  *      *       172.18.0.0/16        0.0.0.0/0           
+8      826 1381K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+enabled
+OPEN    hindsight:8082 allow
+OPEN    registry:5000 allow
+OPEN    github:443 allow
+BLOCKED gateway-VM:8083 block
+BLOCKED pve:22 block
+BLOCKED router:80 block
+BLOCKED broker:5672 block
+BLOCKED xa-ssh:22 block
