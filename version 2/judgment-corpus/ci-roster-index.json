@@ -1,0 +1,37 @@
+{
+  "agents": [
+    {
+      "ref": "ephemeral-org/eph-backend-engineer"
+    },
+    {
+      "ref": "ephemeral-org/eph-business-requirements-specialist"
+    },
+    {
+      "ref": "ephemeral-org/eph-data-engineer"
+    },
+    {
+      "ref": "ephemeral-org/eph-domain-compliance-specialist"
+    },
+    {
+      "ref": "ephemeral-org/eph-fullstack-engineer"
+    },
+    {
+      "ref": "ephemeral-org/eph-risk-assessment-analyst"
+    },
+    {
+      "ref": "ephemeral-org/eph-security-architect"
+    },
+    {
+      "ref": "ephemeral-org/eph-solution-architect"
+    },
+    {
+      "ref": "ephemeral-org/eph-stakeholder-analyst"
+    },
+    {
+      "ref": "ephemeral-org/eph-technical-feasibility-specialist"
+    },
+    {
+      "ref": "ephemeral-org/eph-unit-test-engineer"
+    }
+  ]
+}

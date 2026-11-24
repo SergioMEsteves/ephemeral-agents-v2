@@ -603,3 +603,10 @@ staleness re-validation, CoS-only load-bearing writes) deployed live to the
 CoS profile, platform design §2 amended, canary injection test evidence in
 `deploy-v2/h2/`. Executor image rebuild deferred to H1b. Remaining: H3
 continuous evaluation, H1b rootless Podman.
+
+Twenty-first update (2026-11-24): ADR-0003 H3 executed — continuous
+evaluation (D-eval-ci, TP-H3 all-PASS): corpus-as-CI-gate live
+(.github/workflows/judgment-corpus.yml + ci-roster-index.json), Layer-2 +
+trajectory-sampling cadence recorded in deploy-v2/RUNBOOK-V2-EVAL-CADENCE.md,
+sampler at deploy-v2/h3/trajectory-sample.sh. Remaining: H1b rootless
+Podman (executor image rebuild carries the H2 wrapper live at the same time).

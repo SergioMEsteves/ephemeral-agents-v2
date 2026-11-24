@@ -1,0 +1,31 @@
+# Judgment-corpus CI gate (ADR-0003 H3 / D-eval-ci)
+# Runs the Layer-1 corpus self-check on any change that could shift CoS or
+# executor behavior: the CoS profile, the corpus itself, or executor
+# entrypoints/hydration. The corpus must stay 13 fixtures, 0 errors —
+# the fixture contract is the regression harness for decomposition behavior.
+name: judgment-corpus
+on:
+  pull_request:
+    paths:
+      - "version 2/cos-profile/**"
+      - "version 2/judgment-corpus/**"
+      - "deploy-v2/m3/hermes-ephemeral/entrypoint.sh"
+      - "deploy-v2/m5/compose.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "version 2/cos-profile/**"
+      - "version 2/judgment-corpus/**"
+      - "deploy-v2/m3/hermes-ephemeral/entrypoint.sh"
+      - "deploy-v2/m5/compose.yaml"
+
+jobs:
+  corpus:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Corpus self-check (13 fixtures, 0 errors required)
+        run: |
+          python3 "version 2/judgment-corpus/check.py" \
+            --fixtures "version 2/judgment-corpus/fixtures.json" \
+            --roster "version 2/judgment-corpus/ci-roster-index.json"
