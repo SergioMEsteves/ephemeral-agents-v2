@@ -9,6 +9,18 @@
 > because the build once ran a whole fault-injection campaign against the
 > wrong body and everything "passed."
 
+![Ephemeral Agents v2 — Stages 3 & 4: durable orchestration & ephemeral execution](../../assets/stages-3-4-execution.jpg)
+
+*The execution half of the system at a glance — the durable queue and
+workflow spine (Stage 3, this chapter and Chapter 5) feeding the
+zero-survivor ephemeral container (Stage 4, this chapter and Chapter 8).
+Owner-drawn, 2026-11-23. One honesty note on a stylized render: the real
+retry policy is MaximumAttempts 2 (not 5), the Temporal namespace is
+`default`, the executor pushes its commit to a task branch
+(`origin/task/<task_id>`), and rootless-Podman/egress-allow-list
+("Rung A+") are the *next* gated hardening milestone, not current state —
+today's runtime is Docker on the execution VM (the isolation ladder is in
+the platform design §6).*
 ## 7.1 Carried forward: role ≠ body
 
 The first build's design decisions hold unchanged: a role is knowledge and
