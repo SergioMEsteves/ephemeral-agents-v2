@@ -109,6 +109,15 @@ was asked; scoped credentials (P5) record what was accessed; ephemerality
 (P4) guarantees nothing untracked lingered; memory (P6) records what was
 learned. Accountability is the *shadow* the organization casts, and it exists
 automatically once the other structures are real.
+![Ephemeral Agents v2 — the thesis: the organizational principle](../../assets/the-thesis-organizational-principle.jpg)
+
+*The chapter in one picture: the reframe, the principle set, and the
+accountable-work cycle. The render condenses this chapter's six
+principles (P1–P6) into four postulates — role specialization is P2,
+deterministic enforcement is P1, ephemerality covers P4/P5, and
+institutional memory is P6; durable work orders (P3) appear in the cycle
+as the work-order contract. The six-step cycle itself is Chapter 4's
+work order, end to end.*
 
 ## 2.3 What the theory predicts (the new doors)
 
