@@ -133,6 +133,17 @@ registrar (judgment without a check).
 
 ## 3.5 The shape, in one picture
 
+![Ephemeral Agents v2 — the organization: roles, boundaries, workflow](../../assets/the-organization.jpg)
+
+*The chapter in one picture: the org tree and role roster, the contract
+boundary with its least-privilege matrix, and the work-order lifecycle.
+Two honesty notes on a stylized render: the persona names shown are
+illustrative — the live roster holds 45 named roles across the three
+organizations (see the Agents roster), and there is no dedicated
+"memorist" agent (the memory write-back is the executor's end-of-task
+`memory/write`, Chapter 8); and spend-cap enforcement lives in the
+llm-proxy layer, not the manager.*
+
 ```
         H I T L   (you, at your desk)
               │  conversation            ▲ reports back
