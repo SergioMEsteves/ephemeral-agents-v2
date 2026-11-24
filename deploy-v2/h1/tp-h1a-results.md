@@ -25,3 +25,19 @@
 * Executors' `ANTHROPIC_BASE_URL` in the live m3.env is `https://openrouter.ai/api` directly (not the proxy); the llm-proxy :9999 path is the CoS-class route. The host-IP :9999 rule is retained for contract completeness; executors do not traverse it.
 * Firewall root-cause note for the ledger class: ufw's `deny (routed)` and Docker's DOCKER-USER chain coexist; container→host-IP traffic traverses INPUT (ufw), not DOCKER-USER — the host-IP rule is thus only effective for forwarded paths. The alias path (intra-bridge) is the operative one for executors.
 * Script insertion-order bug (DROP first) was introduced and caught during bring-up; final ruleset verified in correct order before any task ran (no task was in-flight during the wrong-order window).
+
+## Re-verification run (2026-11-24, second pass)
+
+Full gate re-executed on request. 12/12 PASS — and the re-run caught one gap the first battery had not covered:
+
+| # | Assertion | Result |
+|---|---|---|
+| 1 | Unit enabled/active; script hash `fb0e29f89836020dd7376f9a0581a1d1` | PASS |
+| 2 | Ruleset in correct order (DROP last of the ea-net set) | PASS |
+| 3 | Zero task-container survivors | PASS |
+| 4–11 | Full connectivity battery incl. openrouter.ai:443 added | PASS (10/10 as intended) |
+| 12 | Live e2e `fb913c37` success under policy | PASS |
+
+**New finding closed during re-verification:** container → own-host :22 was OPEN (container→host-IP traffic traverses ufw INPUT, which allowed ssh from Anywhere; the first battery tested ssh to *other* hosts only). Closed with `ufw insert 1 deny proto tcp from 172.18.0.0/16 to any port 22`. llm-proxy's host-IP INPUT path remains closed by design (the `ea-net` alias path is the operative executor route; verified `{}` on both).
+
+**Residual recorded:** the host-INPUT path is governed by ufw, not DOCKER-USER; any future host port opened to Anywhere re-opens it to containers. Rule for the deploy tree: host INPUT rules must never use source-less (Anywhere) allows for services reachable from the bridge.
