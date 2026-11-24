@@ -17,7 +17,7 @@ carried from the gateway through the queue to the coder's commit
 ![Ephemeral Agents v2 — Architecture & Pipeline](../../assets/architecture-pipeline.jpg)
 
 *The pipeline at a glance — the five stages this book walks through, from
-desktop conversation to zero-survivor reap (owner-drawn, 2026-11-23).*
+desktop conversation to zero-survivor reap.*
 
 **What V2 is:** the same organization — three departments, durable core,
 ephemeral workforce — rebuilt so that it can live *beside* another copy
