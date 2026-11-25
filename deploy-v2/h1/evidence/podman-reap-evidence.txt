@@ -1,0 +1,6 @@
+1
+{"time":"2026-11-25T02:25:11.552442463Z","level":"INFO","msg":"spawn","event":"spawn","task_id":"af4489c5-d521-43ee-96d8-7739e4a3311b","container_id":"d02235a7e472a668fc66f8b0432f7b36ade3b8bbd95303bc626887615f78a7ee"}
+{"time":"2026-11-25T02:25:25.779566324Z","level":"INFO","msg":"reap","event":"reap","task_id":"af4489c5-d521-43ee-96d8-7739e4a3311b","reason":"exited-0"}
+
+# zero-survivors re-check after removing the manual-replay container (ea-5e7edd0d, Hermes test spawn):
+# podman ps -aq --filter label=ea.owner=lifecycle | wc -l -> 0 (2026-11-25T02:35Z)
