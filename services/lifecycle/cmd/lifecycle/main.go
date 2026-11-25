@@ -64,10 +64,10 @@ func main() {
 	reapInterval := mustDuration("REAPER_INTERVAL", "30s")
 	reapGrace := mustDuration("REAPER_GRACE", "30s")
 	tasksDir := envOr("EA_TASKS_DIR", "/var/ea/tasks")
-	cpu, mem := parseLimits(log)
+	cpu, mem, pids := parseLimits(log)
 	cli := dockercli.New()
 
-	svc := lifecyclesvc.New(cli, log, image, defaultTTL, reapInterval, reapGrace, tasksDir, cpu, mem)
+	svc := lifecyclesvc.New(cli, log, image, defaultTTL, reapInterval, reapGrace, tasksDir, cpu, mem, pids)
 
 	// Deploy gate: refuse to serve until the pinned image exists locally.
 	ctx := context.Background()
@@ -96,7 +96,7 @@ func main() {
 	_ = srv.Shutdown(shutdown)
 }
 
-func parseLimits(log *slog.Logger) (nanoCPUs float64, memBytes int64) {
+func parseLimits(log *slog.Logger) (nanoCPUs float64, memBytes int64, pidsLimit int64) {
 	if v := os.Getenv("EA_CPU_LIMIT"); v != "" {
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil || f <= 0 {
@@ -113,5 +113,14 @@ func parseLimits(log *slog.Logger) (nanoCPUs float64, memBytes int64) {
 		}
 		memBytes = n
 	}
-	return nanoCPUs, memBytes
+	pidsLimit = 512 // default guards the podman-compat PidsLimit:0 -> pids.max=1 bug
+	if v := os.Getenv("EA_PIDS_LIMIT"); v != "" {
+		n, err := strconv.ParseInt(v, 10, 64)
+		if err != nil || n <= 0 {
+			log.Error("bad EA_PIDS_LIMIT", "value", v)
+			os.Exit(1)
+		}
+		pidsLimit = n
+	}
+	return nanoCPUs, memBytes, pidsLimit
 }

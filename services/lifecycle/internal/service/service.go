@@ -48,6 +48,7 @@ type Service struct {
 	defaultExecutor string            // M5 §4: executor when the message omits it ("" = stub pin)
 	cpuLimit     float64
 	memLimit     int64
+	pidsLimit    int64
 
 	mu          sync.Mutex
 	lastReapLog []string
@@ -57,12 +58,12 @@ type Service struct {
 // New builds the service; the CLI runs docker commands against the socket.
 var networkName = func() string { if v := os.Getenv("EA_NETWORK"); v != "" { return v }; return "ea-net" }()
 
-func New(cli *dockercli.CLI, log *slog.Logger, image string, defaultTTL, reapInterval, reapGrace time.Duration, tasksDir string, cpuLimit float64, memLimit int64) *Service {
+func New(cli *dockercli.CLI, log *slog.Logger, image string, defaultTTL, reapInterval, reapGrace time.Duration, tasksDir string, cpuLimit float64, memLimit, pidsLimit int64) *Service {
 	return &Service{
 		cli: cli, log: log, image: image, defaultTTL: defaultTTL,
 		defaultExecutor: os.Getenv("EA_EXECUTOR_DEFAULT"),
 		m3Env: m3FromEnv(),
-		tasksDir: tasksDir, reapInterval: reapInterval, reapGrace: reapGrace, cpuLimit: cpuLimit, memLimit: memLimit,
+		tasksDir: tasksDir, reapInterval: reapInterval, reapGrace: reapGrace, cpuLimit: cpuLimit, memLimit: memLimit, pidsLimit: pidsLimit,
 	}
 }
 
@@ -162,7 +163,7 @@ func (s *Service) Spawn(ctx context.Context, cfg taskconfig.TaskConfig) (taskcon
 	}
 	cid, err := s.cli.Run(ctx, dockercli.RunSpec{
 		TaskID: cfg.TaskID, Image: s.imageFor(exec), Env: env, WorkDir: workDir,
-		Expires: expires, CPUs: s.cpuLimit, MemBytes: s.memLimit, Network: networkName,
+		Expires: expires, CPUs: s.cpuLimit, MemBytes: s.memLimit, PidsLimit: s.pidsLimit, Network: networkName,
 	})
 	if err != nil {
 		return taskconfig.SpawnResponse{}, fmt.Errorf("container create: %w", err)

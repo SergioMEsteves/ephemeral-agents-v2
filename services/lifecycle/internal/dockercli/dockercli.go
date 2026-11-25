@@ -83,6 +83,7 @@ type RunSpec struct {
 	Expires  time.Time
 	CPUs     float64 // 0 = unset
 	MemBytes int64   // 0 = unset
+	PidsLimit int64  // 0 = unset
 	Network  string  // attach to this docker network (M3 §1b: ea-net)
 }
 
@@ -100,6 +101,9 @@ func (c *CLI) Run(ctx context.Context, s RunSpec) (string, error) {
 	}
 	if s.MemBytes > 0 {
 		args = append(args, "--memory", strconv.FormatInt(s.MemBytes, 10)+"b")
+	}
+	if s.PidsLimit > 0 {
+		args = append(args, "--pids-limit", strconv.FormatInt(s.PidsLimit, 10))
 	}
 	for _, e := range s.Env {
 		args = append(args, "-e", e)
