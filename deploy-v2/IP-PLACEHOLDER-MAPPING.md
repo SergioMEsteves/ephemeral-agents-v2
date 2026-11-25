@@ -20,6 +20,7 @@ included" rule hold for a public reader.
 | test clone vm-xlg-exec | 192.0.2.22 | 192.0.2.22 |
 | test clone vm-xlg-hindsight | 192.0.2.21 | 192.0.2.21 |
 | test clone vm-xlg-registry | 192.0.2.20 | 192.0.2.20 |
+| VM-Xb pasta outbound alias | 192.0.2.15 | 192.0.2.15 |
 | (doc example LAN) | 192.0.2.50–.53 | 192.0.2.50–.53 |
 | (subnet literals) | 192.0.2.0/24 | 192.0.2.0/24 |
 
