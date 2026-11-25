@@ -258,3 +258,42 @@
 [m2 04:21:52] §4 — observability spot-checks (M2.5)
 [m2 04:21:53] OK   - §4 observability evidence filed
 [m2 04:21:53] === M2 install complete ===
+[m2 03:24:24] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 03:24:24] §0 — prereq checks (M0 + M1 gates)
+[m2 03:24:24] §0   container names assumed per the M2 doc: lifecycle + worker on 192.168.0.224
+[m2 03:24:24] OK   - prereqs
+[m2 03:24:24] OK   - assets present
+[m2 03:24:24] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 03:24:24] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 03:24:53] §1   loaded ea/lifecycle:1.0.0 on 192.168.0.224
+[m2 03:25:13] §1   loaded ea/worker:1.0.0 on 192.168.0.224
+[m2 03:25:17] §1   loaded ea/executor-stub:1.0.0 on 192.168.0.224
+[m2 03:25:17] OK   - §1 build + load
+[m2 03:25:17] §2 — deploy lifecycle + worker on 192.168.0.224
+[m2 03:25:17] assumed — deploy lifecycle + worker on 192.168.0.224 (compose up -d)
+[m2 03:25:26] §2   worker registered check
+[m2 03:25:26] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 03:25:26] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 03:26:44] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 03:44:14] === M2 lifecycle install start (check-only=0 no-gate=0) ===
+[m2 03:44:14] §0 — prereq checks (M0 + M1 gates)
+[m2 03:44:14] §0   container names assumed per the M2 doc: lifecycle + worker on 192.168.0.224
+[m2 03:44:14] OK   - prereqs
+[m2 03:44:14] OK   - assets present
+[m2 03:44:14] assumed — M2: build + deploy + gate-test lifecycle/worker/stub
+[m2 03:44:14] §1 — build 3 images (Go services — mandatory; stub runs zero agent logic)
+[m2 03:44:42] §1   loaded ea/lifecycle:1.0.0 on 192.168.0.224
+[m2 03:45:02] §1   loaded ea/worker:1.0.0 on 192.168.0.224
+[m2 03:45:06] §1   loaded ea/executor-stub:1.0.0 on 192.168.0.224
+[m2 03:45:06] OK   - §1 build + load
+[m2 03:45:06] §2 — deploy lifecycle + worker on 192.168.0.224
+[m2 03:45:06] assumed — deploy lifecycle + worker on 192.168.0.224 (compose up -d)
+[m2 03:45:09] §2   worker registered check
+[m2 03:45:10] OK   - §2 lifecycle + worker deployed, no-pull gate green
+[m2 03:45:10] §3 — verification suite V1..V5 (the M2 gate tests) -> /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence/m2-tests.txt
+[m2 03:46:24] V4 — crash recovery: spawn t004 (hang, ttl 120), kill worker, reaper must get it
+[m2 03:53:51] OK   - M2 gate tests: V1..V5 PASS
+[m2 03:53:51] Next: run TP-M2 (file evidence in /home/arvisdev/Projects/AI/ephemeral-agents-v2/deploy-v2/m2/evidence).
+[m2 03:53:51] §4 — observability spot-checks (M2.5)
+[m2 03:53:52] OK   - §4 observability evidence filed
+[m2 03:53:52] === M2 install complete ===
