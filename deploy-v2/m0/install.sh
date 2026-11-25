@@ -295,7 +295,15 @@ open_firewall() {
 # ---------------------------------------------------------------- §3 rabbitmq
 declare_topology() {
   local base="http://127.0.0.1:15672"
-  local m
+  local m i
+  # rabbitmq-diagnostics ping passes ~2s before the mgmt plugin listens; wait for
+  # the mgmt API to answer (any HTTP code) before probing/declaring (fresh-boot race).
+  for i in $(seq 1 30); do
+    m="$(ssh "$VM_XB" "curl -s -o /dev/null -w '%{http_code}' $base/api/overview || true")"
+    case "$m" in 2??|401) break ;; esac
+    sleep 2
+    [ "$i" = "30" ] && die "rabbitmq mgmt API not answering on $VM_XB:15672"
+  done
   # V2 queue family: ea-tasks (durable, x-max-priority 3 — declared exactly once,
   # OQ4 single declaration point), ea-tasks.dlq, ea-tasks.response. The topic
   # exchange agent.tasks keeps its shared-estate name (the manager publishes agent.tasks.<capability>).
@@ -407,8 +415,8 @@ deploy_rabbitmq() {
     xb_own_staged /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml
     ssh "$VM_XB" "$(xb_engine) network inspect ea-net >/dev/null 2>&1 || $(xb_engine) network create ea-net"
     ssh "$VM_XB" "$(xb_engine) network connect --alias rabbitmq ea-net ea-m0-rabbitmq-rabbitmq-1 2>/dev/null || true"
-    ssh "$VM_XB" "$(xb_engine) compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
-      || ssh "$VM_XB" "$(xb_engine) exec ea-m0-rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
+    ssh "$VM_XB" "$(xb_engine) compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T -u rabbitmq rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
+      || ssh "$VM_XB" "$(xb_engine) exec -u rabbitmq ea-m0-rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
       || die "live rabbitmq not serving"
   else
   if [ "$CHECK_ONLY" != "1" ]; then
@@ -421,8 +429,8 @@ deploy_rabbitmq() {
   fi
   local i
   for i in $(seq 1 40); do
-    if ssh "$VM_XB" "$(xb_engine) compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
-      || ssh "$VM_XB" "$(xb_engine) exec ea-m0-rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1; then
+    if ssh "$VM_XB" "$(xb_engine) compose -f /opt/ea/deploy-v2/m0/rabbitmq/compose.yaml exec -T -u rabbitmq rabbitmq rabbitmq-diagnostics -q ping" >/dev/null 2>&1 \
+      || ssh "$VM_XB" "$(xb_engine) exec -u rabbitmq ea-m0-rabbitmq-rabbitmq-1 rabbitmq-diagnostics -q ping" >/dev/null 2>&1; then
       break
     fi
     sleep 3
@@ -448,7 +456,7 @@ deploy_temporal() {
     if [ "$CHECK_ONLY" != "1" ]; then
       cat > "$M0/image-tags.env" <<'PINS'
 # image pins (M0 §0 — record every pin at deploy time)
-RABBITMQ_IMAGE=rabbitmq:4-management-alpine
+RABBITMQ_IMAGE=rabbitmq:4.3.7-management-alpine@sha256:70e84f027caee3c5f5d9f0fc8910de3e0f8d1e02a5972e170544fb504dc60935
 TEMPORAL_IMAGE=temporalio/server:1.27.0
 POSTGRES_IMAGE=postgres:16
 PINS

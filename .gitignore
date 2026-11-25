@@ -1,6 +1,8 @@
 # ephemeral-agents-v2
 *.env
 .env.*
+!.env.example
+!**/.env.example
 inputs.yaml
 *.pem
 app-key*
@@ -9,7 +11,7 @@ deploy-v2/m*/evidence/
 deploy-v2/*/evidence/
 
 # compiled Go binaries (build artifacts - never commit)
-go-sdk-smoke
+deploy-v2/m0/go-sdk-smoke/go-sdk-smoke
 services/**/gateway
 services/**/manager
 services/**/adapter
