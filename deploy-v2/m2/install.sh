@@ -229,7 +229,7 @@ gate_tests() {
   # Fresh-estate ledger entry, 2026-11-20. Idempotent: deletes any workflow
   # in a non-terminal state, leaves nothing behind.
   local pend
-  pend="$(ssh "$VM_XB" "docker exec ea-m0-temporal-temporal-1 temporal workflow list \
+  pend="$(ssh "$VM_XB" "$(xb_engine) exec ea-m0-temporal-temporal-1 temporal workflow list \
     --query 'ExecutionStatus=\"Running\"' --output json 2>/dev/null" \
     | python3 -c 'import json,sys
 try:
@@ -241,7 +241,7 @@ print(len(ws)); print("\n".join(w.get("workflowId","") for w in ws))' 2>/dev/nul
   if [ "${pcount:-0}" -gt 0 ] 2>/dev/null; then
     log "§3   draining $pcount leftover pending workflow(s) from the ea-tasks queue"
     printf '%s\n' "$pend" | tail -n +2 | while read -r wid; do
-      [ -n "$wid" ] && ssh "$VM_XB" "docker exec ea-m0-temporal-temporal-1 temporal workflow delete --workflow-id '$wid' --yes 2>/dev/null" || true
+      [ -n "$wid" ] && ssh "$VM_XB" "$(xb_engine) exec ea-m0-temporal-temporal-1 temporal workflow delete --workflow-id '$wid' --yes 2>/dev/null" || true
     done
     log "§3   drain done (leftover M1-era workflows removed)"
   fi

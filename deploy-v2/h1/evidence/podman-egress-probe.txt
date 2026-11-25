@@ -1,0 +1,7 @@
+# podman egress probe (2026-11-25) — pasta:-o,192.168.0.250, ea/hermes-ephemeral:1.0.0
+# docker-compat spawn path, --entrypoint curl
+LAN8083=000        # BLOCKED: gateway VM :8083 (H1a policy: denied)
+REGISTRY5000=400   # OPEN: registry :5000 (H1a policy: allowed; 400 = registry answering)
+GITHUB443=200      # OPEN: github :443 (H1a policy: allowed)
+# NOTE: enforcement under podman does NOT traverse DOCKER-USER (pasta traffic is
+# host-originated); formal podman-path ruleset documented as follow-up.

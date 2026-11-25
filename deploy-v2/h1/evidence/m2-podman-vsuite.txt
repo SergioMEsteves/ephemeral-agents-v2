@@ -1,0 +1,17 @@
+V1 clean: success + reaped : PASS
+V2 failure: surfaced + reaped : PASS
+V3 timeout: reaped at TTL + error surfaced : PASS
+V4 crash: reaper got t004's container (zero survivors) : PASS
+run 1 (success): PASS
+run 2 (success): PASS
+run 3 (success): PASS
+run 4 (success): PASS
+run 5 (success): PASS
+run 6 (failure): PASS
+run 7 (failure): PASS
+run 8 (failure): PASS
+run 9 (timeout): PASS
+run 10 (timeout): PASS
+V5 mixed-10: all events logged : PASS
+V5 zero-survivors: 0 : PASS
+[m2 03:53:51] OK   - M2 gate tests: V1..V5 PASS
