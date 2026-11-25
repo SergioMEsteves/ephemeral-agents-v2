@@ -610,3 +610,17 @@ evaluation (D-eval-ci, TP-H3 all-PASS): corpus-as-CI-gate live
 trajectory-sampling cadence recorded in deploy-v2/RUNBOOK-V2-EVAL-CADENCE.md,
 sampler at deploy-v2/h3/trajectory-sample.sh. Remaining: H1b rootless
 Podman (executor image rebuild carries the H2 wrapper live at the same time).
+
+Twenty-second update (2026-11-25): ADR-0003 H1b executed — rootless Podman
+live on the execution VM (TP-H1b all-PASS, decision D-APlus-podman):
+full M2 V-suite V1–V5 PASS incl. V4 crash recovery + zero survivors, live
+e2e af4489c5 exit-0. Along the way: root-caused the exit-254 spawn failures
+(podman-compat maps docker CLI's PidsLimit:0 to pids.max=1; fix = explicit
+--pids-limit 512, commit 374b821); rebuilt/reloaded the executor image so
+the H2 untrusted-memory wrapper is live (grep-verified in the image); the
+TP-H1b V-suite re-run of m2/install.sh reset the M3/M5-era executor config
+to the stub (ledger 24) — re-staged M3-era compose + M5 §2' default,
+verified hermes hydration live (boot_ms=1004). Ledger 23 records the
+podman egress follow-up (pasta traffic bypasses DOCKER-USER; enforcement
+verified empirically, formal podman-path ruleset = open follow-up).
+ADR-0003 hardening complete: H1a + H1b + H2 + H3 all signed.
